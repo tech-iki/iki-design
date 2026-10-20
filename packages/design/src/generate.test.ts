@@ -174,9 +174,18 @@ function stripComments(source: string): string {
   return source.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|\s)\/\/.*$/gm, "$1");
 }
 
-/** Every six-digit hex literal left once comments are gone. */
+/**
+ * Every colour literal left once comments are gone: a hex of three, four, six
+ * or eight digits, or a functional colour (`rgb(`, `hsl(`, `oklch(` and their
+ * alpha forms). Six digits alone would let `#fff`, `#rrggbbaa` and
+ * `oklch(0.42 0.15 270)` past a guard named for keeping colours in tokens.ts.
+ */
 function hexLiterals(source: string): string[] {
-  return stripComments(source).match(/#[0-9a-fA-F]{6}\b/g) ?? [];
+  const code = stripComments(source);
+  return [
+    ...(code.match(/#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{3,4})\b/g) ?? []),
+    ...(code.match(/\b(?:rgba?|hsla?|oklch|oklab|lab|lch|color)\([^)]*\)/g) ?? []),
+  ];
 }
 
 describe("no hex literal outside tokens.ts", () => {
@@ -217,5 +226,14 @@ describe("no hex literal outside tokens.ts", () => {
     expect(hexLiterals(`const bad = "${navy}";`)).toEqual([navy]);
     expect(hexLiterals(`// navy is ${navy}\n/* and ${teal} */ const ok = 1;`)).toEqual([]);
     expect(hexLiterals(`const url = "https://example.test/${navy}";`)).toEqual([navy]);
+    // The shorter and functional forms, which a six-digit pattern let through.
+    const short = `#${navy.slice(1, 4)}`;
+    expect(hexLiterals(`const a = "${short}";`)).toEqual([short]);
+    expect(hexLiterals(`const b = "${navy}80";`)).toEqual([`${navy}80`]);
+    // Assembled in pieces so this file does not itself contain the forms it guards against.
+    const oklch = ["oklch", "(0.42_0.15_270)"].join("");
+    const rgb = ["rgb", "(18 48 74 / 50%)"].join("");
+    expect(hexLiterals(`const c = \`bg-[${oklch}]\`;`)).toEqual([oklch]);
+    expect(hexLiterals(`const d = "${rgb}";`)).toEqual([rgb]);
   });
 });

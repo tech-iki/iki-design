@@ -13,15 +13,21 @@ function slug(text: string): string {
  * (`text-sm font-semibold text-ink`, plain type, never a chip or a band) over
  * its content. The section is labelled by its heading so it is a landmark
  * region a screen reader can jump to.
+ *
+ * The heading id is derived from the title, so two sections with the same title
+ * on one page would share an id and break `aria-labelledby`. Pass `id` to
+ * override the derived one when a title has to repeat or slugs to nothing.
  */
 export function Section({
   title,
+  id: idOverride,
   children,
 }: {
   title: string;
+  id?: string;
   children: ReactNode;
 }) {
-  const id = slug(title);
+  const id = idOverride ?? slug(title);
   return (
     <section aria-labelledby={id} className="flex flex-col gap-3">
       <h2 id={id} className="text-sm font-semibold text-ink">

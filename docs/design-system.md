@@ -209,50 +209,57 @@ one does not silently move the other.
 
 ### The theme block
 
-Copy this verbatim. Its colour and font values are generated from
-`packages/design/src/tokens.ts`, and a test in the package will hold this block to
-them.
+This is `theme.css` as the package ships it, generated from
+`packages/design/src/tokens.ts`; a Tailwind v4 app imports it rather than copying
+it. `design-system-doc.test.ts` in the package holds this block, the two in
+[§13a](#13a-any-stack--custom-properties) and Appendix A to the generators, so
+the document cannot drift from the files.
 
 <!-- tokens:theme -->
 ```css
-@import "tailwindcss";
+/* Generated from tokens.ts by @tech-iki/design — do not edit; change tokens.ts */
 
 /*
- * Dark mode is dropped (ADR 0003). Remap the dark variant to a class that is
- * never applied, so legacy dark:* utilities are inert until they are stripped
- * page by page in F13–F17.
+ * Make the consuming app's Tailwind build scan this package's compiled
+ * components and class strings for utilities. Tailwind does not scan
+ * node_modules on its own, so without this `bg-teal-deep`, `focus-visible:outline-2`
+ * and the rest of the strings in ui-classes and the pill tones would never be
+ * generated, and the components would render unstyled. The path is relative
+ * to this file, which sits beside index.js in dist/.
  */
-@custom-variant dark (&:where(.dark, .dark *));
+@source "./index.js";
+
+/*
+ * index.js only re-exports. The class strings themselves live in the modules
+ * beside it, so the directory is scanned as well.
+ */
+@source "./";
 
 @theme {
-  /* Brand */
+  /* Brand and chrome */
   --color-navy: #12304a;
+  /* 4.11:1 on paper: below AA for text, clear of the 3:1 non-text threshold. Darkening it was rejected because the chart columns legitimately want the workbook hue. */
   --color-teal: #168b8c;
-  /* teal is 4.11:1 on white — below AA for text (#57). teal-deep (5.19:1)
-     carries every text-bearing teal surface; plain teal is kept for large
-     decorative fills, where 4.11:1 clears the 3:1 non-text threshold. */
+  /* 5.19:1 on paper. Added by ADR 0006 because plain teal failed AA for text. */
   --color-teal-deep: #14797a;
   --color-teal-soft: #eaf4f4;
   --color-sky: #ddeaf0;
+
+  /* Surfaces, rules and text */
+  --color-paper: #ffffff;
+  --color-paper-tint: #f4f8f9;
+  /* 1.36:1 on paper — fine for a table rule, never a control boundary, which WCAG 1.4.11 wants at 3:1. */
   --color-grid: #d5dee5;
-  /* grid is 1.36:1 on paper — fine for a table rule, but WCAG 1.4.11 wants
-     3:1 for the boundary of a control. grid-strong is 3.41:1 on paper,
-     3.19:1 on paper-tint, 3.04:1 on teal-soft. */
+  /* 3.41:1 on paper, 3.19:1 on paper-tint, 3.04:1 on teal-soft — a control boundary everywhere it is drawn. */
   --color-grid-strong: #7e8d9a;
   --color-ink: #23313d;
   --color-ink-muted: #5b6b7a;
-  --color-paper: #ffffff;
-  --color-paper-tint: #f4f8f9;
-  /* The hovered grid row (#69). Opaque, and it has to be: frozen columns
-     paint with bg-inherit, so an alpha row background lets the scrolled
-     content underneath show through the pinned cells. This is the deepest
-     tint that keeps ink-muted at 4.75:1, clear of the 4.5:1 AA floor. */
+  /* Opaque, and it has to be: frozen columns paint with bg-inherit, so an alpha row background lets the scrolled content show through the pinned cells. The deepest tint that keeps ink-muted at 4.75:1; sky (4.47:1) and grid (4.02:1) both fail it. */
   --color-row-hover: #e0f2f4;
-  /* An errored import row: health-overdue-bg at 30% over paper, flattened,
-     so the row stays opaque for the same reason. */
+  /* health-overdue-bg at 30% over paper, pre-flattened so the row stays opaque for the same reason. The teal-deep link on it is 4.66:1. */
   --color-row-error: #fcf0f0;
 
-  /* Health / status fills: light background + dark same-hue text (AA-safe) */
+  /* Status fills: a light fill and dark same-hue text */
   --color-health-overdue-bg: #f4cccc;
   --color-health-overdue-fg: #990000;
   --color-health-ontrack-bg: #d9ead3;
@@ -262,22 +269,28 @@ them.
   --color-warm-bg: #fce5cd;
   --color-warm-fg: #783f04;
   --color-info-bg: #d9eaf7;
+  /* The same hex as navy, as a separate token so a retune of one does not silently move the other. */
   --color-info-fg: #12304a;
-
-  /* Priority chips: High red, Medium warm, Low yellow (workbook) */
   --color-priority-low-bg: #fff2cc;
   --color-priority-low-fg: #7f6000;
 }
 
+/*
+ * A Next app sets these two variables through next/font (self-hosted Geist,
+ * so a `font-src 'self'` policy holds). Anything else falls back to a Geist
+ * served locally under the family name, and then to the system stack.
+ */
 @theme inline {
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-geist-sans, "Geist"), system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: var(--font-geist-mono, "Geist Mono"), ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 
-body {
-  background: var(--color-paper);
-  color: var(--color-ink);
-  font-family: var(--font-geist-sans), system-ui, sans-serif;
+@layer base {
+  body {
+    background: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+  }
 }
 ```
 
@@ -1134,22 +1147,24 @@ per-stack notes that follow.
 
 ### 13a. Any stack — custom properties
 
-The `:root` block below is exactly what `tokens.css` contains.
+The `:root` block below is `tokens.css`, exactly as the package ships it.
 
 <!-- tokens:root -->
 ```css
+/* Generated from tokens.ts by @tech-iki/design — do not edit; change tokens.ts */
+
 :root {
   --iki-navy: #12304a;
-  --iki-teal: #168b8c;            /* decorative fills only: 4.11:1 on white */
-  --iki-teal-deep: #14797a;       /* text, buttons, links, focus: 5.19:1 on white */
+  --iki-teal: #168b8c;          /* decorative fills only: 4.11:1 on white */
+  --iki-teal-deep: #14797a;     /* text, buttons, links, focus: 5.19:1 on white */
   --iki-teal-soft: #eaf4f4;
   --iki-sky: #ddeaf0;
-  --iki-grid: #d5dee5;            /* rules and dividers, never a control boundary */
-  --iki-grid-strong: #7e8d9a;     /* input and button borders: 3.41:1 on white */
-  --iki-ink: #23313d;
-  --iki-ink-muted: #5b6b7a;
   --iki-paper: #ffffff;
   --iki-paper-tint: #f4f8f9;
+  --iki-grid: #d5dee5;          /* rules and dividers, never a control boundary */
+  --iki-grid-strong: #7e8d9a;   /* input and button borders: 3.41:1 on white */
+  --iki-ink: #23313d;
+  --iki-ink-muted: #5b6b7a;
   --iki-row-hover: #e0f2f4;
   --iki-row-error: #fcf0f0;
   --iki-health-overdue-bg: #f4cccc;
@@ -1167,11 +1182,23 @@ The `:root` block below is exactly what `tokens.css` contains.
 
   --iki-font-sans: "Geist", system-ui, -apple-system, "Segoe UI", sans-serif;
   --iki-font-mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  --iki-radius: 6px;              /* pills 999px; inline links 2px; cards inside panels 4px */
+  --iki-radius: 6px;            /* pills 999px; inline links 2px; cards inside panels 4px */
   --iki-focus-width: 2px;
   --iki-focus-offset: 2px;
 }
+```
 
+And `base.css`, optional, for the body, links and the focus ring — load it after `tokens.css`:
+
+<!-- tokens:base -->
+```css
+/* Generated from tokens.ts by @tech-iki/design — do not edit; change tokens.ts */
+
+/*
+ * Optional element rules for plain-CSS consumers (a Ghost theme, WordPress,
+ * Docmost). Load tokens.css first. A Tailwind app does not need this file:
+ * theme.css sets the body, and ui-classes carries the link and focus rules.
+ */
 body {
   background: var(--iki-paper);
   color: var(--iki-ink);
@@ -1186,7 +1213,7 @@ a:hover { color: var(--iki-navy); }
   outline-offset: var(--iki-focus-offset);
 }
 /* On a navy field, teal has no contrast: */
-.on-navy :focus-visible { outline-color: #ffffff; }
+.on-navy :focus-visible { outline-color: var(--iki-paper); }
 ```
 
 ### 13b. Tailwind v4 projects — the IKI Digital Library
@@ -1403,7 +1430,7 @@ This block is `packages/design/dist/tokens.json`, generated from
 ```json
 {
   "name": "IKI design system",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "source": "tech-iki/iki-design packages/design/src/tokens.ts",
   "colour": {
     "navy": "#12304a",
@@ -1411,12 +1438,12 @@ This block is `packages/design/dist/tokens.json`, generated from
     "teal-deep": "#14797a",
     "teal-soft": "#eaf4f4",
     "sky": "#ddeaf0",
+    "paper": "#ffffff",
+    "paper-tint": "#f4f8f9",
     "grid": "#d5dee5",
     "grid-strong": "#7e8d9a",
     "ink": "#23313d",
     "ink-muted": "#5b6b7a",
-    "paper": "#ffffff",
-    "paper-tint": "#f4f8f9",
     "row-hover": "#e0f2f4",
     "row-error": "#fcf0f0",
     "health-overdue-bg": "#f4cccc",
@@ -1435,13 +1462,37 @@ This block is `packages/design/dist/tokens.json`, generated from
   "font": {
     "sans": "Geist",
     "mono": "Geist Mono",
-    "fallback": "system-ui, sans-serif",
+    "fallback": "system-ui, -apple-system, 'Segoe UI', sans-serif",
+    "mono-fallback": "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
     "email": "system-ui, -apple-system, 'Segoe UI', sans-serif"
   },
-  "type-scale-px": [10, 11, 12, 14, 16, 18, 20, 30],
-  "weights": [400, 500, 600],
-  "radius-px": { "xs": 2, "sm": 4, "md": 6, "lg": 8, "full": 9999 },
-  "breakpoints-px": { "sm": 640, "md": 768, "lg": 1024 },
+  "type-scale-px": [
+    10,
+    11,
+    12,
+    14,
+    16,
+    18,
+    20,
+    30
+  ],
+  "weights": [
+    400,
+    500,
+    600
+  ],
+  "radius-px": {
+    "xs": 2,
+    "sm": 4,
+    "md": 6,
+    "lg": 8,
+    "full": 9999
+  },
+  "breakpoints-px": {
+    "sm": 640,
+    "md": 768,
+    "lg": 1024
+  },
   "z-index": {
     "frozen-body-cell": 1,
     "sticky-header": 10,
@@ -1451,7 +1502,10 @@ This block is `packages/design/dist/tokens.json`, generated from
     "skip-link": 50
   },
   "touch-target-px": 44,
-  "contrast": { "text": 4.5, "non-text": 3 },
+  "contrast": {
+    "text": 4.5,
+    "non-text": 3
+  },
   "theme": "light-only",
   "motion": "none"
 }

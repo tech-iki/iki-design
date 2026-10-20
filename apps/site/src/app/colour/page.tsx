@@ -138,6 +138,7 @@ export default function ColourPage() {
           </P>
           <DataTable
             label="Every contrast pair the system renders"
+            scrollable
             columns={[
               { header: "What" },
               { header: "Foreground" },

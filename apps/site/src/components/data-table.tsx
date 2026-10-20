@@ -13,20 +13,29 @@ export type Column = {
  * `:nth-child`, which inverted banding under injected rows), all inside a
  * `rounded-md` bordered frame that scrolls on its own so a wide table never
  * makes the page scroll sideways.
+ *
+ * `scrollable` is the caller's statement that the table can overflow its frame
+ * at 375px. Only then does the frame take a tab stop and the focus ring, so a
+ * keyboard user can scroll it (WCAG 2.1.1, design-system §10); a frame that
+ * cannot overflow is not a tab stop.
  */
 export function DataTable({
   label,
   columns,
   rows,
+  scrollable = false,
 }: {
   label: string;
   columns: Column[];
   rows: ReactNode[][];
+  scrollable?: boolean;
 }) {
   return (
     <div
-      tabIndex={0}
-      className={`overflow-auto rounded-md border border-grid ${focusRing}`}
+      tabIndex={scrollable ? 0 : undefined}
+      className={`overflow-auto rounded-md border border-grid ${
+        scrollable ? focusRing : ""
+      }`}
     >
       <table
         aria-label={label}

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import pkg from "@tech-iki/design/package.json" with { type: "json" };
 import {
   FONT,
   PageMain,
@@ -149,14 +150,14 @@ export default function AdoptPage() {
         <P>
           These are the package’s outputs, produced here by calling the same
           functions that write <Mono>dist/</Mono>. Edit{" "}
-          <Mono>tokens.ts</Mono>, never these. The JSON is stamped with the
-          package’s version, which this page does not read, so it shows a dash.
+          <Mono>tokens.ts</Mono>, never these. The JSON block is stamped with
+          the package’s version.
         </P>
         <CodeBlock code={themeCss()} file="theme.css" generated />
         <CodeBlock code={tokensCss()} file="tokens.css" generated />
         <CodeBlock code={baseCss()} file="base.css" generated />
         <CodeBlock
-          code={JSON.stringify(tokensJson("—"), null, 2)}
+          code={JSON.stringify(tokensJson(pkg.version), null, 2)}
           file="tokens.json"
           generated
         />

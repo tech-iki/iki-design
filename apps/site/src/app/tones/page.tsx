@@ -85,6 +85,7 @@ export default function TonesPage() {
         </P>
         <DataTable
           label="The nine status tones"
+          scrollable
           columns={[
             { header: "Pill" },
             { header: "Tone" },

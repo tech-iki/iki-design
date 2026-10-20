@@ -36,6 +36,9 @@ const LOGO_INSTITUTE_LINE = "#120b4a";
 const LIBRARY_VIOLET_BLUE = "#2f429d"; // oklch(0.42 0.15 270), approximately
 const WEBSITE_PACIFIC_BLUE = "#005f73";
 const WEBSITE_LAGOON_GREEN = "#0a9396";
+/** The rejected values Work OS’s email once hard-coded; the reversed list names them. */
+const EMAIL_LINK_TEAL = "#0f766e";
+const EMAIL_INK = "#0f172a";
 
 type FamilyColour = {
   name: string;
@@ -155,7 +158,7 @@ const REVERSED: [what: string, why: string][] = [
   ["Zebra via `:nth-child`.", "It inverted banding under injected rows and erased state tints."],
   ["Nine columns hidden by default.", ""],
   ["Native `<select>` as the cell editor.", ""],
-  ["The email link teal `#0f766e` and ink `#0f172a`,", "both Tailwind lookalikes."],
+  [`The email link teal \`${EMAIL_LINK_TEAL}\` and ink \`${EMAIL_INK}\`,`, "both Tailwind lookalikes."],
   ["`[page\\:report] table`", "as an attribute selector — it matched nothing."],
   ["The scaffold’s Vercel favicon,", "which survived three weeks because every eye was on what the change added."],
 ];
@@ -220,6 +223,7 @@ export default function DecisionsPage() {
           </P>
           <DataTable
             label="Colour families across IKI surfaces"
+            scrollable
             columns={[
               { header: "Surface" },
               { header: "Colour" },
@@ -353,6 +357,7 @@ export default function DecisionsPage() {
           </P>
           <DataTable
             label="Known drift inside Work OS"
+            scrollable
             columns={[
               { header: "Drift" },
               { header: "Where" },
@@ -391,6 +396,7 @@ export default function DecisionsPage() {
       <Section title="Decision register">
         <DataTable
           label="Decision register"
+          scrollable
           columns={[
             { header: "Date" },
             { header: "Source" },

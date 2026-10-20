@@ -4,18 +4,29 @@ import { focusRing } from "@tech-iki/design";
  * A block of code or generated output. `file` names where it lives; `generated`
  * adds the "do not edit" mark the package stamps on every file it writes.
  *
- * The `<pre>` is focusable so a keyboard user can scroll a long line: it
- * scrolls inside its own frame, never the page.
+ * The `<pre>` scrolls inside its own frame, never the page. A scrollable
+ * region needs a tab stop so a keyboard user can scroll it (WCAG 2.1.1,
+ * design-system §10), but a frame that cannot overflow does not. `scrollable`
+ * therefore defaults to whether any line of `code` is longer than 60
+ * characters, and an explicit prop wins.
  */
+
+/** Longest line, in characters, that is assumed to fit a 375px frame. */
+const FITS = 60;
 export function CodeBlock({
   code,
   file,
   generated = false,
+  scrollable,
 }: {
   code: string;
   file?: string;
   generated?: boolean;
+  scrollable?: boolean;
 }) {
+  const text = code.trimEnd();
+  const focusable =
+    scrollable ?? text.split("\n").some((line) => line.length > FITS);
   return (
     <figure className="flex flex-col gap-1">
       {file ? (
@@ -25,10 +36,12 @@ export function CodeBlock({
         </figcaption>
       ) : null}
       <pre
-        tabIndex={0}
-        className={`overflow-auto rounded-md border border-grid bg-paper-tint p-3 font-mono text-xs text-ink ${focusRing}`}
+        tabIndex={focusable ? 0 : undefined}
+        className={`overflow-auto rounded-md border border-grid bg-paper-tint p-3 font-mono text-xs text-ink ${
+          focusable ? focusRing : ""
+        }`}
       >
-        <code>{code.trimEnd()}</code>
+        <code>{text}</code>
       </pre>
     </figure>
   );

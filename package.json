@@ -7,9 +7,9 @@
   "scripts": {
     "build": "npm run build -w packages/design && npm run build -w apps/site",
     "dev": "npm run dev -w apps/site",
-    "test": "npm test -ws --if-present",
-    "lint": "npm run lint -ws --if-present",
-    "typecheck": "npm run typecheck -ws --if-present"
+    "test": "npm test --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present"
   },
   "engines": {
     "node": ">=24"

@@ -20,7 +20,8 @@
     "./theme.css": "./dist/theme.css",
     "./tokens.css": "./dist/tokens.css",
     "./base.css": "./dist/base.css",
-    "./tokens.json": "./dist/tokens.json"
+    "./tokens.json": "./dist/tokens.json",
+    "./package.json": "./package.json"
   },
   "files": [
     "dist"
