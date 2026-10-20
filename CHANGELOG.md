@@ -39,3 +39,27 @@ The three rule breaks the 20 October 2026 audit found (#6,
 - §8 of the written system: `fieldClass` and `smallFieldClass` no longer show
   the `focus:outline-none` the code removed; `Pill`'s line carries its
   `whitespace-nowrap`; `invalidFieldClass` is listed.
+
+## [0.1.0] — 2026-10-20
+
+The extraction (#1, PR #4, `23063fb`): the IKI design system leaves Work OS and
+becomes a package, with this repository as its source of truth (ADR 0001).
+
+### Added
+
+- `tokens.ts`, the one place a value lives: 25 colour tokens, the Geist font
+  stacks, the type scale, weights, radii, breakpoints, z-index ladder, the
+  44px touch target, the contrast thresholds, `light-only`, no motion.
+- Generated from it: `theme.css` (Tailwind v4 `@theme`, with an `@source` so a
+  consumer's build scans the package's own classes), `tokens.css` (plain
+  `:root` custom properties), `base.css`, `tokens.json`.
+- Nine typed pill tones (`tones`, `PillTone`) and no vocabulary; the control
+  class strings (`ui-classes.ts`); the contrast arithmetic with 43 asserted
+  pairs and its negative controls (`ui-contrast.ts`); the pill width table
+  (`pill-width.ts`); four components: `Pill`, `KpiTile`, `PageTitle`,
+  `PageMain`.
+- The showcase site (`apps/site`), eight static pages, and
+  `docs/design-system.md` with its generated blocks held by test.
+
+Neither version is published to npm yet (#2); consumers install from the git
+tag and `prepare` builds `dist/`.

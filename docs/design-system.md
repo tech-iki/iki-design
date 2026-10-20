@@ -1242,7 +1242,12 @@ Steps:
 
 1. **Replace the `:root` palette in `apps/web/src/styles.css`** with the
    `@theme` block from [§4](#the-theme-block). Keep the file's cascade layers
-   and `@source` line; only the colour values change.
+   and `@source` line; only the colour values change. **Import it before any
+   `@theme` of your own:** its first declaration is `--color-*: initial`, which
+   switches Tailwind's default palette off and would take a colour you had
+   declared above it with it. The shadcn primitives' `bg-white`, `text-black`
+   and `border-gray-*` compile to nothing after this step; they become
+   `bg-paper`, `text-ink` and `border-grid`, or the semantic aliases below.
 2. **Re-point the shadcn semantic aliases** in the `@theme inline` block, per
    the table below. The alias names stay, so no component changes.
 3. **Decide the four conflicts** below and apply each once, at the token level.
@@ -1340,6 +1345,11 @@ the furniture.
   strict.
 - **No component library**, per ADR 0003 and ADR 0006. A shadcn project keeps
   its source-owned primitives and re-points their tokens.
+- **`theme.css` owns the colour namespace.** It opens with `--color-*: initial`,
+  so it is imported before any `@theme` the consumer writes, and after it the
+  only colour utilities are the 25 tokens plus `transparent`, `current` and
+  `inherit`. `white` is `paper`; `black` is `ink`. A consumer that needs a
+  colour the system lacks proposes a token, not a local `--color-*`.
 - **Light only.** Do not add a dark palette on the consumer side; propose it as
   an ADR.
 

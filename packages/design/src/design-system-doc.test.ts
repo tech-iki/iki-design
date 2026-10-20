@@ -115,22 +115,39 @@ function classLines(body: string): Record<string, string> {
 
 const CLASS_BLOCKS = ["classes:buttons", "classes:fields", "classes:cursor"] as const;
 
-describe("docs/design-system.md §8 shows the class strings as the package exports them", () => {
-  const documented = Object.assign(
-    {},
-    ...CLASS_BLOCKS.map((marker) => classLines(block(marker, "", doc, 100))),
-  ) as Record<string, string>;
+/**
+ * Every class the three §8 blocks document, name → classes. A name that appears
+ * in two blocks is an error, not a merge: the later copy would silently win
+ * and a stale earlier one would never be compared.
+ */
+function documentedClasses(source: string): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const marker of CLASS_BLOCKS) {
+    for (const [name, value] of Object.entries(classLines(block(marker, "", source, 100)))) {
+      if (name in out) throw new Error(`${name} is documented twice; the second time under ${marker}`);
+      out[name] = value;
+    }
+  }
+  return out;
+}
 
+/** The documented names whose string is not the one the code exports. */
+function drifted(source: string): string[] {
+  const exported = classes as Record<string, string>;
+  return Object.entries(documentedClasses(source))
+    .filter(([name, shown]) => shown !== exported[name])
+    .map(([name]) => name);
+}
+
+describe("docs/design-system.md §8 shows the class strings as the package exports them", () => {
   it("names every string ui-classes.ts exports, and no other", () => {
     const exported = Object.keys(classes).sort();
     expect(exported.length).toBeGreaterThanOrEqual(15);
-    expect(Object.keys(documented).sort()).toEqual(exported);
+    expect(Object.keys(documentedClasses(doc)).sort()).toEqual(exported);
   });
 
   it("gives each the string the code gives it", () => {
-    for (const [name, shown] of Object.entries(documented)) {
-      expect(shown, name).toBe((classes as Record<string, string>)[name]);
-    }
+    expect(drifted(doc)).toEqual([]);
   });
 
   it("shows Pill's own classes, whitespace-nowrap among them", () => {
@@ -159,15 +176,24 @@ describe("docs/design-system.md §8 shows the class strings as the package expor
     }
   });
 
-  // The control: put the removed class back into the document and the
-  // comparison has to notice.
+  // The controls: put the removed class back into the document and the same
+  // comparison the suite runs has to name the line; document a class twice
+  // and the merge has to refuse rather than keep one.
   it("notices a class the document shows and the code does not have", () => {
     const tampered = doc.replace(
       "focus:border-teal-deep {focusRing}\nsmallFieldClass",
       "focus:border-teal-deep focus:outline-none {focusRing}\nsmallFieldClass",
     );
     expect(tampered).not.toBe(doc);
-    const lines = classLines(block("classes:fields", "", tampered, 100));
-    expect(lines.fieldClass).not.toBe(classes.fieldClass);
+    expect(drifted(tampered)).toEqual(["fieldClass"]);
+  });
+
+  it("refuses a class documented in two blocks", () => {
+    const twice = doc.replace(
+      "<!-- classes:cursor -->\n```\n",
+      "<!-- classes:cursor -->\n```\nlinkClass   not-the-real-string\n",
+    );
+    expect(twice).not.toBe(doc);
+    expect(() => documentedClasses(twice)).toThrow(/linkClass is documented twice/);
   });
 });
