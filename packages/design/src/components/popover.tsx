@@ -10,9 +10,7 @@ import {
   popoverTriggerActiveClass,
   popoverTriggerClass,
 } from "../ui-classes.js";
-
-const FOCUSABLE =
-  'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+import { firstFocusable } from "../focusable.js";
 
 /**
  * A toolbar popover (§8 "Drawer and popover"; plan of 20 October 2026, phase
@@ -54,7 +52,11 @@ export function Popover({
 }: {
   /** The trigger's label. */
   label: ReactNode;
-  /** A count beside the label, inside the button, so it is read with the name. */
+  /**
+   * A count beside the label, inside the button, so it is read with the name
+   * ("Filters 2"). `0`, `""` and `undefined` draw no badge: a count of nothing
+   * applied is not news, and `active` says whether the filter is on.
+   */
   badge?: number | string;
   /** Draw the trigger in its open style while closed: a filter that is applied. */
   active?: boolean;
@@ -97,7 +99,7 @@ export function Popover({
           <BasePopover.Popup
             {...rest}
             ref={panelRef}
-            initialFocus={() => panelRef.current?.querySelector<HTMLElement>(FOCUSABLE) ?? true}
+            initialFocus={() => firstFocusable(panelRef.current) ?? true}
             className={className ? `${popoverPanelClass} ${className}` : popoverPanelClass}
           >
             {children}

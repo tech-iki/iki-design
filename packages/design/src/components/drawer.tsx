@@ -1,7 +1,7 @@
 "use client";
 
 import { Dialog } from "@base-ui/react/dialog";
-import { useRef, type ComponentPropsWithoutRef, type ReactNode } from "react";
+import { useRef, type ComponentPropsWithoutRef, type ReactNode, type RefObject } from "react";
 
 import {
   drawerBodyClass,
@@ -12,6 +12,7 @@ import {
   drawerScrimClass,
   iconButtonClass,
 } from "../ui-classes.js";
+import { firstFocusable } from "../focusable.js";
 import { Icon } from "./icon.js";
 
 /**
@@ -36,9 +37,6 @@ function closeReason(reason: Dialog.Root.ChangeEventReason): DrawerCloseReason {
       return "programmatic";
   }
 }
-
-const FOCUSABLE =
-  'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 /**
  * The record drawer (§8 "Drawer and popover"; plan of 20 October 2026,
@@ -93,7 +91,7 @@ export function Drawer({
   refusal?: ReactNode;
   footer?: ReactNode;
   /** Where focus lands on open; by default the body's first focusable control. */
-  initialFocus?: React.RefObject<HTMLElement | null>;
+  initialFocus?: RefObject<HTMLElement | null>;
   /** The Close button's accessible name. */
   closeLabel?: string;
   children: ReactNode;
@@ -115,10 +113,11 @@ export function Drawer({
     onOpenChange(false, closeReason(details.reason));
   }
 
-  function chooseInitialFocus(): boolean | HTMLElement | null {
-    if (initialFocus) return initialFocus.current;
-    const first = bodyRef.current?.querySelector<HTMLElement>(FOCUSABLE);
-    return first ?? true;
+  // Never `null` or `false`: in a modal that would leave nothing focused. A
+  // caller's ref that is not attached yet (async content) falls through to the
+  // body's first control, and that to Base UI's default.
+  function chooseInitialFocus(): true | HTMLElement {
+    return initialFocus?.current ?? firstFocusable(bodyRef.current) ?? true;
   }
 
   return (

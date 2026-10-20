@@ -55,7 +55,8 @@ const stack = (fallback: string) => fallback.replaceAll("'", '"');
 /**
  * The three element rules the package's overlays need (phase 1, ADR 0002),
  * shipped in both stylesheets so a consumer gets them from the one it already
- * imports. `indent` is the prefix for `theme.css`'s `@layer base` block.
+ * imports. `indent` is the prefix for `theme.css`'s `@layer base` block, which
+ * folds the `body` line into its own body rule (`body: false`).
  *
  * - `.iki-app { isolation: isolate }` — Base UI portals every popup to
  *   `document.body`; the app's content sits in its own stacking context so a
@@ -67,16 +68,21 @@ const stack = (fallback: string) => fallback.replaceAll("'", '"');
  *   a consumer that adds a transition inherits this floor. The durations are
  *   `0.01ms`, not `0`, so `transitionend` and `animationend` still fire.
  */
-export function overlayRules(indent = ""): string[] {
+export function overlayRules(indent = "", { body = true } = {}): string[] {
   return [
     "/* The app root: Base UI portals popups to <body>, and the page stays below them. */",
     ".iki-app {",
     "  isolation: isolate;",
     "}",
-    "/* iOS 26 Safari: a scrim is position: absolute and needs a positioned body. */",
-    "body {",
-    "  position: relative;",
-    "}",
+    // `theme.css` already has a body rule and takes the line into it.
+    ...(body
+      ? [
+          "/* iOS 26 Safari: a scrim is position: absolute and needs a positioned body. */",
+          "body {",
+          "  position: relative;",
+          "}",
+        ]
+      : []),
     "/* No motion (design system §6): a transition needs a motion-reduce: counterpart; this is the floor. */",
     "@media (prefers-reduced-motion: reduce) {",
     "  *,",
@@ -150,8 +156,10 @@ export function themeCss(): string {
     "    background: var(--color-paper);",
     "    color: var(--color-ink);",
     "    font-family: var(--font-sans);",
+    "    /* iOS 26 Safari: a scrim is position: absolute and needs a positioned body. */",
+    "    position: relative;",
     "  }",
-    ...overlayRules("  "),
+    ...overlayRules("  ", { body: false }),
     "}",
     "",
   );

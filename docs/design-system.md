@@ -299,14 +299,12 @@ the document cannot drift from the files.
     background: var(--color-paper);
     color: var(--color-ink);
     font-family: var(--font-sans);
+    /* iOS 26 Safari: a scrim is position: absolute and needs a positioned body. */
+    position: relative;
   }
   /* The app root: Base UI portals popups to <body>, and the page stays below them. */
   .iki-app {
     isolation: isolate;
-  }
-  /* iOS 26 Safari: a scrim is position: absolute and needs a positioned body. */
-  body {
-    position: relative;
   }
   /* No motion (design system §6): a transition needs a motion-reduce: counterpart; this is the floor. */
   @media (prefers-reduced-motion: reduce) {
