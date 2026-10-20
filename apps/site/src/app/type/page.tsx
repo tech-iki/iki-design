@@ -115,6 +115,7 @@ export default function TypePage() {
         </P>
         <DataTable
           label="The type scale in use"
+          scrollable
           columns={[
             { header: "Size", numeric: true },
             { header: "Class" },
@@ -138,6 +139,7 @@ export default function TypePage() {
       <Section title="Weight, tracking, numerals">
         <DataTable
           label="The three weights"
+          scrollable
           columns={[
             { header: "Weight", numeric: true },
             { header: "Class" },

@@ -25,8 +25,15 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
          * `iki-app` is the stacking root §13 names: `theme.css` gives it
          * `isolation: isolate`, so the overlays Base UI portals to <body> sit
          * above everything in here whatever z-index the page uses.
+         *
+         * `min-w-0` because this is a flex item of <body>, and a flex item will
+         * not shrink below its min-content width by default. Without it the
+         * widest line of any code block or table set that width, and every page
+         * scrolled sideways at 375px. The `min-w-0` on the column below only
+         * lets the column shrink inside this row; it cannot stop this row
+         * growing.
          */}
-        <div className="iki-app flex min-h-full flex-1">
+        <div className="iki-app flex min-h-full min-w-0 flex-1">
           <a
             href="#main-content"
             className="sr-only z-50 rounded-md bg-paper px-3 py-2 text-sm font-semibold text-ink focus:not-sr-only focus:fixed focus:left-2 focus:top-2"
