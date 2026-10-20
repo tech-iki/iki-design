@@ -55,13 +55,12 @@ workflow asks. **Gated:** it does not merge until Work OS's port
 - ADR 0002 in `docs/decisions`, two §15 rows, §8 blocks for the four, held by
   `overlays.test.tsx`; a test that every client-only file carries the directive.
 
-### Phase 0 — goes out as 0.3.0
+## [0.3.0] — 2026-10-21
 
 Phase 0 of the plan of 20 October 2026
 (`docs/plans/2026-10-20-components-and-icons.md`, decided by Brian on 21
 October): the components the consumers' counts asked for, and one icon source.
-Goes out as **0.3.0**, a minor, in its own version-bump PR as the workflow
-asks; the breaking note below is why it is not a major.
+A minor; the breaking note below is why it is not a major.
 
 ### Changed
 
