@@ -1,0 +1,29 @@
+# dependencies
+node_modules/
+
+# generated from packages/design/src/tokens.ts — never edited, never committed
+packages/design/dist/
+
+# next.js
+.next/
+out/
+next-env.d.ts
+
+# testing
+coverage/
+
+# misc
+.DS_Store
+*.pem
+*.tsbuildinfo
+npm-debug.log*
+
+# env files
+.env*
+!.env.example
+
+# vercel
+.vercel
+
+# local Claude Code settings
+.claude/settings.local.json
