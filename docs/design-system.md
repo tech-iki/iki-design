@@ -1539,7 +1539,7 @@ This block is `packages/design/dist/tokens.json`, generated from
 ```json
 {
   "name": "IKI design system",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "source": "tech-iki/iki-design packages/design/src/tokens.ts",
   "colour": {
     "navy": "#12304a",
