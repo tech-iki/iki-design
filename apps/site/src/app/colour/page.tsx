@@ -200,7 +200,7 @@ export default function ColourPage() {
                 Work OS’s source has no `bg-zinc-*`, no `text-gray-*` and no numbered palette utility. The only hex outside its token files is Google’s four brand colours on the sign-in button, which are Google’s and literal on purpose. This site follows the same rule.
               </Rule>,
               <Rule key="rail" lead="The navy rail uses white at fixed alphas:">
-                {`text \`white/75\` (${whiteOnNavy(0.75)}), saved views \`white/70\` (${whiteOnNavy(0.7)}), group headings \`white/50\` (${whiteOnNavy(0.5)}), hover \`white/10\`, active fill \`white/12\`, rules \`white/15\`, and the sign-out border \`white/50\`, a boundary that needs only ${THRESHOLD.nonText}:1.`}
+                {`text \`paper/75\` (${whiteOnNavy(0.75)}), saved views \`paper/70\` (${whiteOnNavy(0.7)}), group headings \`paper/50\` (${whiteOnNavy(0.5)}), hover \`paper/10\`, active fill \`paper/12\`, rules \`paper/15\`, and the sign-out border \`paper/50\`, a boundary that needs only ${THRESHOLD.nonText}:1. \`white\` itself is not a utility here: theme.css switches Tailwind's palette off, so \`paper\` is the only white.`}
               </Rule>,
             ]}
           />

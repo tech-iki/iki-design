@@ -78,7 +78,7 @@ function Specimen({
 }
 
 /** The sign-out button's on-navy treatment, design-system §8. */
-const ON_NAVY_BUTTON = `flex ${touchTarget} items-center justify-center gap-2 rounded-md border border-white/50 p-1.5 text-sm text-white/90 hover:bg-white/10 hover:text-white ${focusRingOnNavy}`;
+const ON_NAVY_BUTTON = `flex ${touchTarget} items-center justify-center gap-2 rounded-md border border-paper/50 p-1.5 text-sm text-paper/90 hover:bg-paper/10 hover:text-paper ${focusRingOnNavy}`;
 
 const KPI_USE = `<KpiTile label="Overdue" value={3} hint="past their deadline" tone="bad" />`;
 

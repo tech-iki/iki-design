@@ -106,7 +106,7 @@ const DRIFT: [drift: string, where: string, fix: string][] = [
     "Either `focusRingOnNavy` with an inset offset, or write the geometric reason down",
   ],
   [
-    "The rail’s `white/50`, `/70` and `/75` text pairs render but are not in `TOKEN_PAIRS`; all pass, the 11px headings by 0.09",
+    "The rail’s `paper/50`, `/70` and `/75` text pairs (still written `white/…` in Work OS, which `theme.css` 0.2.0 no longer compiles) render but are not in `TOKEN_PAIRS`; all pass, the 11px headings by 0.09",
     "`app-sidebar.tsx`",
     "Add them; the file claims the list is complete",
   ],
