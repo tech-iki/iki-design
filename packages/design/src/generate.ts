@@ -73,6 +73,14 @@ export function themeCss(): string {
     '@source "./";',
     "",
     "@theme {",
+    "  /*",
+    "   * Tailwind's default palette is switched off before the tokens are declared, so",
+    "   * `bg-red-500` or `text-white` in a consumer compiles to nothing: the system's",
+    "   * \"no raw palette classes\" rule is a build fact, not a review note (#6).",
+    "   * `paper` is the system's white and `ink` its black.",
+    "   */",
+    "  --color-*: initial;",
+    "",
   );
 
   let group: ColourGroup | undefined;

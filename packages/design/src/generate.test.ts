@@ -92,6 +92,15 @@ describe("theme.css", () => {
     expect(css).toContain(`var(${FONT.mono.variable}, "${FONT.mono.family}")`);
   });
 
+  it("switches Tailwind's default palette off before declaring the tokens (#6)", () => {
+    const reset = css.indexOf("--color-*: initial;");
+    const first = css.indexOf(`--color-${COLOURS[0].name}:`);
+    expect(reset).toBeGreaterThan(css.indexOf("@theme {"));
+    expect(reset).toBeLessThan(first);
+    // Only the one reset: a second would also switch the tokens off.
+    expect(css.match(/--color-\*: initial;/g)).toHaveLength(1);
+  });
+
   it("declares the colours inside @theme and nowhere else", () => {
     const theme = css.slice(css.indexOf("@theme {"), css.indexOf("@theme inline"));
     expect(declarations(theme, "color")).toHaveLength(25);

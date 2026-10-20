@@ -49,11 +49,16 @@ export function colourLiteralsOutsideConstants(source: string): string[] {
     .flatMap((line) => (FOREIGN_CONSTANT.test(line) ? [] : colourLiterals(line)));
 }
 
-/** Raw Tailwind palette classes (`bg-zinc-100`); the system's `bg-teal-deep` has no numeric suffix. */
+/**
+ * Raw Tailwind palette classes (`bg-zinc-100`); the system's `bg-teal-deep` has
+ * no numeric suffix. `white` and `black` count too: `theme.css` switches the
+ * default palette off (#6), so `text-white` is not a lighter shade of anything,
+ * it is a class that compiles to nothing. The system's white is `paper`.
+ */
 export function paletteClasses(source: string): string[] {
   return (
     source.match(
-      /\b(?:bg|text|border|ring|outline|fill|stroke|divide|from|to|via)-(?:slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-\d{2,3}\b/g,
+      /\b(?:bg|text|border|ring|outline|fill|stroke|divide|from|to|via)-(?:(?:slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-\d{2,3}|white|black)\b/g,
     ) ?? []
   );
 }
@@ -131,8 +136,14 @@ describe("controls: each matcher catches what it guards against", () => {
     expect(paletteClasses('className="bg-zinc-100"')).toEqual(["bg-zinc-100"]);
     expect(paletteClasses("bg-teal-600")).toEqual(["bg-teal-600"]);
     expect(paletteClasses("text-gray-500")).toEqual(["text-gray-500"]);
+    expect(paletteClasses("text-white hover:bg-white/10 outline-black")).toEqual([
+      "text-white",
+      "bg-white",
+      "outline-black",
+    ]);
     expect(paletteClasses("bg-teal-deep")).toEqual([]);
     expect(paletteClasses("bg-sky")).toEqual([]);
+    expect(paletteClasses("text-paper/75")).toEqual([]);
   });
 
   it("catches a Pill that can wrap, not one that cannot", () => {

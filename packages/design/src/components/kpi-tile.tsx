@@ -31,7 +31,7 @@ export function KpiTile({
    */
   return (
     <div className="flex flex-col overflow-hidden rounded-md border border-grid">
-      <p className="bg-teal-deep px-3 py-1.5 text-center text-xs font-semibold uppercase tracking-wide text-white">
+      <p className="bg-teal-deep px-3 py-1.5 text-center text-xs font-semibold uppercase tracking-wide text-paper">
         {label}
       </p>
       <div className="flex-1 bg-teal-soft px-3 py-4 text-center">

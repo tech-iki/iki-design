@@ -236,6 +236,14 @@ the document cannot drift from the files.
 @source "./";
 
 @theme {
+  /*
+   * Tailwind's default palette is switched off before the tokens are declared, so
+   * `bg-red-500` or `text-white` in a consumer compiles to nothing: the system's
+   * "no raw palette classes" rule is a build fact, not a review note (#6).
+   * `paper` is the system's white and `ink` its black.
+   */
+  --color-*: initial;
+
   /* Brand and chrome */
   --color-navy: #12304a;
   /* 4.11:1 on paper: below AA for text, clear of the 3:1 non-text threshold. Darkening it was rejected because the chart columns legitimately want the workbook hue. */
@@ -358,10 +366,11 @@ The maps below are Work OS's. The package exports only the tone constants and th
   palette utility: zero hits. Searched for six-digit hex outside Work OS's
   `globals.css` and `email-chrome.ts`, and outside the package's `ui-contrast.ts`: the only hits are Google's four brand
   colours on the sign-in button, which are Google's and literal on purpose.
-- **The navy rail uses white at fixed alphas:** text `white/75` (8.29:1), saved
-  views `white/70` (7.44:1), group headings `white/50` (4.59:1), hover
-  `white/10`, active fill `white/12`, rules `white/15`, the sign-out border
-  `white/50` (3:1 as a boundary).
+- **The navy rail uses paper at fixed alphas:** text `paper/75` (8.29:1), saved
+  views `paper/70` (7.44:1), group headings `paper/50` (4.59:1), hover
+  `paper/10`, active fill `paper/12`, rules `paper/15`, the sign-out border
+  `paper/50` (3:1 as a boundary). `white` itself is not a utility: `theme.css`
+  switches Tailwind's default palette off, so `paper` is the only white.
 
 ## 5. Typography
 
@@ -505,7 +514,7 @@ function railClasses(collapsed: boolean) {
 - **224px from `lg`, 56px below it or when collapsed.** Below `lg`, 224px of
   navigation would leave a phone about 150px of content.
 - **Groups:** Work, Setup, Admin (admin only), each headed in 11px uppercase
-  `text-white/50`. Guide sits in the footer, because it is reference rather than
+  `text-paper/50`. Guide sits in the footer, because it is reference rather than
   work.
 - **The collapse preference is a cookie, not localStorage,** so the server
   renders the rail at its final width on first paint and it does not jump.
@@ -516,8 +525,8 @@ function railClasses(collapsed: boolean) {
 // NavLink
 className={`relative flex min-h-11 min-w-11 items-center gap-3 rounded-md py-2 text-sm md:min-h-0 md:min-w-0 ${focusRingOnNavy} ${rail.row} ${
   active
-    ? "bg-white/12 font-semibold text-white before:absolute before:inset-y-1 before:left-0 before:w-0.5 before:rounded-full before:bg-white"
-    : "font-medium text-white/75 hover:bg-white/10 hover:text-white"
+    ? "bg-paper/12 font-semibold text-paper before:absolute before:inset-y-1 before:left-0 before:w-0.5 before:rounded-full before:bg-paper"
+    : "font-medium text-paper/75 hover:bg-paper/10 hover:text-paper"
 }`}
 ```
 
@@ -638,12 +647,13 @@ There is no component library. These class strings are the library.
 
 ### Buttons
 
+<!-- classes:buttons -->
 ```
 touchTarget          min-h-11 min-w-11 md:min-h-0 md:min-w-0
 focusRing            focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-deep
-focusRingOnNavy      focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white
+focusRingOnNavy      focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-paper
 
-primaryButtonClass   {touchTarget} rounded-md bg-teal-deep px-3 py-2 text-sm font-semibold text-white hover:bg-navy disabled:opacity-50 {focusRing}
+primaryButtonClass   {touchTarget} rounded-md bg-teal-deep px-3 py-2 text-sm font-semibold text-paper hover:bg-navy disabled:opacity-50 {focusRing}
 subtleButtonClass    {touchTarget} rounded-md border border-grid-strong px-2.5 py-1.5 text-xs text-ink hover:bg-teal-soft disabled:opacity-50 {focusRing}
 warnButtonClass      {touchTarget} rounded-md border border-warm-fg/70 px-2.5 py-1.5 text-xs text-warm-fg hover:bg-warm-bg disabled:opacity-50 {focusRing}
 iconButtonClass      {touchTarget} inline-flex items-center justify-center rounded-md p-1.5 text-ink-muted hover:bg-teal-soft hover:text-ink disabled:opacity-50 {focusRing}
@@ -660,14 +670,16 @@ linkClass            text-teal-deep underline hover:text-navy rounded-xs {focusR
   is `aria-hidden`. **A confirm step stays in words** — a resting action can be
   recognised from its icon, but "yes, really" has to be read.
 - **On navy**, the sign-out button is
-  `flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-md border border-white/50 p-1.5 text-sm text-white/90 hover:bg-white/10 hover:text-white md:min-h-0 md:min-w-0 {focusRingOnNavy}`.
+  `flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-md border border-paper/50 p-1.5 text-sm text-paper/90 hover:bg-paper/10 hover:text-paper md:min-h-0 md:min-w-0 {focusRingOnNavy}`.
 
 ### Fields and labels
 
+<!-- classes:fields -->
 ```
-fieldClass       {touchTarget} rounded-md border border-grid-strong px-3 py-2 text-sm text-ink focus:border-teal-deep focus:outline-none {focusRing}
-smallFieldClass  {touchTarget} rounded-md border border-grid-strong px-2 py-1.5 text-sm text-ink focus:border-teal-deep focus:outline-none {focusRing}
-labelClass       flex flex-col gap-1 text-xs font-medium text-ink
+fieldClass         {touchTarget} rounded-md border border-grid-strong px-3 py-2 text-sm text-ink focus:border-teal-deep {focusRing}
+smallFieldClass    {touchTarget} rounded-md border border-grid-strong px-2 py-1.5 text-sm text-ink focus:border-teal-deep {focusRing}
+invalidFieldClass  {fieldClass} border-health-overdue-fg bg-health-overdue-bg
+labelClass         flex flex-col gap-1 text-xs font-medium text-ink
 ```
 
 The label wraps its control, so the click target includes the label and no
@@ -675,8 +687,10 @@ The label wraps its control, so the click target includes the label and no
 decision-feedback textarea is a sibling of its label and is joined by
 `htmlFor`/`id`. Forms are `gap-4`; a label's
 own parts are `gap-1`. Errors sit under the field as `role="alert"` text in
-`text-health-overdue-fg`. `focus:outline-none` appears only alongside an
-explicit `focus-visible` ring, never on its own.
+`text-health-overdue-fg`, with `aria-invalid` on the field and `invalidFieldClass`
+for its border and fill. The native outline is never reset: under Tailwind v4
+`focus:outline-none` nulls the variable `focusRing` draws its style from, so on
+keyboard focus the ring vanished and only the border moved (Work OS #315).
 
 **A refused action costs the click, not the page.** The form stays, the reason
 appears, the values are kept (#157). Pending state is the verb in progress with
@@ -686,11 +700,12 @@ sentence in `text-ink-muted`, and a failure says so in `warm-fg`.
 
 ### Pill, chip, tile
 
+<!-- classes:pill -->
 ```
-Pill      inline-block rounded-full px-2 py-0.5 text-xs font-medium {tone: PillTone}
+Pill      inline-block whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-medium {tone: PillTone}
 chip      rounded bg-teal-soft px-1.5 py-0.5 font-mono text-xs text-navy
 KpiTile   flex flex-col overflow-hidden rounded-md border border-grid
-  label   bg-teal-deep px-3 py-1.5 text-center text-xs font-semibold uppercase tracking-wide text-white
+  label   bg-teal-deep px-3 py-1.5 text-center text-xs font-semibold uppercase tracking-wide text-paper
   body    flex-1 bg-teal-soft px-3 py-4 text-center
   value   text-3xl font-semibold tabular-nums text-navy | text-warm-fg | text-health-overdue-fg
 ```
@@ -728,7 +743,7 @@ height, and an override would defeat a caller that chose `items-start`.
 ```
 frame          relative overflow-auto rounded-md border border-grid print:max-h-none print:overflow-visible {maxHeightClass}
 table          border-collapse text-left text-sm {sticky when bounded} {STACKED when stacked} {table-fixed | w-full} {minWidthClass}
-theadClass     bg-navy text-xs uppercase tracking-wide text-white
+theadClass     bg-navy text-xs uppercase tracking-wide text-paper
 thClass        z-10 bg-navy px-3 py-2 font-semibold whitespace-nowrap
 tbodyClass     divide-y divide-grid
 tdClass        px-3 py-2
@@ -758,6 +773,7 @@ gridHeightClass  max-h-[calc(100vh-15rem)]
 
 ### Grid cursor
 
+<!-- classes:cursor -->
 ```
 cellCursor  outline-2 -outline-offset-2 outline-teal-deep
 cellHover   hover:outline hover:outline-1 hover:-outline-offset-1 hover:outline-teal-deep
@@ -802,7 +818,7 @@ drawer root    fixed inset-0 z-40 flex justify-end
        footer  border-t border-grid-strong px-4 py-3
 
 popover trigger  {subtleButtonClass} whitespace-nowrap  + active: border-teal-deep bg-teal-soft font-semibold
-        badge    ml-1.5 rounded-full bg-teal-deep px-1.5 text-[11px] font-semibold text-white
+        badge    ml-1.5 rounded-full bg-teal-deep px-1.5 text-[11px] font-semibold text-paper
         panel    absolute left-0 top-full z-30 mt-1 w-80 rounded-md border border-grid-strong bg-paper p-2 shadow-lg
         option   flex items-center gap-2 rounded px-1 py-1 text-sm text-ink hover:bg-teal-soft
 ```
@@ -952,7 +968,7 @@ Conventions:
 | 1.4.3 | Text pairs clear 4.5:1 — every pair the app renders is listed in `TOKEN_PAIRS` and tested |
 | 1.4.11 | Control boundaries, focus rings and meaningful graphics clear 3:1 |
 | 1.4.1 | Colour is never the only signal: labels inside pills, weight and a bar on active nav, `line-through` on Cancelled, `aria-invalid` beside a red border |
-| 2.4.7 | One focus indicator, defined once, on every control; `focus:outline-none` only beside a `focus-visible` ring |
+| 2.4.7 | One focus indicator, defined once, on every control; the native outline is never reset, because `focus:outline-none` nulls the ring (Work OS #315) |
 | 2.5.8 | 44 × 44px targets below `md`; desktop keeps its density |
 | 2.4.1 | A skip link, first in the DOM, hidden until focused, targeting a focusable `<main>` |
 | 4.1.2 | Icon-only controls carry an `sr-only` name and a `title`; icons are `aria-hidden`; a name and an identical description are never both given |
@@ -1337,7 +1353,7 @@ button). A consumer should copy the rule, not the exception; each of these is a 
 | --- | --- | --- |
 | The login inputs and the import page's inputs hand-write their field classes, so they lack the 44px floor; the login labels are `text-sm` where every other label is `text-xs` | `login-form.tsx`, `import-manager.tsx` | Use `fieldClass`/`labelClass`, or record why the login page differs |
 | The column-resize handle is the only control with `focus-visible:outline-none` and a fill instead of a ring, with no comment saying why | `column-resizer.tsx` | Either `focusRingOnNavy` with an inset offset, or write the geometric reason down |
-| The rail's `white/50`, `/70` and `/75` text pairs render but are not in `TOKEN_PAIRS`; all pass, the 11px headings by 0.09 | `app-sidebar.tsx` | Add them; the file claims the list is complete |
+| The rail's `paper/50`, `/70` and `/75` text pairs (still written `white/…` in Work OS, which `theme.css` 0.2.0 no longer compiles) render but are not in `TOKEN_PAIRS`; all pass, the 11px headings by 0.09 | `app-sidebar.tsx` | Add them; the file claims the list is complete |
 | Confirmations are plain text while refusals carry `role="alert"`, so a screen reader hears what failed and not what worked | `tasks-manager.tsx` | `role="status"` on the success notice |
 | The workstream chip is copied three times and one copy wraps a task reference, not a workstream code | dashboard, workstreams, Summary | Extract a component, and decide which identifier gets a chip |
 | The import summary chips are a third KPI-tile shape | `import-manager.tsx` | Give `KpiTile` a compact size |
@@ -1430,7 +1446,7 @@ This block is `packages/design/dist/tokens.json`, generated from
 ```json
 {
   "name": "IKI design system",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "source": "tech-iki/iki-design packages/design/src/tokens.ts",
   "colour": {
     "navy": "#12304a",

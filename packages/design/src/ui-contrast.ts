@@ -165,6 +165,13 @@ export const TOKEN_PAIRS: {
   { what: "pill: neutral (grid fill)", fg: TOKENS.ink, bg: TOKENS.grid, kind: "text" },
   { what: "pill: completed (teal-soft fill)", fg: TOKENS.navy, bg: TOKENS.tealSoft, kind: "text" },
 
+  // The KPI tile's value, in each of its three tones, on the tile's teal-soft body.
+  // The neutral tone is navy on teal-soft, asserted above. Found missing by the
+  // 20 October 2026 audit (#6): the only component that rendered a pair this
+  // list did not hold.
+  { what: "KPI tile: warn value on teal-soft", fg: TOKENS.warmFg, bg: TOKENS.tealSoft, kind: "text" },
+  { what: "KPI tile: bad value on teal-soft", fg: TOKENS.healthOverdueFg, bg: TOKENS.tealSoft, kind: "text" },
+
   // Control boundaries and meaningful graphics — 3:1
   { what: "input border on paper", fg: TOKENS.gridStrong, bg: TOKENS.paper, kind: "nonText" },
   { what: "input border on paper-tint", fg: TOKENS.gridStrong, bg: TOKENS.paperTint, kind: "nonText" },
@@ -192,7 +199,7 @@ export const TOKEN_PAIRS: {
     kind: "nonText",
   },
   {
-    what: "sign-out border: white/50 on navy",
+    what: "sign-out border: paper/50 on navy",
     fg: blend(TOKENS.paper, 0.5, TOKENS.navy),
     bg: TOKENS.navy,
     kind: "nonText",

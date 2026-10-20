@@ -72,7 +72,7 @@ export const cellHover =
 
 /** Focus indicator for controls on a navy field, where teal has no contrast. */
 export const focusRingOnNavy =
-  "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white";
+  "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-paper";
 
 /**
  * No `focus:outline-none` on the fields (Work OS #315). Under Tailwind v4 it sets
@@ -100,7 +100,7 @@ export const invalidFieldClass =
   `${fieldClass} border-health-overdue-fg bg-health-overdue-bg`;
 
 export const primaryButtonClass =
-  `${touchTarget} rounded-md bg-teal-deep px-3 py-2 text-sm font-semibold text-white hover:bg-navy disabled:opacity-50 ${focusRing}`;
+  `${touchTarget} rounded-md bg-teal-deep px-3 py-2 text-sm font-semibold text-paper hover:bg-navy disabled:opacity-50 ${focusRing}`;
 
 /**
  * A row action reduced to its icon (Work OS #95).

@@ -25,11 +25,11 @@ export function SiteNav() {
       <div className="flex items-center gap-2 px-3 py-4">
         <span
           aria-hidden="true"
-          className="grid size-7 shrink-0 place-items-center rounded-full bg-white/12 font-mono text-xs font-semibold text-white"
+          className="grid size-7 shrink-0 place-items-center rounded-full bg-paper/12 font-mono text-xs font-semibold text-paper"
         >
           iki
         </span>
-        <span className="max-lg:sr-only text-sm font-semibold text-white">IKI design</span>
+        <span className="max-lg:sr-only text-sm font-semibold text-paper">IKI design</span>
       </div>
       <nav aria-label="Sections" className="flex flex-col gap-1 px-2">
         {SECTIONS.map((s) => (
@@ -37,7 +37,7 @@ export function SiteNav() {
             key={s.href}
             href={s.href}
             title={s.blurb}
-            className={`flex min-h-11 items-center justify-center rounded-md px-0 py-2 text-sm font-medium text-white/75 hover:bg-white/10 hover:text-white md:min-h-0 lg:justify-start lg:px-3 ${focusRingOnNavy}`}
+            className={`flex min-h-11 items-center justify-center rounded-md px-0 py-2 text-sm font-medium text-paper/75 hover:bg-paper/10 hover:text-paper md:min-h-0 lg:justify-start lg:px-3 ${focusRingOnNavy}`}
           >
             <span className="max-lg:sr-only">{s.label}</span>
             <span aria-hidden="true" className="font-mono text-xs lg:hidden">
@@ -46,7 +46,7 @@ export function SiteNav() {
           </Link>
         ))}
       </nav>
-      <p className="mt-auto px-3 py-4 text-[11px] uppercase tracking-wider text-white/50 max-lg:sr-only">
+      <p className="mt-auto px-3 py-4 text-[11px] uppercase tracking-wider text-paper/50 max-lg:sr-only">
         @tech-iki/design
       </p>
     </aside>

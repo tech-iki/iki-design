@@ -41,7 +41,7 @@ export function DataTable({
         aria-label={label}
         className="w-full border-collapse text-left text-sm"
       >
-        <thead className="bg-navy text-xs uppercase tracking-wide text-white">
+        <thead className="bg-navy text-xs uppercase tracking-wide text-paper">
           <tr>
             {columns.map((c) => (
               <th

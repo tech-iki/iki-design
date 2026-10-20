@@ -1,6 +1,6 @@
 {
   "name": "@tech-iki/design",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "The IKI design system: colour tokens, status tones, control classes and shared components",
   "license": "UNLICENSED",
   "repository": {
