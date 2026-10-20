@@ -1,0 +1,7 @@
+@import "tailwindcss";
+/*
+ * The design system, from the package this site exists to show. Every token,
+ * the font stack and the body rule come from here; this file adds nothing of
+ * its own, which is the point — the site must look like what it documents.
+ */
+@import "@tech-iki/design/theme.css";

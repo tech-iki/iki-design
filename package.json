@@ -1,0 +1,17 @@
+{
+  "name": "iki-design",
+  "private": true,
+  "version": "0.0.0",
+  "description": "The IKI design system: the package every IKI app imports, and the site that shows it",
+  "workspaces": ["packages/*", "apps/*"],
+  "scripts": {
+    "build": "npm run build -w packages/design && npm run build -w apps/site",
+    "dev": "npm run dev -w apps/site",
+    "test": "npm test -ws --if-present",
+    "lint": "npm run lint -ws --if-present",
+    "typecheck": "npm run typecheck -ws --if-present"
+  },
+  "engines": {
+    "node": ">=24"
+  }
+}
