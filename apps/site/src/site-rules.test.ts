@@ -94,6 +94,17 @@ export function sectionTitles(source: string): string[] {
   return titles;
 }
 
+/**
+ * `className` strings that grow a flex item (`flex-1`) without `min-w-0`. A
+ * flex item will not shrink below its min-content width, so one such item in
+ * the shell lets the widest code block or table widen the whole page.
+ */
+export function growingWithoutMinW0(source: string): string[] {
+  return (source.match(/className="[^"]*"/g) ?? []).filter(
+    (c) => /\bflex-1\b/.test(c) && !/\bmin-w-0\b/.test(c),
+  );
+}
+
 export function duplicates(items: string[]): string[] {
   return items.filter((item, i) => items.indexOf(item) !== i);
 }
@@ -168,6 +179,13 @@ describe("controls: each matcher catches what it guards against", () => {
     expect(motionClasses('className="px-3"')).toEqual([]);
   });
 
+  it("catches a growing flex item that cannot shrink", () => {
+    expect(growingWithoutMinW0('<div className="iki-app flex flex-1">')).toEqual([
+      'className="iki-app flex flex-1"',
+    ]);
+    expect(growingWithoutMinW0('<div className="flex min-w-0 flex-1">')).toEqual([]);
+  });
+
   it("collects section titles and finds repeats", () => {
     const fixture = '<Section title="A">x</Section><Section title={`B`}>y</Section><Section title="A">z</Section>';
     expect(sectionTitles(fixture)).toEqual(["A", "B", "A"]);
@@ -211,6 +229,12 @@ describe("the site obeys the system's rules", () => {
 
   it("has no transition or animation class", () => {
     for (const f of files) expect(motionClasses(f.source), f.name).toEqual([]);
+  });
+
+  it("lets every growing flex item in the shell shrink, so no page scrolls sideways at 375px", () => {
+    const shell = files.find((f) => f.name === join("app", "layout.tsx"));
+    expect(shell).toBeDefined();
+    expect(growingWithoutMinW0(shell!.source)).toEqual([]);
   });
 
   it("gives no two sections of one file the same title, so heading ids stay unique", () => {
