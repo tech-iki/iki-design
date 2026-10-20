@@ -249,7 +249,11 @@ question 4.
 2. **Vendored Lucide paths in a generated, typed `Icon`**, not a `lucide-react`
    dependency.
 3. **Phase 1 waits for the Work OS port** (iki-work-os #443) to exercise the
-   Drawer before it merges.
+   Drawer before it merges. **Reversed by Brian on 21 October 2026**, later
+   the same day, when phase 1 (PR #10) was open on green CI and #443 had not
+   started: merge now so the next phase can start, and let the #443 port
+   validate the `Drawer` against `main`. Merging publishes nothing; if the port
+   finds the API wrong, the fix is a follow-up PR before 0.4.0 is tagged.
 4. **Client-only components stay in the main export**, each file carrying
    `"use client"`, with a §13 table naming them.
 5. This document is committed as the plan of record.

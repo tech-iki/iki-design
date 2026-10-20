@@ -12,8 +12,9 @@ token or class is a major.
 
 Phase 1 of the plan of 20 October 2026: the overlays, on Base UI (ADR 0002,
 decided by Brian on 21 October). A minor, in its own version-bump PR as the
-workflow asks. **Gated:** it does not merge until Work OS's port
-(tech-iki/iki-work-os #443) has exercised the `Drawer`.
+workflow asks. It was to wait for Work OS's port (tech-iki/iki-work-os #443)
+to exercise the `Drawer`; Brian lifted that gate on 21 October so the next
+phase could start, and #443 validates the `Drawer` against `main` instead.
 
 #### Added
 
