@@ -14,7 +14,8 @@
  */
 
 import { readFileSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 
 type IconSize = 16 | 20;
 type Stroke = 1.5 | 1.4;
@@ -88,17 +89,9 @@ type Node = readonly [string, Readonly<Record<string, string>>];
 
 const camel = (attr: string) => attr.replace(/-([a-z])/g, (_, c: string) => c.toUpperCase());
 
-const lucideRoot = join(import.meta.dirname, "..", "node_modules", "lucide");
-const rootCandidates = [lucideRoot, join(import.meta.dirname, "..", "..", "..", "node_modules", "lucide")];
-const lucideDir = rootCandidates.find((dir) => {
-  try {
-    readFileSync(join(dir, "package.json"));
-    return true;
-  } catch {
-    return false;
-  }
-});
-if (!lucideDir) throw new Error("lucide is not installed");
+// The same resolution the icon imports below use, so the version and licence
+// come from the copy the paths come from.
+const lucideDir = dirname(fileURLToPath(import.meta.resolve("lucide/package.json")));
 
 const { version } = JSON.parse(readFileSync(join(lucideDir, "package.json"), "utf8")) as { version: string };
 // The whole file, not the ISC block alone: the part after `---` is the MIT

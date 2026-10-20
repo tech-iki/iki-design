@@ -683,6 +683,7 @@ linkClass            text-teal-deep underline hover:text-navy rounded-xs {focusR
 ```
 fieldClass         {touchTarget} rounded-md border border-grid-strong px-3 py-2 text-sm text-ink focus:border-teal-deep disabled:cursor-not-allowed disabled:bg-paper-tint disabled:text-ink-muted {focusRing}
 smallFieldClass    {touchTarget} rounded-md border border-grid-strong px-2 py-1.5 text-sm text-ink focus:border-teal-deep disabled:cursor-not-allowed disabled:bg-paper-tint disabled:text-ink-muted {focusRing}
+invalidFieldMark   border-health-overdue-fg bg-health-overdue-bg
 invalidFieldClass  {fieldClass} border-health-overdue-fg bg-health-overdue-bg
 labelClass         flex flex-col gap-1 text-xs font-medium text-ink
 ```

@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import type { ReactNode } from "react";
 import {
   Button,
   EmptyState,
@@ -11,7 +10,8 @@ import {
   PageTitle,
 } from "@tech-iki/design";
 import { CodeBlock } from "@/components/code-block";
-import { Mono, Rich } from "@/components/rich";
+import { Mono } from "@/components/rich";
+import { Specimen } from "@/components/specimen";
 import { P, Section } from "@/components/section";
 
 export const metadata: Metadata = {
@@ -19,29 +19,6 @@ export const metadata: Metadata = {
   description:
     "Button, Field, Notice, EmptyState and KpiTile, drawn live with the usage beneath each.",
 };
-
-/** One component state: its name, the live element, and a note beneath. */
-function Specimen({
-  name,
-  note,
-  children,
-}: {
-  name: string;
-  note?: string;
-  children: ReactNode;
-}) {
-  return (
-    <div className="flex flex-col gap-2 rounded-md border border-grid bg-paper p-4">
-      <h3 className="font-mono text-xs font-semibold text-ink">{name}</h3>
-      {note ? (
-        <p className="max-w-3xl text-xs text-ink-muted">
-          <Rich>{note}</Rich>
-        </p>
-      ) : null}
-      <div className="flex flex-wrap items-start gap-3 py-2">{children}</div>
-    </div>
-  );
-}
 
 const BUTTON_USE = `<Button>Save task</Button>
 <Button variant="subtle">Download PDF</Button>

@@ -9,7 +9,7 @@ import {
   type ReactElement,
 } from "react";
 
-import { fieldClass, labelClass, smallFieldClass } from "../ui-classes.js";
+import { fieldClass, invalidFieldMark, labelClass, smallFieldClass } from "../ui-classes.js";
 
 /** The props `Field` sets on the control it wraps. */
 type ControlProps = {
@@ -27,9 +27,6 @@ export const fieldHintClass = "text-xs text-ink-muted";
 
 /** The classes of the error line under a field: `role="alert"` text in the overdue red. */
 export const fieldErrorClass = "text-xs text-health-overdue-fg";
-
-/** What `invalidFieldClass` adds to `fieldClass`; added to the small field the same way. */
-const INVALID = "border-health-overdue-fg bg-health-overdue-bg";
 
 /**
  * A label, its control, and the two lines that may sit under it (plan of
@@ -83,7 +80,7 @@ export function Field({
   const describedBy =
     [control.props["aria-describedby"], errorId, hintId].filter(Boolean).join(" ") || undefined;
   const base = size === "small" ? smallFieldClass : fieldClass;
-  const controlClass = [base, error ? INVALID : "", control.props.className ?? ""]
+  const controlClass = [base, error ? invalidFieldMark : "", control.props.className ?? ""]
     .filter(Boolean)
     .join(" ");
 

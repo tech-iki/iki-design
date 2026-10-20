@@ -107,10 +107,12 @@ export const labelClass = "flex flex-col gap-1 text-xs font-medium text-ink";
  * A field the last refusal named, drawn so it can be found by scrolling
  * (Work OS #161). Shared by every create/edit drawer's field-marking helper — the
  * tasks drawer's `TaskFields` and the policy drawer's `PolicyFields` (Work OS #265) —
- * so the two never quietly drift into two shades of "invalid".
+ * so the two never quietly drift into two shades of "invalid". `invalidFieldMark`
+ * is the border and fill alone, for `Field` to add to the small field too.
  */
-export const invalidFieldClass =
-  `${fieldClass} border-health-overdue-fg bg-health-overdue-bg`;
+export const invalidFieldMark = "border-health-overdue-fg bg-health-overdue-bg";
+
+export const invalidFieldClass = `${fieldClass} ${invalidFieldMark}`;
 
 export const primaryButtonClass =
   `${touchTarget} rounded-md bg-teal-deep px-3 py-2 text-sm font-semibold text-paper hover:bg-navy disabled:opacity-50 ${focusRing}`;

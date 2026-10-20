@@ -23,7 +23,8 @@ import {
   warnIconButtonClass,
 } from "@tech-iki/design";
 import { CodeBlock } from "@/components/code-block";
-import { Mono, Rich } from "@/components/rich";
+import { Mono } from "@/components/rich";
+import { Specimen } from "@/components/specimen";
 import { P, Section } from "@/components/section";
 
 export const metadata: Metadata = {
@@ -48,32 +49,6 @@ function Glyph({ children }: { children: ReactNode }) {
     >
       {children}
     </svg>
-  );
-}
-
-/** One export: its name, the live element, and the class string beneath. */
-function Specimen({
-  name,
-  note,
-  classString,
-  children,
-}: {
-  name: string;
-  note?: string;
-  classString: string;
-  children: ReactNode;
-}) {
-  return (
-    <div className="flex flex-col gap-2 rounded-md border border-grid bg-paper p-4">
-      <h3 className="font-mono text-xs font-semibold text-ink">{name}</h3>
-      {note ? (
-        <p className="max-w-3xl text-xs text-ink-muted">
-          <Rich>{note}</Rich>
-        </p>
-      ) : null}
-      <div className="flex flex-wrap items-center gap-3 py-2">{children}</div>
-      <CodeBlock code={classString} />
-    </div>
   );
 }
 

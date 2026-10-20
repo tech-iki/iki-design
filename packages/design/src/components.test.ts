@@ -97,8 +97,13 @@ describe("Button", () => {
     expect(rest).not.toContain("aria-busy");
   });
 
-  it("passes the rest through", () => {
+  it("passes the rest through, but pending's own attributes win", () => {
     expect(html(createElement(Button, { name: "intent", value: "save", children: "x" }))).toContain('name="intent"');
+    const forced = html(
+      createElement(Button, { pending: true, children: "Save", ...({ "aria-busy": false, disabled: false } as object) }),
+    );
+    expect(forced).toContain('aria-busy="true"');
+    expect(forced).toMatch(/<button[^>]* disabled=""/);
   });
 });
 
@@ -143,7 +148,7 @@ describe("Field", () => {
     expect(markup).toContain('aria-describedby="outer note-hint"');
     expect(markup).toContain('id="note"');
     const smallInvalid = html(createElement(Field, { label: "N", size: "small", error: "e", children: input() }));
-    expect(classOf(smallInvalid, 2)).toBe(`${classes.smallFieldClass} border-health-overdue-fg bg-health-overdue-bg`);
+    expect(classOf(smallInvalid, 2)).toBe(`${classes.smallFieldClass} ${classes.invalidFieldMark}`);
   });
 
   it("refuses a fragment, which it could not wire", () => {
