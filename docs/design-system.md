@@ -643,7 +643,12 @@ Print rules are in [§11](#11-email-and-print).
 
 ## 8. Components
 
-There is no component library. These class strings are the library.
+There is no styled component library. These class strings are the library, and
+the components the package exports are the strings with their behaviour
+attached: `Pill`, `KpiTile`, `PageTitle`, `PageMain` since 0.1.0; `Button`,
+`Field`, `Notice`, `EmptyState` and `Icon` since 0.3.0 (the plan of 20 October
+2026, `docs/plans/2026-10-20-components-and-icons.md`, phase 0). Every
+component passes `...rest` to its root element, and every one is server-safe.
 
 ### Buttons
 
@@ -676,8 +681,9 @@ linkClass            text-teal-deep underline hover:text-navy rounded-xs {focusR
 
 <!-- classes:fields -->
 ```
-fieldClass         {touchTarget} rounded-md border border-grid-strong px-3 py-2 text-sm text-ink focus:border-teal-deep {focusRing}
-smallFieldClass    {touchTarget} rounded-md border border-grid-strong px-2 py-1.5 text-sm text-ink focus:border-teal-deep {focusRing}
+fieldClass         {touchTarget} rounded-md border border-grid-strong px-3 py-2 text-sm text-ink focus:border-teal-deep disabled:cursor-not-allowed disabled:bg-paper-tint disabled:text-ink-muted {focusRing}
+smallFieldClass    {touchTarget} rounded-md border border-grid-strong px-2 py-1.5 text-sm text-ink focus:border-teal-deep disabled:cursor-not-allowed disabled:bg-paper-tint disabled:text-ink-muted {focusRing}
+invalidFieldMark   border-health-overdue-fg bg-health-overdue-bg
 invalidFieldClass  {fieldClass} border-health-overdue-fg bg-health-overdue-bg
 labelClass         flex flex-col gap-1 text-xs font-medium text-ink
 ```
@@ -691,6 +697,38 @@ own parts are `gap-1`. Errors sit under the field as `role="alert"` text in
 for its border and fill. The native outline is never reset: under Tailwind v4
 `focus:outline-none` nulls the variable `focusRing` draws its style from, so on
 keyboard focus the ring vanished and only the border moved (Work OS #315).
+**A disabled field draws itself** — `paper-tint` fill, `ink-muted` text, the
+not-allowed cursor — from `fieldClass`'s own `disabled:` variants, so the state
+follows the attribute. The audit of 20 October 2026 found the state missing: a
+control that could not be edited looked exactly like one that could.
+
+`Field` is the label, the control and the two lines under it, wired. The
+hint and the error are the label's siblings, not its children: a label's
+accessible name is every word inside it, and a hint inside would be read as
+the field's name and again as its description.
+
+<!-- components:field -->
+```
+Field        <div>    flex flex-col gap-1
+  label      <label>  {labelClass}   wrapping the label text and the control
+  control    the one child, cloned with id, aria-describedby → error and hint, aria-invalid when error
+  class      {fieldClass} | {smallFieldClass} when size=small | + border-health-overdue-fg bg-health-overdue-bg when error | + the child's own className
+  error      text-xs text-health-overdue-fg   (role="alert")
+  hint       text-xs text-ink-muted
+```
+
+`Button` is one of the five strings above with the two things every call site
+had to remember: `type="button"` unless told otherwise, and the pending state.
+
+<!-- components:button -->
+```
+Button variant=primary   {primaryButtonClass}
+Button variant=subtle    {subtleButtonClass}
+Button variant=warn      {warnButtonClass}
+Button variant=icon      {iconButtonClass}
+Button variant=warnIcon  {warnIconButtonClass}
+  pending                disabled, aria-busy, the verb with an ellipsis: "Save" → "Save…", or pendingLabel
+```
 
 **A refused action costs the click, not the page.** The form stays, the reason
 appears, the values are kept (#157). Pending state is the verb in progress with
@@ -709,6 +747,11 @@ KpiTile   flex flex-col overflow-hidden rounded-md border border-grid
   body    flex-1 bg-teal-soft px-3 py-4 text-center
   value   text-3xl font-semibold tabular-nums text-navy | text-warm-fg | text-health-overdue-fg
 ```
+
+`KpiTile.tone` is `neutral | warm | overdue`: the pill tones' names, since
+0.3.0. It had its own pair (`warn`, `bad`), which the 20 October 2026 audit
+named as a second tone vocabulary; nobody imported the package when the rename
+landed, so it went out as a minor with a breaking note.
 
 **A pill is always one line.** `whitespace-nowrap` is part of `Pill` itself,
 because a wrapped label stretches the rounded ends into a tall lozenge that no
@@ -796,7 +839,25 @@ chart   rounded-md border border-grid bg-paper p-5
   axis    flex-1 text-center font-mono text-xs text-ink-muted
 empty   rounded-md border border-grid bg-paper p-5 text-sm text-ink-muted
 clear   rounded-md border border-health-ontrack-fg/30 bg-health-ontrack-bg p-5 text-sm text-health-ontrack-fg
-notice  rounded-md border border-grid bg-info-bg/60 px-3 py-2 text-sm text-ink        (role="status")
+notice  rounded-md border border-grid bg-info-bg/60 px-3 py-2 text-sm text-ink        (role="status")   superseded by Notice below
+```
+
+Since 0.3.0 the two are components, and the `notice` line above is what Work
+OS still draws by hand until it adopts `Notice`. `Notice` takes a tone and derives its
+role from it, so a confirmation can no longer be plain text while the refusal
+beside it alerts (the drift row in §14); `EmptyState` is the boxed sentence
+with an optional action beneath it.
+
+<!-- components:notice -->
+```
+Notice           rounded-md px-3 py-2 text-sm {tone}
+  tone=info      bg-info-bg text-info-fg                        (role="status")
+  tone=positive  bg-health-ontrack-bg text-health-ontrack-fg    (role="status")
+  tone=warm      bg-warm-bg text-warm-fg                        (role="alert")
+  tone=overdue   bg-health-overdue-bg text-health-overdue-fg    (role="alert")
+EmptyState       flex flex-col items-start gap-3 rounded-md border border-grid bg-paper p-5
+  sentence       text-sm text-ink-muted
+  action         an optional slot beneath the sentence, usually a Button
 ```
 
 The chart is plain divs, server-rendered, no client JavaScript and no library.
@@ -911,13 +972,33 @@ anything that prints in place. First used on the Summary page (#413), in
 
 ### Icons
 
-Hand-drawn, not a package: ten nav glyphs at 20px with a 1.4 stroke, seven
-row-action glyphs at 16px with a 1.5 stroke, all stroke-only in `currentColor`
-with round caps, so they weigh the same as the text beside them and work on both
-the navy rail and a light hover. Every one is `aria-hidden`. Two choices worth
-copying: Settings is two sliders rather than a cog, because a cog's teeth turn
-to fuzz at 20px on navy; the drop action is an arrow into an open tray rather
-than a bin, because a bin would promise a destruction the app does not perform.
+One component, `Icon`, with a typed `name` that is a meaning, not a picture:
+`settings`, `drop`, `mailOff`. The drawings are Lucide's (ISC), vendored at
+build time by `scripts/build-icons.ts` into `icons.generated.tsx` from the
+`lucide` static package, which is a devDependency and never a consumer's — so
+the component is plain SVG, renders in a Server Component, and the vocabulary
+is the package's to curate. Two sizes and no others, held by `icon.test.ts`:
+
+<!-- components:icon -->
+```
+Icon size=20  stroke 1.4   the rail: myTasks timesheet tasks review workstreams policies people import settings guide reports updates record sidebar signOut
+Icon size=16  stroke 1.5   rows and inline: everything else
+  svg         viewBox 0 0 24 24, fill none, stroke currentColor, round caps and joins, aria-hidden, focusable=false
+```
+
+Stroke-only in `currentColor` with round caps (one dot, in the key's bow, is a
+fill: a half-pixel stroked circle disappears at 16px), so a glyph weighs the
+same as the text beside it and works on both the navy rail and a light hover.
+Every one is `aria-hidden`; the control around it carries the name. The
+vocabulary is forty-eight names: the twenty-six glyphs Work OS drew by hand
+(the plan counted twenty-seven; the Google sign-in mark is a logo, not a
+glyph), the nine unicode characters it used as stand-ins (✕ ✓ ● ◇ ↑ ↓ ← → ↗),
+and thirteen common roles, the four chevrons among them. Two judgements are kept
+from the hand-drawn set and now held by test: Settings is two sliders rather
+than a cog, because a cog's teeth turn to fuzz at 20px on navy; the drop action
+is an arrow into an open tray rather than a bin, because a bin would promise a
+destruction the app does not perform. The site's `/icons` page shows every name
+at its size with its Lucide source.
 
 ## 9. Content and voice
 
@@ -1410,6 +1491,8 @@ button). A consumer should copy the rule, not the exception; each of these is a 
 | 2026-09-18 | #248 | `Pill.tone` is a typed union; the source scan is retired | A type error cannot be satisfied by a comment or a runtime-built string |
 | 2026-09-19 | #246 | The table guard scans `src/app` too; the dashboard's workstream table stacks below `md` | Its eight nowrap header cells alone were 820px, three times a 269px phone frame |
 | 2026-09-23 | #261 | A pill is always one line, and every fixed-width pill column derives its width from its labels | "Awaiting Input" clipped by 3px in the grid and spilled 30px over the next column on the printed report |
+| 2026-10-21 | plan 2026-10-20 §7 | Icons are Lucide drawings vendored by a generator into the package's own typed `Icon`, not a `lucide-react` dependency | A consumer picks a meaning, not one of 1,900 pictures; the §8 judgements survive; no client boundary in a table |
+| 2026-10-21 | plan 2026-10-20 phase 0 | `Button`, `Field`, `Notice`, `EmptyState` join the package; `KpiTile.tone` takes the pill tones' names | 238 buttons, 189 fields, 98 notices and 26 empty states written by hand across the two consumers |
 
 ### Reversed — do not re-adopt
 

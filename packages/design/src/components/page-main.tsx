@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { ComponentPropsWithoutRef, ReactNode } from "react";
 
 /**
  * The shared page container (F18). Every (app) page uses this instead of its
@@ -7,24 +7,28 @@ import type { ReactNode } from "react";
  * its window.
  *
  * The `readable` variant keeps a comfortable measure for prose (the guide),
- * where a line stretched across 1900px would be unreadable.
+ * where a line stretched across 1900px would be unreadable. `...rest` reaches
+ * the `<main>`; its `id` and `tabIndex` are the skip link's and are set last.
  */
 export function PageMain({
   children,
   variant = "full",
+  className: extra,
+  ...rest
 }: {
   children: ReactNode;
   variant?: "full" | "readable";
-}) {
-  const className =
+} & ComponentPropsWithoutRef<"main">) {
+  const base =
     variant === "readable"
       ? "mx-auto flex w-full max-w-4xl flex-col gap-8 px-6 py-8 lg:px-8"
       : "w-full px-6 py-8 lg:px-8";
 
   // The skip link in the (app) layout targets this id (Work OS #57, F24.1); `tabIndex`
   // makes the landmark focusable so the jump actually moves the caret.
+  const className = extra ? `${base} ${extra}` : base;
   return (
-    <main id="main-content" tabIndex={-1} className={className}>
+    <main {...rest} id="main-content" tabIndex={-1} className={className}>
       {children}
     </main>
   );

@@ -162,11 +162,11 @@ describe("docs/design-system.md §8 shows the class strings as the package expor
     const lines = classLines(block("classes:pill", "", doc, 100));
     // `value   text-3xl … text-navy | text-warm-fg | text-health-overdue-fg`:
     // the shared classes, then the colour each tone gives the number.
-    const [neutralValue, warn, bad] = lines.value.split(/\s*\|\s*/);
+    const [neutralValue, warm, overdue] = lines.value.split(/\s*\|\s*/);
     const words = neutralValue.split(" ");
     const valueBase = words.slice(0, -1).join(" ");
-    const toneOf = { neutral: words.at(-1), warn, bad } as const;
-    for (const tone of ["neutral", "warn", "bad"] as const) {
+    const toneOf = { neutral: words.at(-1), warm, overdue } as const;
+    for (const tone of ["neutral", "warm", "overdue"] as const) {
       const html = renderToStaticMarkup(createElement(KpiTile, { label: "L", value: 1, tone }));
       const found = [...html.matchAll(/class="([^"]*)"/g)].map((m) => m[1]);
       expect(found[0], "frame").toBe(lines.KpiTile);
@@ -181,8 +181,8 @@ describe("docs/design-system.md §8 shows the class strings as the package expor
   // and the merge has to refuse rather than keep one.
   it("notices a class the document shows and the code does not have", () => {
     const tampered = doc.replace(
-      "focus:border-teal-deep {focusRing}\nsmallFieldClass",
-      "focus:border-teal-deep focus:outline-none {focusRing}\nsmallFieldClass",
+      "disabled:text-ink-muted {focusRing}\nsmallFieldClass",
+      "disabled:text-ink-muted focus:outline-none {focusRing}\nsmallFieldClass",
     );
     expect(tampered).not.toBe(doc);
     expect(drifted(tampered)).toEqual(["fieldClass"]);

@@ -75,6 +75,19 @@ export const focusRingOnNavy =
   "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-paper";
 
 /**
+ * The disabled field state, which the 20 October 2026 audit found missing (#6):
+ * a control that cannot be edited looked exactly like one that could. The fill
+ * goes to `paper-tint` and the text to `ink-muted`, a pair `TOKEN_PAIRS`
+ * already holds at 4.5:1 — a disabled control is exempt from the contrast
+ * floor (WCAG 1.4.3), but there is no reason to spend the exemption. The
+ * border stays `grid-strong`, so the boundary is still found by a thumb, and
+ * the cursor says why nothing happens. Part of `fieldClass` itself, so the
+ * state follows the attribute and no caller has to remember a second string.
+ */
+const disabledField =
+  "disabled:cursor-not-allowed disabled:bg-paper-tint disabled:text-ink-muted";
+
+/**
  * No `focus:outline-none` on the fields (Work OS #315). Under Tailwind v4 it sets
  * `--tw-outline-style: none`, and `focusRing`'s `outline-2` draws its style
  * from that variable, so on keyboard focus — where `:focus` and
@@ -83,10 +96,10 @@ export const focusRingOnNavy =
  * browser draws it only on `:focus-visible`, which `focusRing` replaces.
  */
 export const fieldClass =
-  `${touchTarget} rounded-md border border-grid-strong px-3 py-2 text-sm text-ink focus:border-teal-deep ${focusRing}`;
+  `${touchTarget} rounded-md border border-grid-strong px-3 py-2 text-sm text-ink focus:border-teal-deep ${disabledField} ${focusRing}`;
 
 export const smallFieldClass =
-  `${touchTarget} rounded-md border border-grid-strong px-2 py-1.5 text-sm text-ink focus:border-teal-deep ${focusRing}`;
+  `${touchTarget} rounded-md border border-grid-strong px-2 py-1.5 text-sm text-ink focus:border-teal-deep ${disabledField} ${focusRing}`;
 
 export const labelClass = "flex flex-col gap-1 text-xs font-medium text-ink";
 
@@ -94,10 +107,12 @@ export const labelClass = "flex flex-col gap-1 text-xs font-medium text-ink";
  * A field the last refusal named, drawn so it can be found by scrolling
  * (Work OS #161). Shared by every create/edit drawer's field-marking helper — the
  * tasks drawer's `TaskFields` and the policy drawer's `PolicyFields` (Work OS #265) —
- * so the two never quietly drift into two shades of "invalid".
+ * so the two never quietly drift into two shades of "invalid". `invalidFieldMark`
+ * is the border and fill alone, for `Field` to add to the small field too.
  */
-export const invalidFieldClass =
-  `${fieldClass} border-health-overdue-fg bg-health-overdue-bg`;
+export const invalidFieldMark = "border-health-overdue-fg bg-health-overdue-bg";
+
+export const invalidFieldClass = `${fieldClass} ${invalidFieldMark}`;
 
 export const primaryButtonClass =
   `${touchTarget} rounded-md bg-teal-deep px-3 py-2 text-sm font-semibold text-paper hover:bg-navy disabled:opacity-50 ${focusRing}`;
