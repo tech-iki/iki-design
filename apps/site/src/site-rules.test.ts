@@ -195,8 +195,18 @@ describe("the site obeys the system's rules", () => {
     for (const f of files) expect(pillWhitespace(f.source), f.name).toEqual([]);
   });
 
-  it('has no "use client": every page is static, and a client component must be a deliberate decision', () => {
-    for (const f of files) expect(clientDirectives(f.source), f.name).toEqual([]);
+  /**
+   * The one exception is named, not patterned: the overlay specimens on
+   * `/components` hold open state for Drawer, Popover, Menu and Disclosure,
+   * which are client components (design system §13). Every page stays a
+   * Server Component and renders that wrapper, which is the arrangement a
+   * consuming Next app has.
+   */
+  it('has no "use client" outside the overlay specimens: a client component must be a deliberate decision', () => {
+    const allowed = [join("components", "overlay-specimens.tsx")];
+    for (const f of files) {
+      expect(clientDirectives(f.source), f.name).toEqual(allowed.includes(f.name) ? ['"use client"'] : []);
+    }
   });
 
   it("has no transition or animation class", () => {

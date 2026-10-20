@@ -21,14 +21,21 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
       <body className="flex min-h-full">
-        <a
-          href="#main-content"
-          className="sr-only z-50 rounded-md bg-paper px-3 py-2 text-sm font-semibold text-ink focus:not-sr-only focus:fixed focus:left-2 focus:top-2"
-        >
-          Skip to content
-        </a>
-        <SiteNav />
-        <div className="min-w-0 flex-1">{children}</div>
+        {/*
+         * `iki-app` is the stacking root §13 names: `theme.css` gives it
+         * `isolation: isolate`, so the overlays Base UI portals to <body> sit
+         * above everything in here whatever z-index the page uses.
+         */}
+        <div className="iki-app flex min-h-full flex-1">
+          <a
+            href="#main-content"
+            className="sr-only z-50 rounded-md bg-paper px-3 py-2 text-sm font-semibold text-ink focus:not-sr-only focus:fixed focus:left-2 focus:top-2"
+          >
+            Skip to content
+          </a>
+          <SiteNav />
+          <div className="min-w-0 flex-1">{children}</div>
+        </div>
       </body>
     </html>
   );

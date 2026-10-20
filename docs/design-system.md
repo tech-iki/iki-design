@@ -34,8 +34,9 @@ the file it lives in and the reason it is that value.
 
 ### Decided, and open
 
-**Decided:** the palette and its provenance; light only; no component library;
-the Airtable interaction model; the accessibility floors; that contrast is
+**Decided:** the palette and its provenance; light only; no *styled* component
+library (unstyled primitives only inside the package, ADR 0002); no motion
+without its reduced-motion counterpart; the Airtable interaction model; the accessibility floors; that contrast is
 asserted by test rather than claimed in prose.
 
 **Open:** the three colour families across IKI surfaces ([§3](#three-colour-families-today)),
@@ -299,6 +300,25 @@ the document cannot drift from the files.
     color: var(--color-ink);
     font-family: var(--font-sans);
   }
+  /* The app root: Base UI portals popups to <body>, and the page stays below them. */
+  .iki-app {
+    isolation: isolate;
+  }
+  /* iOS 26 Safari: a scrim is position: absolute and needs a positioned body. */
+  body {
+    position: relative;
+  }
+  /* No motion (design system §6): a transition needs a motion-reduce: counterpart; this is the floor. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
 }
 ```
 
@@ -481,13 +501,23 @@ not black.
 selector it out-specifies a utility, and a `z-10` there silently beat the grid's
 `z-20` frozen headers — measured, they computed to 10.
 
-**Motion: there is none.** Searched `transition-`, `duration-`, `animate-`,
-`ease-`, `@keyframes` across Work OS's components and stylesheet: no hits. The
-only matches for "transition" are React's `useTransition`. State changes are
-instant colour swaps, `opacity-50` when disabled, `opacity-60` while a cell
-commits, and a ring on focus. Nothing exists for `prefers-reduced-motion` to
-reduce — **a consumer that introduces a transition must add the reduced-motion
-counterpart itself**, because there is no global rule to inherit.
+**Motion: there is none, and the rule is now written.** Searched `transition-`,
+`duration-`, `animate-`, `ease-`, `@keyframes` across Work OS's components and
+stylesheet: no hits. The only matches for "transition" are React's
+`useTransition`. State changes are instant colour swaps, `opacity-50` when
+disabled, `opacity-60` while a cell commits, and a ring on focus. The package's
+overlays (§8 Drawer, Popover, Menu, Disclosure) add none either: Base UI ships
+no CSS and no motion, and the wrappers add no `transition` or `animate` class,
+so an overlay appears and disappears in one frame.
+
+The rule, settled 21 October 2026 (plan of 20 October, §4.3; formerly open
+question §16-4): **a transition is allowed only with a `motion-reduce:`
+counterpart that removes it, and `base.css` and `theme.css` ship the reset** —
+a global `@media (prefers-reduced-motion: reduce)` block that sets every
+animation and transition duration to a single millisecond and turns smooth
+scrolling off. A consumer that adds a transition inherits the reset from the
+stylesheet it already imports; the `motion-reduce:` counterpart is still
+required on the class itself, because the reset is a floor, not a design.
 
 ## 7. Layout and shell
 
@@ -869,27 +899,62 @@ to render.
 
 ### Drawer and popover
 
-```
-drawer root    fixed inset-0 z-40 flex justify-end
-       scrim   absolute inset-0 bg-navy/25
-       panel   relative flex h-full w-full flex-col border-grid-strong bg-paper shadow-2xl lg:w-[30rem] lg:border-l
-       header  flex items-start gap-3 border-b border-grid-strong px-4 py-3
-       body    min-h-0 flex-1 overflow-y-auto px-4 py-3
-       refusal bg-health-overdue-bg px-4 py-2 text-sm text-health-overdue-fg   (role="alert")
-       footer  border-t border-grid-strong px-4 py-3
+Since 0.4.0 both are package components, `Drawer` and `Popover`, on Base UI's
+Dialog and Popover (ADR 0002). The strings are `ui-classes.ts` exports and the
+block is held to the code by `design-system-doc.test.ts`; `{subtleButtonClass}`
+stands for that string.
 
-popover trigger  {subtleButtonClass} whitespace-nowrap  + active: border-teal-deep bg-teal-soft font-semibold
-        badge    ml-1.5 rounded-full bg-teal-deep px-1.5 text-[11px] font-semibold text-paper
-        panel    absolute left-0 top-full z-30 mt-1 w-80 rounded-md border border-grid-strong bg-paper p-2 shadow-lg
-        option   flex items-center gap-2 rounded px-1 py-1 text-sm text-ink hover:bg-teal-soft
+<!-- classes:overlays -->
+```
+drawerScrimClass           fixed inset-0 z-40 min-h-dvh bg-navy/25 supports-[-webkit-touch-callout:none]:absolute
+drawerPanelClass           fixed inset-y-0 right-0 z-40 flex h-full w-full flex-col border-grid-strong bg-paper shadow-2xl outline-none lg:w-[30rem] lg:border-l
+drawerHeaderClass          flex items-start gap-3 border-b border-grid-strong px-4 py-3
+drawerBodyClass            min-h-0 flex-1 overflow-y-auto px-4 py-3
+drawerRefusalClass         bg-health-overdue-bg px-4 py-2 text-sm text-health-overdue-fg
+drawerFooterClass          border-t border-grid-strong px-4 py-3
+popoverTriggerClass        {subtleButtonClass} whitespace-nowrap
+popoverTriggerActiveClass  border-teal-deep bg-teal-soft font-semibold
+popoverBadgeClass          ml-1.5 rounded-full bg-teal-deep px-1.5 text-[11px] font-semibold text-paper
+popoverPanelClass          z-30 w-80 rounded-md border border-grid-strong bg-paper p-2 shadow-lg outline-none
+popoverOptionClass         flex items-center gap-2 rounded px-1 py-1 text-sm text-ink hover:bg-teal-soft
 ```
 
-The drawer is `role="dialog" aria-modal="true"`, rendered in place rather than
-portalled, 480px at `lg` and a full-screen sheet below. Focus opens in the
-content rather than on the header, is trapped while it is the top layer, and is
-restored to the opener if that element is still in the document. Escape belongs
-to the innermost layer only, tracked by an explicit stack, because one Escape
-once closed two things.
+The drawer is `role="dialog" aria-modal="true"`, named by its title, portalled
+to `<body>` (Base UI requires the portal; the page root's `isolation: isolate`
+in §13 keeps it above everything), 30rem at `lg` and a full-screen sheet below.
+The scrim is the dialog's backdrop: `fixed` with a `min-h-dvh` floor, and
+`absolute` where `-webkit-touch-callout` exists, because iOS 26 Safari lets the
+page show beneath its chrome and a fixed backdrop stops short of the visual
+viewport there (`body { position: relative }` in `base.css` and `theme.css`
+makes the absolute form cover it after a scroll). Work OS's original rendered
+in place with a `fixed inset-0 z-40 flex justify-end` root around an absolute
+scrim; the portal replaces the root, and the panel is positioned itself.
+
+Focus opens in the content — the body's first focusable control, not the
+header's Close — is trapped while it is the top layer, and returns to the
+opener. The page behind is inert and its scroll locked. The refusal band is
+`role="alert"` between body and footer.
+
+**Open is controlled, and Escape belongs to the innermost layer.** The caller
+holds `open` and hears every request to close as `onOpenChange(false, reason)`
+with `reason` one of `escape | scrim | close | programmatic`; it closes by
+setting `open` false or refuses by leaving it, which is how a dirty form keeps
+its drawer and shows "Discard this task?" in the footer. A nested `Drawer`,
+`Popover` or `Menu` takes Escape first and the outer one never hears it. For a
+layer Base UI does not know about — Work OS's hand-rolled cell editors, during
+the #443 migration — `onEscape` returns `false` to consume the key, so the
+dismiss stack's "one Escape closes one thing" holds until the stack is deleted.
+
+The popover's trigger is `subtleButtonClass` that never wraps, and wears
+`popoverTriggerActiveClass` while open (Base UI sets `data-popup-open`) and
+whenever the caller passes `active` — a filter that is applied — so the open
+state is a shape and a weight, not only a colour. The `badge` count sits inside
+the button and is part of its name ("Filters 2"). The panel is `z-30` (under
+the drawer's `z-40`), `w-80`, portalled and positioned by Base UI below the
+trigger, start-aligned, flipped or shifted to stay 16px inside the viewport;
+Work OS's `panel-placement.ts` clamp is retired by it. Non-modal: an outside
+press or Escape closes it and focus returns to the trigger. `PopoverOption` is
+one row: a `<label>` on `popoverOptionClass` around a checkbox or radio.
 
 ### Board, card and Move to… menu
 
@@ -913,6 +978,26 @@ menu trigger  {subtleButtonClass} px-1.5 py-0.5 text-[11px]
 menu          fixed z-50 rounded-md border border-grid-strong bg-paper p-1 shadow-lg   (role="menu", portalled)
   item        block w-full rounded px-2 py-1 text-left text-sm text-ink {focusRing}  (role="menuitem")
 ```
+
+The Move to… menu is the package's `Menu` and `MenuItem` since 0.4.0, on Base
+UI's Menu (ADR 0002); the three lines above are the Work OS original, and the
+package's strings are these, held to the code:
+
+<!-- classes:menu -->
+```
+menuTriggerClass  {subtleButtonClass} px-1.5 py-0.5 text-[11px]
+menuClass         z-50 rounded-md border border-grid-strong bg-paper p-1 shadow-lg outline-none
+menuItemClass     block w-full rounded px-2 py-1 text-left text-sm text-ink data-highlighted:bg-teal-soft aria-disabled:text-ink-muted {focusRing}
+```
+
+Base UI positions it below the trigger (so `fixed` is no longer in the string;
+the positioner carries the placement) and owns the keyboard: arrows move a
+roving highlight and wrap, Home and End jump, a typed letter finds its item,
+Escape closes and returns focus to the trigger, and — unlike the original —
+choosing an item returns focus too. The highlight is `data-highlighted`, ink on
+teal-soft, so the fill follows the keyboard as well as the pointer. A
+`disabled` item (the current status) stays in the list, muted, and is still
+read. Non-modal: the page behind stays scrollable.
 
 - **Dragging always has a keyboard route.** A card the reader may move is
   `draggable` for a mouse and also carries a Move to… menu that calls the same
@@ -941,15 +1026,27 @@ disclosure  section h2 holds one full-width button   w-full text-left {focusRing
   rows      hidden print:block        collapsed by default, never the hidden attribute
   action    link beside the button    e.g. "Open in Tasks", outside the button
   blurb     aria-describedby          the line under the header is read with the button
-  chevron   <DisclosureChevron>       the one indicator, rotated 90° by the caller when open
+  chevron   <Icon name="chevronRight">   the one indicator, rotate-90 when open, print:hidden
   empty     no button at all          a section with no tasks shows only its empty line
 ```
 
+The package's `Disclosure` (0.4.0) is this shape, and its two strings are held
+to the code:
+
+<!-- classes:disclosure -->
+```
+disclosureButtonClass     flex min-h-11 w-full items-center gap-2 rounded-md text-left md:min-h-0 {focusRing}
+disclosureCollapsedClass  hidden print:block
+```
+
 A section with tasks is a disclosure. The whole header row is one full-width
-`<button>` inside the `h2`, so the heading stays a heading and the click target
-is the row, not just the title text. Its accessible name carries the count
-("Overdue, 50"), because the tiles that used to show the count are gone. Every
-section starts collapsed. The button keeps the 44px touch floor below `md`.
+`<button>` inside the `h2` (or the `heading` level the caller names), so the
+heading stays a heading and the click target is the row, not just the title
+text. Its accessible name carries the count ("Overdue, 50"), because the tiles
+that used to show the count are gone. Every section starts collapsed. The
+button keeps the 44px touch floor below `md`. Open is controlled (`open` +
+`onOpenChange`) or uncontrolled from `defaultOpen`; Work OS passes `open` from
+its per-session store.
 
 Collapsed rows are hidden with a class, `hidden print:block`, not the `hidden`
 attribute. Tailwind's preflight makes `[hidden]` `!important`, so print could
@@ -964,6 +1061,19 @@ content, and the Summary page is the meeting handout, which must print every
 row. The rows are rendered on the server and handed to the client disclosure as
 children, so they are in the DOM whether open or shut and only the open state
 lives in the browser. Focus stays on the button when it toggles.
+
+**Why not Base UI's Collapsible** (checked against 1.9.0 on 21 October 2026,
+plan §6-3): its Panel, kept mounted and closed, renders the boolean `hidden`
+attribute (`useCollapsiblePanel.js`: `hidden = !open && !mounted`, returned in
+its props), and with `hiddenUntilFound` it sets `hidden="until-found"` — either
+way the attribute decides the display, and under preflight's
+`[hidden] { display: none !important }` the handout prints empty. A consumer
+prop does override an internal one, so `hidden={false}` with a
+`data-closed:hidden print:data-closed:block` class would work, but it fights
+the primitive's own contract on the one point the system cares about, and a
+disclosure needs no keyboard machinery beyond a button's. So `Disclosure` is
+built without Base UI, and is the one overlay-phase component that is not on
+it; it still carries `"use client"` because it holds state.
 
 `policy-reader.tsx` collapses its cards with the `hidden` attribute. That is
 fine there, because policies print from their own route, but do not copy it for
@@ -1235,6 +1345,35 @@ per-stack notes that follow.
   import { Pill, tones } from "@tech-iki/design";
   ```
 
+- **The stacking root.** Wrap the page content in one element with the class
+  `iki-app`; `theme.css` and `base.css` give it `isolation: isolate`, so an
+  overlay the package portals to `<body>` is always above the page, whatever
+  `z-index` the page uses. The element is a child of `<body>`, not `<body>`
+  itself — a stacking context on `<body>` would hold the portals too. The same
+  stylesheets set `body { position: relative }` for the iOS 26 Safari scrim
+  and ship the reduced-motion reset of [§6](#6-spacing-shape-elevation-layering-motion).
+
+  ```tsx
+  <body>
+    <div className="iki-app">{children}</div>
+  </body>
+  ```
+
+- **Client-only exports.** Every component is server-safe (no hooks, no
+  directive, renders in a Server Component and in `renderToStaticMarkup`)
+  except the four overlays, which are built on `@base-ui/react` (ADR 0002)
+  and carry `"use client"` in their own file, preserved in `dist`. A Server
+  Component page can still render them; they are shipped to the browser. The
+  split is held by `client-directive.test.ts`.
+
+  | Export | Client-only | Base UI part behind it |
+  | --- | --- | --- |
+  | `Pill`, `KpiTile`, `PageTitle`, `PageMain`, `Button`, `Field`, `Notice`, `EmptyState`, `Icon` | no | — |
+  | `Drawer` | **yes** | Dialog |
+  | `Popover` | **yes** | Popover |
+  | `Menu` | **yes** | Menu |
+  | `Disclosure` | **yes** | see [§8 Disclosure](#disclosure-collapsible-section) |
+
 - **Until npm publishing exists**, depend on the tagged release on GitHub, in
   `dependencies`:
 
@@ -1311,6 +1450,25 @@ a:hover { color: var(--iki-navy); }
 }
 /* On a navy field, teal has no contrast: */
 .on-navy :focus-visible { outline-color: var(--iki-paper); }
+/* The app root: Base UI portals popups to <body>, and the page stays below them. */
+.iki-app {
+  isolation: isolate;
+}
+/* iOS 26 Safari: a scrim is position: absolute and needs a positioned body. */
+body {
+  position: relative;
+}
+/* No motion (design system §6): a transition needs a motion-reduce: counterpart; this is the floor. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
 ```
 
 ### 13b. Tailwind v4 projects — the IKI Digital Library
@@ -1424,8 +1582,13 @@ the furniture.
   'unsafe-inline'`, because a nonce cannot apply to an attribute and React
   server-renders the grid's column widths that way. Everything else stays
   strict.
-- **No component library**, per ADR 0003 and ADR 0006. A shadcn project keeps
-  its source-owned primitives and re-points their tokens.
+- **No *styled* component library**, per ADR 0003 and ADR 0006, narrowed by
+  ADR 0002 of this repository (21 October 2026): unstyled primitives are
+  allowed only inside the package, behind components the package owns.
+  `@base-ui/react` is the package's one runtime dependency; it is never
+  re-exported, so a consumer imports `Drawer`, `Popover`, `Menu` and
+  `Disclosure` from `@tech-iki/design` and nothing from Base UI. A shadcn
+  project keeps its source-owned primitives and re-points their tokens.
 - **`theme.css` owns the colour namespace.** It opens with `--color-*: initial`,
   so it is imported before any `@theme` the consumer writes, and after it the
   only colour utilities are the 25 tokens plus `transparent`, `current` and
@@ -1493,6 +1656,8 @@ button). A consumer should copy the rule, not the exception; each of these is a 
 | 2026-09-23 | #261 | A pill is always one line, and every fixed-width pill column derives its width from its labels | "Awaiting Input" clipped by 3px in the grid and spilled 30px over the next column on the printed report |
 | 2026-10-21 | plan 2026-10-20 §7 | Icons are Lucide drawings vendored by a generator into the package's own typed `Icon`, not a `lucide-react` dependency | A consumer picks a meaning, not one of 1,900 pictures; the §8 judgements survive; no client boundary in a table |
 | 2026-10-21 | plan 2026-10-20 phase 0 | `Button`, `Field`, `Notice`, `EmptyState` join the package; `KpiTile.tone` takes the pill tones' names | 238 buttons, 189 fields, 98 notices and 26 empty states written by hand across the two consumers |
+| 2026-10-21 | ADR 0002, plan 2026-10-20 §7 | Unstyled primitives (`@base-ui/react`) behind package-owned `Drawer`, `Popover`, `Menu`, `Disclosure`; never re-exported; the "no component library" line narrows to "no *styled* component library"; client-only components stay in the main export with `"use client"` per file; phase 1 waits for the Work OS port (#443) to exercise the Drawer | Base UI is the only candidate with a Drawer, a Combobox and a cancellable Escape together; a themed library would still fight the workbook look, and an unstyled one does not |
+| 2026-10-21 | plan 2026-10-20 §4.3 | A transition is allowed only with a `motion-reduce:` counterpart; `base.css` and `theme.css` ship the global reduced-motion reset | Nothing animated and nothing needed a guard, so the rule had to be written before a consumer added one — formerly open question §16-4 |
 
 ### Reversed — do not re-adopt
 
@@ -1523,10 +1688,7 @@ button). A consumer should copy the rule, not the exception; each of these is a 
    appears.
 3. **The drift in [§14](#14-known-drift-inside-work-os)** — ten items, most
    of them small.
-4. **Whether "no motion" is a decision or an absence.** Nothing animates and
-   nothing needs a reduced-motion guard. A consumer that adds transitions
-   inherits no rule, so the rule should be written before that happens.
-5. **Whether the F-series labels should be mapped in-repo.** The code's
+4. **Whether the F-series labels should be mapped in-repo.** The code's
    reasoning cites F13, F24.2 and so on; the feature list stops at F11 and the
    rest resolve only on GitHub.
 

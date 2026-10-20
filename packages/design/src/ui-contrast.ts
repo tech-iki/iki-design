@@ -180,6 +180,16 @@ export const TOKEN_PAIRS: {
   { what: "invalid field border: overdue-fg on health-overdue-bg", fg: TOKENS.healthOverdueFg, bg: TOKENS.healthOverdueBg, kind: "nonText" },
   { what: "field error line: overdue-fg on paper", fg: TOKENS.healthOverdueFg, bg: TOKENS.paper, kind: "text" },
 
+  // The overlays (0.4.0, ADR 0002). The drawer's scrim (`bg-navy/25`) is
+  // decorative and has no pair; everything with words in it is here.
+  { what: "menu item highlighted, popover option hovered: ink on teal-soft", fg: TOKENS.ink, bg: TOKENS.tealSoft, kind: "text" },
+  { what: "disabled menu item: ink-muted on paper", fg: TOKENS.inkMuted, bg: TOKENS.paper, kind: "text" },
+  { what: "active popover trigger: ink on teal-soft", fg: TOKENS.ink, bg: TOKENS.tealSoft, kind: "text" },
+  { what: "active popover trigger border: teal-deep on teal-soft", fg: TOKENS.tealDeep, bg: TOKENS.tealSoft, kind: "nonText" },
+  { what: "popover badge: paper on teal-deep", fg: TOKENS.paper, bg: TOKENS.tealDeep, kind: "text" },
+  { what: "drawer refusal band: overdue-fg on health-overdue-bg", fg: TOKENS.healthOverdueFg, bg: TOKENS.healthOverdueBg, kind: "text" },
+  { what: "disclosure count: ink-muted on paper", fg: TOKENS.inkMuted, bg: TOKENS.paper, kind: "text" },
+
   // Control boundaries and meaningful graphics — 3:1
   { what: "input border on paper", fg: TOKENS.gridStrong, bg: TOKENS.paper, kind: "nonText" },
   { what: "input border on paper-tint", fg: TOKENS.gridStrong, bg: TOKENS.paperTint, kind: "nonText" },

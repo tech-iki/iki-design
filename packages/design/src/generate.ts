@@ -52,6 +52,45 @@ const stack = (fallback: string) => fallback.replaceAll("'", '"');
  * as a variable. The font block is `@theme inline` because it names another
  * variable, which Tailwind must not resolve at build time.
  */
+/**
+ * The three element rules the package's overlays need (phase 1, ADR 0002),
+ * shipped in both stylesheets so a consumer gets them from the one it already
+ * imports. `indent` is the prefix for `theme.css`'s `@layer base` block.
+ *
+ * - `.iki-app { isolation: isolate }` — Base UI portals every popup to
+ *   `document.body`; the app's content sits in its own stacking context so a
+ *   `z-index` in the page can never climb above a Drawer or a Menu (§13).
+ * - `body { position: relative }` — iOS 26 Safari lets content show beneath
+ *   its chrome, so a scrim is `position: absolute` to cover the visual
+ *   viewport, and that only works after a scroll if `body` is positioned.
+ * - The reduced-motion reset — §6's rule: the system animates nothing, and
+ *   a consumer that adds a transition inherits this floor. The durations are
+ *   `0.01ms`, not `0`, so `transitionend` and `animationend` still fire.
+ */
+export function overlayRules(indent = ""): string[] {
+  return [
+    "/* The app root: Base UI portals popups to <body>, and the page stays below them. */",
+    ".iki-app {",
+    "  isolation: isolate;",
+    "}",
+    "/* iOS 26 Safari: a scrim is position: absolute and needs a positioned body. */",
+    "body {",
+    "  position: relative;",
+    "}",
+    "/* No motion (design system §6): a transition needs a motion-reduce: counterpart; this is the floor. */",
+    "@media (prefers-reduced-motion: reduce) {",
+    "  *,",
+    "  *::before,",
+    "  *::after {",
+    "    animation-duration: 0.01ms !important;",
+    "    animation-iteration-count: 1 !important;",
+    "    transition-duration: 0.01ms !important;",
+    "    scroll-behavior: auto !important;",
+    "  }",
+    "}",
+  ].map((line) => (line ? indent + line : line));
+}
+
 export function themeCss(): string {
   const lines: string[] = [HEADER, ""];
 
@@ -112,6 +151,7 @@ export function themeCss(): string {
     "    color: var(--color-ink);",
     "    font-family: var(--font-sans);",
     "  }",
+    ...overlayRules("  "),
     "}",
     "",
   );
@@ -162,9 +202,9 @@ export function tokensCss(): string {
  * The element rules that go with `tokens.css`: body, links and the focus ring.
  *
  * Optional, and for plain-CSS consumers only. A Tailwind app gets the
- * equivalent from `theme.css` (the body rule) and from `ui-classes` (`linkClass`
- * and `focusRing`), and would only fight these. Load `tokens.css` first: every
- * value here is a `var(--iki-*)` it declares.
+ * equivalent from `theme.css` (the body rule and `overlayRules`) and from
+ * `ui-classes` (`linkClass` and `focusRing`), and would only fight these. Load
+ * `tokens.css` first: every value here is a `var(--iki-*)` it declares.
  */
 export function baseCss(): string {
   return [
@@ -190,6 +230,7 @@ export function baseCss(): string {
     "}",
     "/* On a navy field, teal has no contrast: */",
     ".on-navy :focus-visible { outline-color: var(--iki-paper); }",
+    ...overlayRules(),
     "",
   ].join("\n");
 }
