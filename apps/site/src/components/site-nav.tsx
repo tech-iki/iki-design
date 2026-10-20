@@ -14,6 +14,8 @@ export const SECTIONS: { href: string; label: string; blurb: string }[] = [
   { href: "/tones", label: "Pills", blurb: "The nine status tones" },
   { href: "/type", label: "Type", blurb: "Geist, two faces, the scale in use" },
   { href: "/controls", label: "Controls", blurb: "Buttons, fields, links, tiles" },
+  { href: "/components", label: "Components", blurb: "Button, Field, Notice, EmptyState, KpiTile" },
+  { href: "/icons", label: "Icons", blurb: "Every name at its one size" },
   { href: "/layout", label: "Layout", blurb: "Spacing, radius, elevation, layering" },
   { href: "/adopt", label: "Adopt", blurb: "Tailwind, plain CSS, components" },
   { href: "/decisions", label: "Decisions", blurb: "What is open, what was reversed" },

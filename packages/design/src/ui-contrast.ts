@@ -166,11 +166,19 @@ export const TOKEN_PAIRS: {
   { what: "pill: completed (teal-soft fill)", fg: TOKENS.navy, bg: TOKENS.tealSoft, kind: "text" },
 
   // The KPI tile's value, in each of its three tones, on the tile's teal-soft body.
-  // The neutral tone is navy on teal-soft, asserted above. Found missing by the
+  // The neutral tone is navy on teal-soft, asserted above. The tones were
+  // `warn` and `bad` until 0.3.0 made them the pill tones' names. Found missing by the
   // 20 October 2026 audit (#6): the only component that rendered a pair this
   // list did not hold.
-  { what: "KPI tile: warn value on teal-soft", fg: TOKENS.warmFg, bg: TOKENS.tealSoft, kind: "text" },
-  { what: "KPI tile: bad value on teal-soft", fg: TOKENS.healthOverdueFg, bg: TOKENS.tealSoft, kind: "text" },
+  { what: "KPI tile: warm value on teal-soft", fg: TOKENS.warmFg, bg: TOKENS.tealSoft, kind: "text" },
+  { what: "KPI tile: overdue value on teal-soft", fg: TOKENS.healthOverdueFg, bg: TOKENS.tealSoft, kind: "text" },
+
+  // The invalid field (`invalidFieldClass`, rendered by `Field` since 0.3.0):
+  // what is typed sits on the overdue fill, the border is the overdue red on
+  // it, and the error line beneath is the same red on the page.
+  { what: "invalid field: ink on health-overdue-bg", fg: TOKENS.ink, bg: TOKENS.healthOverdueBg, kind: "text" },
+  { what: "invalid field border: overdue-fg on health-overdue-bg", fg: TOKENS.healthOverdueFg, bg: TOKENS.healthOverdueBg, kind: "nonText" },
+  { what: "field error line: overdue-fg on paper", fg: TOKENS.healthOverdueFg, bg: TOKENS.paper, kind: "text" },
 
   // Control boundaries and meaningful graphics — 3:1
   { what: "input border on paper", fg: TOKENS.gridStrong, bg: TOKENS.paper, kind: "nonText" },

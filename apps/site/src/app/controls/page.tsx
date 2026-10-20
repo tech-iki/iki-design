@@ -80,7 +80,7 @@ function Specimen({
 /** The sign-out button's on-navy treatment, design-system §8. */
 const ON_NAVY_BUTTON = `flex ${touchTarget} items-center justify-center gap-2 rounded-md border border-paper/50 p-1.5 text-sm text-paper/90 hover:bg-paper/10 hover:text-paper ${focusRingOnNavy}`;
 
-const KPI_USE = `<KpiTile label="Overdue" value={3} hint="past their deadline" tone="bad" />`;
+const KPI_USE = `<KpiTile label="Overdue" value={3} hint="past their deadline" tone="overdue" />`;
 
 const PAGE_TITLE_USE = `<PageMain variant="readable">
   <PageTitle
@@ -312,13 +312,13 @@ export default function ControlsPage() {
             label="Due soon"
             value={7}
             hint="in the next 7 days"
-            tone="warn"
+            tone="warm"
           />
           <KpiTile
             label="Overdue"
             value={3}
             hint="past their deadline"
-            tone="bad"
+            tone="overdue"
           />
         </div>
         <CodeBlock code={KPI_USE} />

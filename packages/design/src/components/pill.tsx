@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { ComponentPropsWithoutRef, ReactNode } from "react";
 import type { PillTone } from "../tones.js";
 
 /**
@@ -17,22 +17,25 @@ import type { PillTone } from "../tones.js";
  * report), which is why it kept coming back: each new caller had to remember.
  * Held by `pill-single-line.test.ts`, which renders this component. A caller's
  * `className` must never set `whitespace-*`: it would compete with this one.
+ * `...rest` reaches the span, so `id`, `aria-*` and `data-*` pass through.
  */
 export function Pill({
   tone,
   title,
   className = "",
   children,
+  ...rest
 }: {
   tone?: PillTone;
   title?: string;
   className?: string;
   children: ReactNode;
-}) {
+} & ComponentPropsWithoutRef<"span">) {
   return (
     <span
       title={title}
       className={`inline-block whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-medium ${tone ?? ""} ${className}`.trim()}
+      {...rest}
     >
       {children}
     </span>
