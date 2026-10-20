@@ -98,6 +98,7 @@ const PLACEHOLDER: Readonly<Record<string, string>> = {
   "{touchTarget}": classes.touchTarget,
   "{focusRing}": classes.focusRing,
   "{fieldClass}": classes.fieldClass,
+  "{subtleButtonClass}": classes.subtleButtonClass,
 };
 
 /** `name  classes` lines → name → classes, placeholders expanded. */
@@ -113,17 +114,25 @@ function classLines(body: string): Record<string, string> {
   return out;
 }
 
-const CLASS_BLOCKS = ["classes:buttons", "classes:fields", "classes:cursor"] as const;
+const CLASS_BLOCKS = [
+  "classes:buttons",
+  "classes:fields",
+  "classes:cursor",
+  // Phase 1 (ADR 0002): the overlays' strings, in the §8 blocks that describe them.
+  "classes:overlays",
+  "classes:menu",
+  "classes:disclosure",
+] as const;
 
 /**
- * Every class the three §8 blocks document, name → classes. A name that appears
+ * Every class the §8 blocks document, name → classes. A name that appears
  * in two blocks is an error, not a merge: the later copy would silently win
  * and a stale earlier one would never be compared.
  */
 function documentedClasses(source: string): Record<string, string> {
   const out: Record<string, string> = {};
   for (const marker of CLASS_BLOCKS) {
-    for (const [name, value] of Object.entries(classLines(block(marker, "", source, 100)))) {
+    for (const [name, value] of Object.entries(classLines(block(marker, "", source, 50)))) {
       if (name in out) throw new Error(`${name} is documented twice; the second time under ${marker}`);
       out[name] = value;
     }

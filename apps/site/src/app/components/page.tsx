@@ -10,6 +10,12 @@ import {
   PageTitle,
 } from "@tech-iki/design";
 import { CodeBlock } from "@/components/code-block";
+import {
+  DisclosureSpecimen,
+  DrawerSpecimen,
+  MenuSpecimen,
+  PopoverSpecimen,
+} from "@/components/overlay-specimens";
 import { Mono } from "@/components/rich";
 import { Specimen } from "@/components/specimen";
 import { P, Section } from "@/components/section";
@@ -17,7 +23,7 @@ import { P, Section } from "@/components/section";
 export const metadata: Metadata = {
   title: "Components",
   description:
-    "Button, Field, Notice, EmptyState and KpiTile, drawn live with the usage beneath each.",
+    "Button, Field, Notice, EmptyState, KpiTile, and the four overlays — Drawer, Popover, Menu, Disclosure — drawn live with the usage beneath each.",
 };
 
 const BUTTON_USE = `<Button>Save task</Button>
@@ -64,6 +70,54 @@ const EMPTY_USE = `<EmptyState action={<Button>New task</Button>}>
 </EmptyState>
 
 <EmptyState>Nothing is overdue.</EmptyState>`;
+
+const DRAWER_USE = `const [open, setOpen] = useState(false);
+
+<Button onClick={() => setOpen(true)}>New task</Button>
+<Drawer
+  open={open}
+  onOpenChange={(next, reason) => {
+    // reason: "escape" | "scrim" | "close" | "programmatic"
+    if (!next && isDirty && reason !== "close") return askToDiscard();
+    setOpen(next);
+  }}
+  onEscape={() => !innerLayerIsOpen}   // false consumes the key
+  title="New task"
+  subtitle="Saved to the Finance workstream."
+  refusal={problem}                     // role="alert" band, when set
+  footer={<Button>Save task</Button>}
+>
+  <Field label="Task title"><input name="title" /></Field>
+</Drawer>`;
+
+const POPOVER_USE = `<Popover label="Owner" badge={owners.length} active={owners.length > 0}>
+  <PopoverOption>
+    <input type="checkbox" checked={…} onChange={…} />
+    Amina
+  </PopoverOption>
+</Popover>
+
+{/* controlled, when a toolbar wants one panel open at a time */}
+<Popover label="Health" open={openPanel === "health"} onOpenChange={(o) => setOpenPanel(o ? "health" : null)}>…</Popover>`;
+
+const MENU_USE = `<Menu label="Move to…">
+  {STATUSES.map((s) => (
+    <MenuItem key={s} disabled={s === current} onSelect={() => move(s)}>
+      {s}
+    </MenuItem>
+  ))}
+</Menu>`;
+
+const DISCLOSURE_USE = `<Disclosure
+  title="Overdue"
+  count={tasks.length}
+  blurb="Past their deadline."
+  open={isOpen("overdue")}
+  onOpenChange={(next) => setOpen("overdue", next)}
+  action={<Link href="/tasks?health=overdue" className={linkClass}>Open in Tasks</Link>}
+>
+  <ul>{tasks.map((t) => <TaskLine key={t.id} task={t} />)}</ul>
+</Disclosure>`;
 
 const KPI_USE = `<KpiTile label="Open tasks" value={42} hint="across 6 workstreams" />
 <KpiTile label="Due soon" value={7} hint="in the next 7 days" tone="warm" />
@@ -187,6 +241,72 @@ export default function ComponentsPage() {
           <EmptyState>Nothing is overdue.</EmptyState>
         </div>
         <CodeBlock code={EMPTY_USE} />
+      </Section>
+
+      <Section title="Drawer">
+        <P>
+          The record drawer: a 30rem side panel at <Mono>lg</Mono>, a
+          full-screen sheet below, over a navy scrim. Base UI’s Dialog is
+          behind it (ADR 0002) and owns the portal, the focus trap, the scroll
+          lock and the return of focus to the opener; the package owns the
+          shape — title, subtitle, Close, body, refusal band, footer. Focus
+          opens in the body. Open is controlled: every request to close comes
+          back as <Mono>onOpenChange(false, reason)</Mono>, and the caller
+          closes by setting <Mono>open</Mono> or refuses by leaving it, which
+          is how a dirty form keeps its drawer. Try the keyboard: Tab stays
+          inside, Escape asks before discarding.
+        </P>
+        <Specimen name="open, controlled, with a discard guard">
+          <DrawerSpecimen />
+        </Specimen>
+        <CodeBlock code={DRAWER_USE} />
+      </Section>
+
+      <Section title="Popover">
+        <P>
+          A toolbar popover: the trigger on <Mono>subtleButtonClass</Mono>{" "}
+          with an optional count in its name, and a <Mono>w-80</Mono> panel
+          below it that Base UI positions and keeps inside the viewport. The
+          trigger wears the active style while open and whenever{" "}
+          <Mono>active</Mono> is passed — a filter that is applied — so the
+          state is a shape and a weight, not only a colour. Escape and an
+          outside click close it; focus returns to the trigger.
+        </P>
+        <Specimen name="trigger, badge, active, panel">
+          <PopoverSpecimen />
+        </Specimen>
+        <CodeBlock code={POPOVER_USE} />
+      </Section>
+
+      <Section title="Menu">
+        <P>
+          An APG menu, portalled to the body so a column’s scroll container
+          cannot clip it. Arrow keys move the highlight and wrap, Home and End
+          jump, a typed letter finds its item, Escape closes and returns focus
+          to the trigger, and so does choosing an item. A{" "}
+          <Mono>disabled</Mono> item stays in the list, muted and announced.
+        </P>
+        <Specimen name="trigger, items, a disabled current item">
+          <MenuSpecimen />
+        </Specimen>
+        <CodeBlock code={MENU_USE} />
+      </Section>
+
+      <Section title="Disclosure">
+        <P>
+          A collapsible section whose rows stay on the page. The whole header
+          row is one button inside the heading, its name carries the count
+          (“Overdue, 3”), the blurb is read with it, and the action link sits
+          beside it, outside the button. Collapsed rows are hidden by the class{" "}
+          <Mono>hidden print:block</Mono>, never the <Mono>hidden</Mono>{" "}
+          attribute, so a printed page shows every row. Built without Base UI:
+          its Collapsible sets the attribute, which Tailwind’s preflight makes{" "}
+          <Mono>!important</Mono>, and the handout would print empty.
+        </P>
+        <Specimen name="collapsed by default; print to see every row">
+          <DisclosureSpecimen />
+        </Specimen>
+        <CodeBlock code={DISCLOSURE_USE} />
       </Section>
 
       <Section title="KPI tile">

@@ -23,5 +23,11 @@ export { Field, fieldErrorClass, fieldFrameClass, fieldHintClass } from "./compo
 export { Notice, noticeClass, type NoticeTone } from "./components/notice.js";
 export { EmptyState, emptyStateClass, emptyStateTextClass } from "./components/empty-state.js";
 export { Icon } from "./components/icon.js";
+// Client-only (ADR 0002; design system §13): each file starts with "use client".
+// Base UI is behind them and is never re-exported.
+export { Drawer, type DrawerCloseReason } from "./components/drawer.js";
+export { Popover, PopoverOption } from "./components/popover.js";
+export { Menu, MenuItem } from "./components/menu.js";
+export { Disclosure } from "./components/disclosure.js";
 export { ICONS, LUCIDE_VERSION, type IconName, type IconSize } from "./icons.generated.js";
 export * from "./generate.js";

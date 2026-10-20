@@ -152,3 +152,101 @@ export const warnButtonClass =
 /** An inline text link inside body copy or a cell. */
 export const linkClass =
   `text-teal-deep underline hover:text-navy rounded-xs ${focusRing}`;
+
+/*
+ * The overlays (plan of 20 October 2026, phase 1; ADR 0002). Each string is
+ * what the package's own `Drawer`, `Popover`, `Menu` and `Disclosure` render,
+ * and §8's "Drawer and popover", "Board, card and Move to… menu" and
+ * "Disclosure" blocks show them under these names, held by the doc test.
+ * Base UI owns the behaviour and sets no class of its own; these are the
+ * whole of the look.
+ */
+
+/**
+ * The drawer's scrim, portalled to `<body>`: `bg-navy/25`, never black (§6).
+ * `fixed` with a `min-h-dvh` floor, and `absolute` where `-webkit-touch-callout`
+ * exists — iOS 26 Safari lets the page show beneath its chrome, and a fixed
+ * backdrop stops short of the visual viewport there; `base.css`/`theme.css`
+ * position `<body>` so the absolute form still covers it after a scroll.
+ * Decorative: it has no contrast pair, and clicking it asks to close.
+ */
+export const drawerScrimClass =
+  "fixed inset-0 z-40 min-h-dvh bg-navy/25 supports-[-webkit-touch-callout:none]:absolute";
+
+/**
+ * The panel: a full-screen sheet below `lg`, a 30rem side panel with a left
+ * border at `lg` and above. `z-40` with the scrim (§6 layering), `shadow-2xl`
+ * as the one thing allowed the deepest elevation. `outline-none` only because
+ * the dialog element itself takes focus as a last resort and the ring belongs
+ * to the control inside it that `initialFocus` chose.
+ */
+export const drawerPanelClass =
+  "fixed inset-y-0 right-0 z-40 flex h-full w-full flex-col border-grid-strong bg-paper shadow-2xl outline-none lg:w-[30rem] lg:border-l";
+
+export const drawerHeaderClass = "flex items-start gap-3 border-b border-grid-strong px-4 py-3";
+
+export const drawerBodyClass = "min-h-0 flex-1 overflow-y-auto px-4 py-3";
+
+/** The refusal band between body and footer: `role="alert"`, the overdue pair. */
+export const drawerRefusalClass =
+  "bg-health-overdue-bg px-4 py-2 text-sm text-health-overdue-fg";
+
+export const drawerFooterClass = "border-t border-grid-strong px-4 py-3";
+
+/**
+ * A toolbar popover's trigger: `subtleButtonClass` that never wraps, and —
+ * while its panel is open or the caller says it is `active` (a filter that
+ * is applied) — the teal-soft fill, the teal-deep border and a semibold label,
+ * so the open state shows as a shape and a weight, not only a colour.
+ * `data-popup-open` is what Base UI sets on the trigger while open.
+ */
+export const popoverTriggerClass = `${subtleButtonClass} whitespace-nowrap`;
+
+export const popoverTriggerActiveClass = "border-teal-deep bg-teal-soft font-semibold";
+
+/** The count on a trigger ("Filters 2"): paper on teal-deep, 11px, in the accessible name. */
+export const popoverBadgeClass =
+  "ml-1.5 rounded-full bg-teal-deep px-1.5 text-[11px] font-semibold text-paper";
+
+/**
+ * The panel, portalled and positioned by Base UI below its trigger: `z-30`
+ * (§6, under the drawer's `z-40`), `w-80`, the popover elevation. Replaces
+ * Work OS's `absolute left-0 top-full` and its clamp arithmetic.
+ */
+export const popoverPanelClass =
+  "z-30 w-80 rounded-md border border-grid-strong bg-paper p-2 shadow-lg outline-none";
+
+/** One option row inside a panel (a labelled checkbox or radio, usually). */
+export const popoverOptionClass =
+  "flex items-center gap-2 rounded px-1 py-1 text-sm text-ink hover:bg-teal-soft";
+
+/** The Move to… trigger: `subtleButtonClass` at the card's 11px scale. */
+export const menuTriggerClass = `${subtleButtonClass} px-1.5 py-0.5 text-[11px]`;
+
+/** The menu: `z-50` (§6: every overlay portalled to `<body>` to escape a scroll container). */
+export const menuClass =
+  "z-50 rounded-md border border-grid-strong bg-paper p-1 shadow-lg outline-none";
+
+/**
+ * One item. Base UI moves a roving highlight with the arrow keys and sets
+ * `data-highlighted` on the item under it, so the fill follows the keyboard as
+ * well as the pointer; the pair (ink on teal-soft) is in `TOKEN_PAIRS`.
+ * `aria-disabled` items stay in the list, muted, so the current choice is
+ * still read out.
+ */
+export const menuItemClass =
+  `block w-full rounded px-2 py-1 text-left text-sm text-ink data-highlighted:bg-teal-soft aria-disabled:text-ink-muted ${focusRing}`;
+
+/**
+ * The disclosure's header row: one full-width button inside the heading, with
+ * the 44px touch floor below `md` (§8 "Disclosure").
+ */
+export const disclosureButtonClass =
+  `flex min-h-11 w-full items-center gap-2 rounded-md text-left md:min-h-0 ${focusRing}`;
+
+/**
+ * Collapsed rows: a class, never the `hidden` attribute. Tailwind's preflight
+ * makes `[hidden]` `display: none !important`, which print could never
+ * override, and the Summary handout must print every row.
+ */
+export const disclosureCollapsedClass = "hidden print:block";

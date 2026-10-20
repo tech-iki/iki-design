@@ -8,6 +8,54 @@ token or class is a major.
 
 ## [Unreleased]
 
+### Phase 1 — goes out as 0.4.0
+
+Phase 1 of the plan of 20 October 2026: the overlays, on Base UI (ADR 0002,
+decided by Brian on 21 October). A minor, in its own version-bump PR as the
+workflow asks. It was to wait for Work OS's port (tech-iki/iki-work-os #443)
+to exercise the `Drawer`; Brian lifted that gate on 21 October so the next
+phase could start, and #443 validates the `Drawer` against `main` instead.
+
+#### Added
+
+- **One runtime dependency: `@base-ui/react` 1.9.0**, pinned exactly, imported
+  by per-component subpath (`/dialog`, `/popover`, `/menu`, `/collapsible`) and
+  never re-exported. The register's "no component library" narrows to "no
+  *styled* component library" (§13d, §15). Its optional peers `date-fns` and
+  `@date-fns/tz` are not required.
+- `Drawer`: a side panel 30rem wide with a left border at `lg`, a full-screen
+  sheet below; `header`, `refusal` (`role="alert"`) and `footer` slots around
+  the body; scrim `bg-navy/25`; focus opens in the body, is trapped, and returns
+  to the opener; Escape closes only the innermost layer and `onEscape` can veto
+  it, with `onOpenChange(open, reason)` naming why a close was asked for, so
+  Work OS's dismiss stack can coexist during the #443 migration.
+- `Popover`: the toolbar trigger on `subtleButtonClass` with the `active` style
+  while open and an optional count badge, and the `z-30 w-80` panel with
+  option rows; Base UI positions it, replacing `panel-placement.ts`.
+- `Menu`: an APG menu — arrow keys, Home and End, Escape, outside click —
+  portalled, `role="menu"` and `role="menuitem"`, on §8's menu class strings.
+- `Disclosure`: the whole header row is one button inside the heading, the
+  count is part of the accessible name, `aria-expanded`/`aria-controls` are
+  wired, the chevron is `Icon`, and **the rows stay in the DOM when collapsed**
+  (`hidden print:block`, never the `hidden` attribute) so a page prints every
+  row.
+- **The four are client components** — each file starts with `"use client"`,
+  which `tsc` preserves in `dist` — and §13 lists them. The nine earlier
+  components stay server-safe, held by test.
+- `base.css` and `theme.css`'s base layer gain the three rules the overlays
+  need: `isolation: isolate` on the app root, the iOS 26 Safari backdrop rule
+  (`body { position: relative }` with the scrim absolute), and the global
+  `@media (prefers-reduced-motion: reduce)` reset the new §6 motion rule
+  names. §16 loses its question 4.
+- `TOKEN_PAIRS` holds every pair the overlays render: the highlighted menu
+  item and option row (`ink` on `teal-soft`), the active trigger (`ink` and
+  its `teal-deep` border on `teal-soft`) and the count badge (`paper` on
+  `teal-deep`). The scrim is decorative and has no pair.
+- The site: the four join `/components` as live specimens through one small
+  client wrapper, the only `"use client"` the site allows.
+- ADR 0002 in `docs/decisions`, two §15 rows, §8 blocks for the four, held by
+  `overlays.test.tsx`; a test that every client-only file carries the directive.
+
 ## [0.3.0] — 2026-10-21
 
 Phase 0 of the plan of 20 October 2026
