@@ -76,7 +76,8 @@ disagrees with Work OS's `globals.css`.
    email chrome exist once; per-component copies were deleted so a component
    cannot drift (ADR 0006 §4).
 9. **An icon is not a name.** Every icon is `aria-hidden`; its control carries an
-   `sr-only` label and a `title` (#95).
+   `sr-only` label and a hint — a `title`, or since 0.5.0 a `Tooltip`, which
+   also reaches the keyboard, never both (#95, §8 Tooltip).
 10. **Add a token, add its contrast pair.** Otherwise the suite fails (ADR 0006).
 
 ## 3. Brand
@@ -488,7 +489,7 @@ not black.
 
 | z | What |
 | --- | --- |
-| `z-50` | The skip link when focused; every overlay portalled to `document.body` to escape a scroll container — the cell popovers (error box, pickers) and the policy board's Move to… menu |
+| `z-50` | The skip link when focused; every overlay portalled to `document.body` to escape a scroll container — the cell popovers (error box, pickers, the package's `Combobox`), the policy board's Move to… menu, and `Tooltip` |
 | `z-40` | The record drawer and its scrim |
 | `z-30` | Toolbar popovers |
 | `z-20` | Frozen header cells |
@@ -675,8 +676,12 @@ There is no styled component library. These class strings are the library, and
 the components the package exports are the strings with their behaviour
 attached: `Pill`, `KpiTile`, `PageTitle`, `PageMain` since 0.1.0; `Button`,
 `Field`, `Notice`, `EmptyState` and `Icon` since 0.3.0 (the plan of 20 October
-2026, `docs/plans/2026-10-20-components-and-icons.md`, phase 0). Every
-component passes `...rest` to its root element, and every one is server-safe.
+2026, `docs/plans/2026-10-20-components-and-icons.md`, phase 0); the four
+overlays since 0.4.0 (phase 1, client-only); and since 0.5.0 (phase 2)
+`TableFrame`, `Checkbox`, `Radio` and `RadioGroup`, server-safe, and
+`Tooltip`, `Tabs` and `Combobox` on Base UI, client-only (§13). Every
+component passes `...rest` to its root element — or, where the input is the
+control (`Checkbox`, `Radio`, `Combobox`), to the input.
 
 ### Buttons
 
@@ -764,6 +769,52 @@ an ellipsis — "Signing in…", "Saving…", "Applying…" — and the button d
 50% opacity. There are no skeletons and no spinners anywhere; a load is a
 sentence in `text-ink-muted`, and a failure says so in `warm-fg`.
 
+### Checkbox and radio
+
+Since 0.5.0, `Checkbox`, `Radio` and `RadioGroup` are the browser's own
+controls, styled — not Base UI. The native input already has the keyboard
+(Space toggles, the arrow keys move within a radio group), the form value,
+the indeterminate state and forced-colours support, and staying native keeps
+the three server-safe. Work OS has twelve checkboxes and seven radios, Digital
+Library four checkboxes, and before this only one of the twenty-three set an
+accent colour.
+
+<!-- classes:choices -->
+```
+choiceLabelClass   flex min-h-11 items-center gap-2 text-sm text-ink md:min-h-0 has-disabled:cursor-not-allowed has-disabled:text-ink-muted
+choiceInputClass   size-4 shrink-0 accent-teal-deep disabled:cursor-not-allowed {focusRing}
+choiceGroupClass   m-0 flex min-w-0 flex-col gap-1 border-0 p-0
+choiceLegendClass  mb-1 p-0 text-xs font-medium text-ink
+```
+
+<!-- components:choices -->
+```
+Checkbox     <label>     {choiceLabelClass}   wrapping the input and the label text
+  input      <input type="checkbox">   {choiceInputClass}   the rest of the props reach it
+Radio        the same, type="radio"
+RadioGroup   <fieldset>  {choiceGroupClass}   name given to each direct Radio without one; disabled disables them all
+  legend     <legend>    {choiceLegendClass}
+  error      text-xs text-health-overdue-fg   (role="alert", in aria-describedby)
+  hint       text-xs text-ink-muted           (in aria-describedby)
+```
+
+- **The label wraps the input**, `Field`'s rule: the whole row is the click
+  target and the words are the name. The row has the 44px floor below `md`,
+  because the 16px box alone is far under it.
+- **The checked fill is `teal-deep` through `accent-color`**, a token, never a
+  palette class; the browser draws its mark in paper on it. Both pairs, and
+  the fill on a hovered `teal-soft` option row, are in `TOKEN_PAIRS`.
+- **A disabled input mutes its row** (`has-disabled:`), so the state follows
+  the attribute as `fieldClass`'s does; a `disabled` `RadioGroup` is a
+  disabled fieldset, which disables every radio in it natively.
+- **Unlike the other components, the rest reaches the `<input>`**, because the
+  input is the control: `name`, `value`, `checked`, `onChange`, `disabled`.
+  `className` reaches the row, for layout; `RadioGroup`'s rest reaches the
+  fieldset.
+- `PopoverOption` stays for a toolbar panel's hover-tinted row, around a bare
+  input with `choiceInputClass`; a `Checkbox` is a label already and never
+  goes inside another.
+
 ### Pill, chip, tile
 
 <!-- classes:pill -->
@@ -811,18 +862,37 @@ height, and an override would defeat a caller that chose `items-start`.
 
 ### Table frame
 
+Since 0.5.0 the frame is the package's `TableFrame`, ported from Work OS's
+`components/data-table.tsx` (eight sites), server-safe and with no Base UI.
+Its strings are `ui-classes.ts` exports, held to the code:
+
+<!-- classes:table -->
 ```
-frame          relative overflow-auto rounded-md border border-grid print:max-h-none print:overflow-visible {maxHeightClass}
-table          border-collapse text-left text-sm {sticky when bounded} {STACKED when stacked} {table-fixed | w-full} {minWidthClass}
-theadClass     bg-navy text-xs uppercase tracking-wide text-paper
-thClass        z-10 bg-navy px-3 py-2 font-semibold whitespace-nowrap
-tbodyClass     divide-y divide-grid
-tdClass        px-3 py-2
-rowClass(i)    bg-paper | bg-paper-tint (odd)   hover:bg-row-hover
-rowClass(i,s)  {s} hover:brightness-95
-sheetRowClass  bg-paper hover:bg-row-hover
-sheetTdClass   border-r border-grid px-3 py-1 last:border-r-0
-gridHeightClass  max-h-[calc(100vh-15rem)]
+tableFrameClass         relative overflow-auto rounded-md border border-grid print:max-h-none print:overflow-visible
+tableFrameStackedClass  max-md:max-h-none
+tableFrameFixedClass    w-fit max-w-full
+tableClass              border-collapse text-left text-sm
+tableStickyHeadClass    [&_thead_th]:sticky [&_thead_th]:top-0
+tableStackedClass       max-md:block max-md:min-w-0 [&_thead]:max-md:hidden [&_tbody]:max-md:block [&_tbody]:max-md:divide-y-0 [&_tbody_tr]:max-md:mb-2 [&_tbody_tr]:max-md:block [&_tbody_tr]:max-md:rounded-md [&_tbody_tr]:max-md:border [&_tbody_tr]:max-md:border-grid-strong [&_tbody_td]:max-md:flex [&_tbody_td]:max-md:items-baseline [&_tbody_td]:max-md:justify-between [&_tbody_td]:max-md:gap-3 [&_tbody_td]:max-md:before:text-xs [&_tbody_td]:max-md:before:font-medium [&_tbody_td]:max-md:before:text-ink-muted [&_tbody_td]:max-md:before:content-[attr(data-label)]
+gridHeightClass         max-h-[calc(100vh-15rem)]
+theadClass              bg-navy text-xs uppercase tracking-wide text-paper
+thClass                 z-10 bg-navy px-3 py-2 font-semibold whitespace-nowrap
+tbodyClass              divide-y divide-grid
+tdClass                 px-3 py-2
+sheetRowClass           bg-paper hover:bg-row-hover
+sheetTdClass            border-r border-grid px-3 py-1 last:border-r-0
+```
+
+How `TableFrame` puts them together, held by `phase-2.test.tsx`:
+
+<!-- components:table -->
+```
+TableFrame      <div>    {tableFrameClass} {maxHeightClass} {tableFrameStackedClass when stacked and bounded} {tableFrameFixedClass when fixed} {focusRing when scrollableByKeyboard}
+  table         <table>  {tableClass} {tableStickyHeadClass when bounded} {tableStackedClass when stacked} {table-fixed | w-full} {minWidthClass}   aria-label={caption}
+  keyboard      scrollableByKeyboard: the frame is role="region", tabIndex 0, named by the caption
+rowClass(i)     bg-paper | bg-paper-tint (odd)   hover:bg-row-hover
+rowClass(i,s)   {s} hover:brightness-95
+ActionsHeader   <th scope="col">  {thClass}, its label sr-only
 ```
 
 - **Two skins, never mixed.** Striped (zebra, horizontal rules only) for every
@@ -841,6 +911,24 @@ gridHeightClass  max-h-[calc(100vh-15rem)]
   `<caption>` stops naming it. An unlabelled actions column gets a hidden header.
 - **A minimum width is stated with `md:`.** Below `md` a table stacks or becomes
   cards, so a floor there only forces a scrollbar nobody wants.
+- **The sticky rule carries no z-index.** `tableStickyHeadClass` is a
+  descendant selector on the table and out-specifies a utility; the header
+  cells take their own `z-10` from `thClass`, which a frozen header's `z-20`
+  overrides ([§6](#6-spacing-shape-elevation-layering-motion)). The header is
+  sticky only when `maxHeightClass` bounds the frame (#58).
+- **A frame that can overflow and has no cursor is a tab stop**
+  (`scrollableByKeyboard`): `role="region"`, named by the caption, with the
+  focus ring — Work OS's frame took the tab stop without the ring, and an
+  `aria-label` on a bare `<div>` names nothing, so the port adds both.
+- **Controls in cells keep the 44px floor below `md` themselves.** A `Button`,
+  an icon button or a `Checkbox` row carries `touchTarget`; a cell sets no
+  floor of its own, so the desk keeps the density the grid was measured at.
+- **What the port changed for Work OS's eight call sites:** `caption` is
+  required; `frameRef`, `frameStyle` and `onScroll` become `ref`, `style` and
+  `onScroll` on the frame through `...rest`; `tableStyle` and `describedBy`
+  become `tableProps={{ style, "aria-describedby" }}`. Every class is the
+  same, except `theadClass`'s `text-white`, which is `text-paper` because the
+  package switches the default palette off.
 
 ### Grid cursor
 
@@ -1078,6 +1166,120 @@ fine there, because policies print from their own route, but do not copy it for
 anything that prints in place. First used on the Summary page (#413), in
 `src/components/summary-disclosure.tsx`.
 
+### Tooltip
+
+Since 0.5.0, `Tooltip`, on Base UI's Tooltip (ADR 0002): the keyboard and
+pointer route for the hint Work OS gave with 29 native `title=` attributes, 12
+of them on icon-only buttons, none reachable by keyboard.
+
+<!-- classes:tooltip -->
+```
+tooltipClass  z-50 max-w-64 rounded bg-navy px-2 py-1 text-xs text-paper shadow-lg
+```
+
+<!-- components:tooltip -->
+```
+Tooltip      wraps one trigger element, usually Button variant=icon, its title removed
+  popup      <div role="tooltip">  {tooltipClass}   portalled, side=top, 6px off the trigger
+  opens      mouse or pen hover after 600ms (delay); keyboard focus-visible at once
+  closes     Escape, a press on the trigger, pointer leaving, blur
+  touch      never opens (Base UI, by design)
+```
+
+- **A supplement, never the name** (§2 principle 9). The trigger keeps its
+  `sr-only` label as its accessible name; the tooltip shows the same words.
+  So the popup is `role="tooltip"` but is **not** joined to the trigger by
+  `aria-describedby` — a description identical to the name is read twice
+  (§10) — and Base UI wires nothing itself.
+- **The trigger's `title` is removed**, because a native tooltip beside this
+  one shows the hint twice. An icon button carries **either** a `Tooltip` or a
+  `title`, never both.
+- **What a touch user gets: no tooltip.** Base UI opens on mouse and pen hover
+  only, because a long press is the browser's context menu and no touch
+  gesture reveals a hint before the tap acts. A touch user has the icon; a
+  screen reader has the `sr-only` name. That is why a confirm step stays in
+  words (Buttons above), and why a hint someone needs in order to act belongs
+  in visible text, not here.
+- **No animation**, and nothing is in the DOM while it is closed. Paper on
+  navy is the header pair, already held at AA.
+
+### Tabs
+
+Since 0.5.0, `Tabs`, `TabList`, `Tab` and `TabPanel`, on Base UI's Tabs:
+Work OS's one tablist, the policy text editor's Edit and Preview.
+
+<!-- classes:tabs -->
+```
+tabListClass   flex gap-1 border-b border-grid-strong
+tabClass       {touchTarget} relative -mb-px rounded-t-md px-3 py-1.5 text-sm text-ink hover:bg-teal-soft data-active:font-semibold data-active:after:absolute data-active:after:inset-x-0 data-active:after:bottom-0 data-active:after:h-0.5 data-active:after:rounded-full data-active:after:bg-teal-deep aria-disabled:cursor-not-allowed aria-disabled:text-ink-muted aria-disabled:hover:bg-transparent {focusRing}
+tabPanelClass  pt-3 {focusRing}
+```
+
+<!-- components:tabs -->
+```
+Tabs       <div>                                   value + onValueChange, or defaultValue (one is required)
+TabList    <div role="tablist" aria-label>         {tabListClass}   activation=automatic | manual
+Tab        <button role="tab" aria-selected>       {tabClass}   one tab stop; data-active when selected
+TabPanel   <div role="tabpanel" aria-labelledby>   {tabPanelClass}   unmounted when inactive unless keepMounted
+```
+
+- **The selected tab is marked by weight and a bar**: semibold, with a 2px
+  `teal-deep` bar along its foot drawn by `after:` — the active nav item's
+  rule (§2 principle 2), never a fill colour alone. Work OS's tab was a
+  `teal-deep` fill with white text, which carried the state in colour and
+  weight but no shape.
+- **APG keyboard, from Base UI**: one tab stop for the row, the arrow keys
+  move along it and wrap, Home and End jump. **Activation is automatic by
+  default** — the arrow selects as it moves, as Work OS's editor does ("focus
+  follows selection"); `activation="manual"` moves focus only and Enter or
+  Space selects, for a panel that is slow to produce.
+- **A disabled tab stays in the row**, muted, `aria-disabled`, and still
+  takes focus by arrow, so it is read; it cannot be selected.
+- An inactive panel is unmounted; `keepMounted` keeps it under the `hidden`
+  attribute, which preflight makes `!important`, so a kept panel never
+  prints. For content that must print whole, use `Disclosure`.
+
+### Combobox
+
+Since 0.5.0, `Combobox`, on Base UI's Combobox: the grid's cell chooser,
+Work OS's `ChoicePopover` (`role="combobox"` and a listbox) in
+`editable-cell.tsx`. **Forms keep the native `<select>`** (plan §4.3): 58 of
+them work, meet the touch floor through `fieldClass`, and get the phone's own
+picker. This is for the cell chooser and for lists long enough that typing
+beats scrolling.
+
+<!-- classes:combobox -->
+```
+comboboxPopupClass   z-50 max-h-64 w-(--anchor-width) min-w-56 overflow-y-auto rounded-md border border-grid-strong bg-paper p-1 shadow-lg outline-none
+comboboxOptionClass  flex cursor-pointer items-center justify-between gap-2 rounded px-2 py-1 text-sm text-ink data-highlighted:bg-teal-soft data-disabled:cursor-not-allowed data-disabled:text-ink-muted
+comboboxTickClass    text-teal-deep
+comboboxEmptyClass   px-2 py-1 text-xs text-ink-muted empty:hidden
+```
+
+<!-- components:combobox -->
+```
+Combobox   <input role="combobox">   {fieldClass} | {smallFieldClass} when size=small, + className; the rest reach it
+  list     <div role="listbox">      {comboboxPopupClass}   portalled, below the input, flipped when there is no room
+  option   <div role="option">       {comboboxOptionClass}   aria-selected; <Icon name="check"> in {comboboxTickClass} when chosen
+  empty    role="status"             {comboboxEmptyClass}   "No matches." by default
+```
+
+- **Typing filters** — a case- and accent-insensitive "contains" on the label,
+  as Work OS's `filterOptions` did — and the first match is highlighted, so
+  typing and Enter is a choice. Arrow keys move the highlight; Enter or a
+  press chooses and closes. Focus stays in the input throughout; the
+  highlight is `aria-activedescendant`.
+- **Escape closes the innermost layer**: inside a `Drawer` it closes the list,
+  not the drawer. `onEscape` is the same veto `Drawer` has — return `false`
+  and the list stays open, the key consumed — for a layer Base UI does not
+  know about, such as Work OS's dismiss stack until #443 deletes it.
+- **An Escape on a closed list clears nothing.** Base UI would clear the
+  chosen value and the text there, which in a drawer reads as data lost; the
+  wrapper refuses both and lets the key go to the next layer, so the drawer
+  hears it. A caller that wants "none" offers it as an option.
+- The chosen option shows a tick as well as `aria-selected`, so it is a shape
+  and not only the highlight's colour.
+
 ### Icons
 
 One component, `Icon`, with a typed `name` that is a meaning, not a picture:
@@ -1160,7 +1362,7 @@ Conventions:
 | 2.4.7 | One focus indicator, defined once, on every control; the native outline is never reset, because `focus:outline-none` nulls the ring (Work OS #315) |
 | 2.5.8 | 44 × 44px targets below `md`; desktop keeps its density |
 | 2.4.1 | A skip link, first in the DOM, hidden until focused, targeting a focusable `<main>` |
-| 4.1.2 | Icon-only controls carry an `sr-only` name and a `title`; icons are `aria-hidden`; a name and an identical description are never both given |
+| 4.1.2 | Icon-only controls carry an `sr-only` name and a `title` or a `Tooltip`, never both; icons are `aria-hidden`; a name and an identical description are never both given |
 | 1.3.1 | Tables state role and name; a stacked table restates `rowgroup`/`row`/`cell`, because changing `display` drops those roles |
 | 4.1.3 | Errors are `role="alert"`, notices `role="status"`; a refused cell edit announces itself rather than silently reverting |
 | 2.1.2 | The drawer traps Tab, opens focus in its content, restores it on close; Escape belongs to the top layer |
@@ -1359,18 +1561,21 @@ per-stack notes that follow.
 
 - **Client-only exports.** Every component is server-safe (no hooks, no
   directive, renders in a Server Component and in `renderToStaticMarkup`)
-  except the four overlays, which are built on `@base-ui/react` (ADR 0002)
+  except the four overlays and the three phase 2 components on Base UI, which are built on `@base-ui/react` (ADR 0002)
   and carry `"use client"` in their own file, preserved in `dist`. A Server
   Component page can still render them; they are shipped to the browser. The
   split is held by `client-directive.test.ts`.
 
   | Export | Client-only | Base UI part behind it |
   | --- | --- | --- |
-  | `Pill`, `KpiTile`, `PageTitle`, `PageMain`, `Button`, `Field`, `Notice`, `EmptyState`, `Icon` | no | — |
+  | `Pill`, `KpiTile`, `PageTitle`, `PageMain`, `Button`, `Field`, `Notice`, `EmptyState`, `Icon`, `TableFrame`, `Checkbox`, `Radio`, `RadioGroup` | no | — |
   | `Drawer` | **yes** | Dialog |
   | `Popover` | **yes** | Popover |
   | `Menu` | **yes** | Menu |
   | `Disclosure` | **yes** | see [§8 Disclosure](#disclosure-collapsible-section) |
+  | `Tooltip` | **yes** | Tooltip |
+  | `Tabs`, `TabList`, `Tab`, `TabPanel` | **yes** | Tabs |
+  | `Combobox` | **yes** | Combobox |
 
 - **Until npm publishing exists**, depend on the tagged release on GitHub, in
   `dependencies`:
@@ -1656,6 +1861,7 @@ button). A consumer should copy the rule, not the exception; each of these is a 
 | 2026-10-21 | plan 2026-10-20 phase 0 | `Button`, `Field`, `Notice`, `EmptyState` join the package; `KpiTile.tone` takes the pill tones' names | 238 buttons, 189 fields, 98 notices and 26 empty states written by hand across the two consumers |
 | 2026-10-21 | ADR 0002, plan 2026-10-20 §7 | Unstyled primitives (`@base-ui/react`) behind package-owned `Drawer`, `Popover`, `Menu`, `Disclosure`; never re-exported; the "no component library" line narrows to "no *styled* component library"; client-only components stay in the main export with `"use client"` per file; phase 1 waits for the Work OS port (#443) to exercise the Drawer | Base UI is the only candidate with a Drawer, a Combobox and a cancellable Escape together; a themed library would still fight the workbook look, and an unstyled one does not |
 | 2026-10-21 | plan 2026-10-20 §7-3, PR #10 | Phase 1 merges before the Work OS port has run the `Drawer`; #443 validates it against `main` instead | Brian: merge so the next phase can start. Nothing is published by the merge; a wrong API is a follow-up before 0.4.0 is tagged — **reverses decision 3 of the same day** |
+| 2026-10-21 | plan 2026-10-20 phase 2 | `TableFrame`, `Checkbox`/`Radio`/`RadioGroup` (server-safe, styled natives) and `Tooltip`, `Tabs`, `Combobox` (on Base UI) join the package in one PR for 0.5.0, without waiting for a consumer issue | Brian, 21 October 2026: proceed with phase 2 anyway — **sets aside the plan's "each ships only when a consumer issue asks for it"**. The demand is the plan's own count: 8 table frames, 19 native checkboxes and radios, 29 `title=` hints, one tablist, one cell combobox |
 | 2026-10-21 | plan 2026-10-20 §4.3 | A transition is allowed only with a `motion-reduce:` counterpart; `base.css` and `theme.css` ship the global reduced-motion reset | Nothing animated and nothing needed a guard, so the rule had to be written before a consumer added one — formerly open question §16-4 |
 
 ### Reversed — do not re-adopt

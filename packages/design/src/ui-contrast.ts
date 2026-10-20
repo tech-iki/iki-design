@@ -190,6 +190,36 @@ export const TOKEN_PAIRS: {
   { what: "drawer refusal band: overdue-fg on health-overdue-bg", fg: TOKENS.healthOverdueFg, bg: TOKENS.healthOverdueBg, kind: "text" },
   { what: "disclosure count: ink-muted on paper", fg: TOKENS.inkMuted, bg: TOKENS.paper, kind: "text" },
 
+  // Phase 2 (0.5.0). The table frame renders pairs already held above — paper
+  // on navy in the head, ink and ink-muted on paper and paper-tint in the
+  // zebra, the row-hover set — and its stacked card border is grid-strong on
+  // paper. Named here so the frame's own list is complete.
+  { what: "table head: paper on navy", fg: TOKENS.paper, bg: TOKENS.navy, kind: "text" },
+  { what: "stacked table cell label: ink-muted on paper-tint", fg: TOKENS.inkMuted, bg: TOKENS.paperTint, kind: "text" },
+  { what: "stacked table card border: grid-strong on paper", fg: TOKENS.gridStrong, bg: TOKENS.paper, kind: "nonText" },
+  { what: "stacked table card border: grid-strong on paper-tint", fg: TOKENS.gridStrong, bg: TOKENS.paperTint, kind: "nonText" },
+  // Checkbox and radio: the checked fill is teal-deep through accent-color, on
+  // the page and on a hovered option row; the browser draws its mark in paper
+  // on it. A disabled row's words are ink-muted.
+  { what: "checked checkbox or radio: teal-deep on paper", fg: TOKENS.tealDeep, bg: TOKENS.paper, kind: "nonText" },
+  { what: "checked checkbox or radio: teal-deep on teal-soft", fg: TOKENS.tealDeep, bg: TOKENS.tealSoft, kind: "nonText" },
+  { what: "checkbox mark: paper on teal-deep", fg: TOKENS.paper, bg: TOKENS.tealDeep, kind: "nonText" },
+  { what: "disabled checkbox or radio label: ink-muted on paper", fg: TOKENS.inkMuted, bg: TOKENS.paper, kind: "text" },
+  { what: "radio group legend: ink on paper", fg: TOKENS.ink, bg: TOKENS.paper, kind: "text" },
+
+  // Tooltip, Tabs, Combobox (0.5.0, on Base UI).
+  { what: "tooltip: paper on navy", fg: TOKENS.paper, bg: TOKENS.navy, kind: "text" },
+  { what: "tab: ink on paper", fg: TOKENS.ink, bg: TOKENS.paper, kind: "text" },
+  { what: "hovered tab: ink on teal-soft", fg: TOKENS.ink, bg: TOKENS.tealSoft, kind: "text" },
+  { what: "disabled tab: ink-muted on paper", fg: TOKENS.inkMuted, bg: TOKENS.paper, kind: "text" },
+  { what: "selected tab bar: teal-deep on paper", fg: TOKENS.tealDeep, bg: TOKENS.paper, kind: "nonText" },
+  { what: "tab row rule: grid-strong on paper", fg: TOKENS.gridStrong, bg: TOKENS.paper, kind: "nonText" },
+  { what: "combobox option highlighted: ink on teal-soft", fg: TOKENS.ink, bg: TOKENS.tealSoft, kind: "text" },
+  { what: "combobox tick: teal-deep on paper", fg: TOKENS.tealDeep, bg: TOKENS.paper, kind: "nonText" },
+  { what: "combobox tick: teal-deep on teal-soft", fg: TOKENS.tealDeep, bg: TOKENS.tealSoft, kind: "nonText" },
+  { what: "combobox \"No matches.\" and disabled option: ink-muted on paper", fg: TOKENS.inkMuted, bg: TOKENS.paper, kind: "text" },
+  { what: "combobox list border: grid-strong on paper", fg: TOKENS.gridStrong, bg: TOKENS.paper, kind: "nonText" },
+
   // Control boundaries and meaningful graphics — 3:1
   { what: "input border on paper", fg: TOKENS.gridStrong, bg: TOKENS.paper, kind: "nonText" },
   { what: "input border on paper-tint", fg: TOKENS.gridStrong, bg: TOKENS.paperTint, kind: "nonText" },

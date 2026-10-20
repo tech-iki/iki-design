@@ -122,6 +122,12 @@ const CLASS_BLOCKS = [
   "classes:overlays",
   "classes:menu",
   "classes:disclosure",
+  // Phase 2: the table frame, the styled natives, and the three on Base UI.
+  "classes:table",
+  "classes:choices",
+  "classes:tooltip",
+  "classes:tabs",
+  "classes:combobox",
 ] as const;
 
 /**

@@ -213,6 +213,12 @@ the dismiss stack is deleted, or the component is wrong.
 (8 sites, already a component in Work OS), `Checkbox`/`Radio` styled natives.
 Each ships only when a consumer issue asks for it.
 
+**Phase 2 — done, 21 October 2026**, as one PR targeting 0.5.0. No consumer
+issue asked for any of the five; Brian said on 21 October to proceed with the
+phase anyway, and the §15 register records it. All five shipped: `TableFrame`
+and the styled `Checkbox`/`Radio`/`RadioGroup` server-safe, `Tooltip`, `Tabs`
+and `Combobox` on Base UI.
+
 ### Phase 3 — the site and the written system
 
 Two new pages: `/icons` (every name, both sizes, the Lucide source name) and

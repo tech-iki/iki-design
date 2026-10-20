@@ -8,6 +8,36 @@ token or class is a major.
 
 ## [Unreleased]
 
+### Phase 2 — goes out as 0.5.0
+
+Phase 2 of the plan of 20 October 2026: the rest of the components the
+consumers draw by hand. The plan said each would ship only when a consumer
+issue asked for it; none has, and Brian said on 21 October to proceed anyway
+(§15). A minor, in its own version-bump PR after 0.4.0's.
+
+#### Added
+
+- `TableFrame`, `rowClass` and `ActionsHeader`: Work OS's bounded scroll frame
+  (eight sites), server-safe. Sticky header only when bounded, and **no
+  z-index on the sticky rule** (§6); cards below `md` when `stacked`; the
+  caption as `aria-label`; `scrollableByKeyboard` makes the frame a named
+  `role="region"` tab stop with the focus ring, which Work OS's lacked. For
+  the port: `frameRef`/`frameStyle`/`onScroll` become `ref`/`style`/`onScroll`
+  through `...rest`, `tableStyle`/`describedBy` become `tableProps`, and
+  `caption` is required. The class strings are exported and held by §8.
+- `Checkbox`, `Radio` and `RadioGroup`: styled natives, server-safe, not Base
+  UI. A label wrapping the input, the checked fill `teal-deep` through
+  `accent-color`, the 44px row below `md`, a muted row when disabled;
+  `RadioGroup` is a `<fieldset>` with a `<legend>` that names its radios and
+  carries a hint and a `role="alert"` error. The input's own props reach the
+  input.
+- `Tooltip`, `Tabs` and `Combobox` on Base UI's Tooltip, Tabs and Combobox,
+  each a client component with `"use client"`, listed in §13 and held by
+  `client-directive.test.ts`. See §8 for each.
+- `TOKEN_PAIRS` rows for every pair the five render; §8 blocks for each, held
+  by `design-system-doc.test.ts` and `phase-2.test.tsx`; live specimens on the
+  site's `/components`.
+
 ### Phase 1 — goes out as 0.4.0
 
 Phase 1 of the plan of 20 October 2026: the overlays, on Base UI (ADR 0002,
