@@ -1,0 +1,56 @@
+{
+  "name": "@tech-iki/design",
+  "version": "0.1.0",
+  "description": "The IKI design system: colour tokens, status tones, control classes and shared components",
+  "license": "UNLICENSED",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tech-iki/iki-design.git",
+    "directory": "packages/design"
+  },
+  "type": "module",
+  "sideEffects": [
+    "*.css"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./theme.css": "./dist/theme.css",
+    "./tokens.css": "./dist/tokens.css",
+    "./base.css": "./dist/base.css",
+    "./tokens.json": "./dist/tokens.json",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json && node scripts/build-css.ts",
+    "dev": "tsc -p tsconfig.build.json --watch",
+    "prepare": "npm run build",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src scripts"
+  },
+  "peerDependencies": {
+    "react": ">=19",
+    "react-dom": ">=19"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9",
+    "@types/node": "^24",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "typescript": "^5",
+    "typescript-eslint": "^8",
+    "vitest": "^4"
+  },
+  "engines": {
+    "node": ">=24"
+  }
+}

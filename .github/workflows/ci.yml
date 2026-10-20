@@ -1,0 +1,87 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  # A dependency does not need us to touch it to become vulnerable, so the
+  # audit also runs weekly: Monday morning in Honiara. The other jobs skip the
+  # scheduled run — nothing in an unchanged tree needs rebuilding to reach a
+  # 24-second audit.
+  schedule:
+    - cron: "0 20 * * 0"
+
+# `github.event_name` is in the key so the weekly audit has a lane of its own:
+# otherwise a push to main and the scheduled run both resolve to the same group
+# and whichever starts second cancels the first, grey rather than red.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ github.event_name }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Lint, type-check, test, build
+    runs-on: ubuntu-latest
+    if: github.event_name != 'schedule'
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      # `npm ci` runs the package's `prepare`, so dist/ exists before the site
+      # is type-checked or built against it.
+      - run: npm ci
+      - name: Lint
+        run: npm run lint
+      - name: Type check
+        run: npm run typecheck
+      - name: Test
+        run: npm test
+      - name: Build
+        run: npm run build
+      # What `npm publish` would ship, for the record on every run — a file
+      # missing from `files` is found here, not by the first consumer.
+      - name: Package contents
+        run: npm pack --dry-run -w packages/design
+
+  audit:
+    name: Dependency audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --ignore-scripts
+      # Never fails: the part someone reads when the gate below does fire.
+      - name: Every advisory, for the record
+        run: npm audit || true
+      # The gate fails rarely and means it: high severity, production graph only.
+      # A check that reddens the build over a transitive dev dependency gets
+      # muted within a fortnight, and a muted check reads as coverage.
+      - name: Fail on a high advisory in the production graph
+        run: npm audit --audit-level=high --omit=dev
+
+  secrets:
+    name: Secret scan
+    runs-on: ubuntu-latest
+    if: github.event_name != 'schedule'
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # The history is the thing being scanned.
+          fetch-depth: 0
+      # The gitleaks CLI rather than gitleaks-action, which wants a licence key
+      # for organisation-owned repositories. Pinned by digest; the comment
+      # carries the version a human needs.
+      - name: Scan the whole history for committed secrets
+        run: |
+          # gitleaks v8.30.1, pinned by digest.
+          docker run --rm -v "$PWD:/repo" -w /repo \
+            -e GIT_CONFIG_COUNT=1 \
+            -e GIT_CONFIG_KEY_0=safe.directory \
+            -e GIT_CONFIG_VALUE_0='*' \
+            ghcr.io/gitleaks/gitleaks@sha256:c00b6bd0aeb3071cbcb79009cb16a60dd9e0a7c60e2be9ab65d25e6bc8abbb7f \
+            git --no-banner
