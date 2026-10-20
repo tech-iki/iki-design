@@ -54,10 +54,27 @@ export function Radio(props: ChoiceProps) {
 }
 
 /**
+ * Give `name` to every `Radio` in the tree that has none, through any layout
+ * elements around it: a radio left without its group's name leaves the group
+ * silently — two can be checked, the arrow keys stop moving between them, and
+ * the form submits nothing. Context would be simpler, but a Server Component
+ * cannot read it, and the group must stay server-safe.
+ */
+function withName(children: ReactNode, name: string): ReactNode {
+  return Children.map(children, (child) => {
+    if (!isValidElement<{ children?: ReactNode; name?: string }>(child)) return child;
+    if (child.type === Radio) return child.props.name === undefined ? cloneElement(child, { name }) : child;
+    if (child.props.children === undefined) return child;
+    return cloneElement(child, { children: withName(child.props.children, name) });
+  });
+}
+
+/**
  * A set of radios under one name (§8 "Checkbox and radio"; seven in Work OS).
  * A `<fieldset>` with a `<legend>`, so the question is read on entering the
  * group and the browser's arrow keys move between its radios. `name` is given
- * to every direct `Radio` child that has none of its own; `disabled` on the
+ * to every `Radio` inside it that has none of its own, however deep in layout
+ * elements (not through another component's own render); `disabled` on the
  * fieldset disables every radio in it, natively. A `hint` and an `error` sit
  * under the radios as `Field`'s do, joined to the fieldset by
  * `aria-describedby`, the error `role="alert"`. `...rest` reaches the
@@ -83,13 +100,7 @@ export function RadioGroup({
   const hintId = hint ? `${id}-hint` : undefined;
   const errorId = error ? `${id}-error` : undefined;
   const describedBy = [rest["aria-describedby"], errorId, hintId].filter(Boolean).join(" ") || undefined;
-  const radios = name
-    ? Children.map(children, (child) =>
-        isValidElement<ChoiceProps>(child) && child.type === Radio && child.props.name === undefined
-          ? cloneElement(child, { name })
-          : child,
-      )
-    : children;
+  const radios = name ? withName(children, name) : children;
 
   return (
     <fieldset

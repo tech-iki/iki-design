@@ -792,7 +792,7 @@ choiceLegendClass  mb-1 p-0 text-xs font-medium text-ink
 Checkbox     <label>     {choiceLabelClass}   wrapping the input and the label text
   input      <input type="checkbox">   {choiceInputClass}   the rest of the props reach it
 Radio        the same, type="radio"
-RadioGroup   <fieldset>  {choiceGroupClass}   name given to each direct Radio without one; disabled disables them all
+RadioGroup   <fieldset>  {choiceGroupClass}   name given to each Radio inside it without one; disabled disables them all
   legend     <legend>    {choiceLegendClass}
   error      text-xs text-health-overdue-fg   (role="alert", in aria-describedby)
   hint       text-xs text-ink-muted           (in aria-describedby)
@@ -1200,6 +1200,9 @@ Tooltip      wraps one trigger element, usually Button variant=icon, its title r
   screen reader has the `sr-only` name. That is why a confirm step stays in
   words (Buttons above), and why a hint someone needs in order to act belongs
   in visible text, not here.
+- **A disabled trigger shows no tooltip.** A disabled `<button>` fires no
+  pointer or focus events, so nothing can open it. A reason something is
+  unavailable is visible text beside it, never a hint on the dead control.
 - **No animation**, and nothing is in the DOM while it is closed. Paper on
   navy is the header pair, already held at AA.
 
@@ -1279,6 +1282,11 @@ Combobox   <input role="combobox">   {fieldClass} | {smallFieldClass} when size=
   hears it. A caller that wants "none" offers it as an option.
 - The chosen option shows a tick as well as `aria-selected`, so it is a shape
   and not only the highlight's colour.
+- **Tab leaves the field without choosing**, as Base UI's combobox does. Work
+  OS's grid chooser commits the highlighted option on Tab and moves the cell
+  cursor right (left with Shift); that is grid behaviour, not the
+  combobox's, and the #443 port keeps it in the grid's own key handling
+  around the cell rather than in this component.
 
 ### Icons
 

@@ -45,6 +45,10 @@ const same = (a: ComboboxOption, b: ComboboxOption) => a.value === b.value;
  *   lost; the wrapper refuses both and the key goes on to the next layer. To
  *   offer "none", the caller adds it as an option.
  *
+ * **Tab leaves without choosing**, as Base UI's combobox does. Work OS's
+ * grid chooser commits on Tab and moves the cell cursor; that belongs to the
+ * grid's key handling around the cell, not to this component.
+ *
  * **Forms keep the native `<select>`** (plan §4.3): 58 of them work, meet the
  * touch floor through `fieldClass`, and get the platform's own picker on a
  * phone. This is for the grid's cell chooser and for lists long enough that
@@ -111,16 +115,21 @@ export function Combobox({
       value={find(value)}
       defaultValue={find(defaultValue)}
       onValueChange={(next, details) => {
-        // Escape on a closed list would clear the value; keep it.
+        // Escape on a closed list would clear the value; keep it, and let the
+        // key go on to the next layer (a drawer), which Base UI would stop.
         if (details.reason === "escape-key") {
           details.cancel();
+          details.allowPropagation();
           return;
         }
         onValueChange?.(next ? next.value : null);
       }}
       onInputValueChange={(_text, details) => {
         // …and the typed text with it.
-        if (details.reason === "escape-key") details.cancel();
+        if (details.reason === "escape-key") {
+          details.cancel();
+          details.allowPropagation();
+        }
       }}
       open={open}
       defaultOpen={defaultOpen}

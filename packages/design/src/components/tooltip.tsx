@@ -31,6 +31,9 @@ import { tooltipClass } from "../ui-classes.js";
  * confirm step stays in words (§8 Buttons), and why a hint a person needs to
  * act belongs in visible text, not here.
  *
+ * **A disabled trigger shows nothing**: a disabled `<button>` fires no pointer
+ * or focus events. Say why a control is unavailable in visible text.
+ *
  * `...rest` reaches the popup. `side` defaults to `top`.
  */
 export function Tooltip({

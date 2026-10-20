@@ -34,7 +34,9 @@ issue asked for it; none has, and Brian said on 21 October to proceed anyway
 - `Tooltip`, `Tabs` and `Combobox` on Base UI's Tooltip, Tabs and Combobox,
   each a client component with `"use client"`, listed in §13 and held by
   `client-directive.test.ts`. See §8 for each.
-- `TOKEN_PAIRS` rows for every pair the five render; §8 blocks for each, held
+- `TOKEN_PAIRS`: every pair the five render was already held, which the list
+  now says, and the one new pair — the browser's checkmark, `paper` on the
+  `teal-deep` fill — is added. §8 blocks for each, held
   by `design-system-doc.test.ts` and `phase-2.test.tsx`; live specimens on the
   site's `/components`.
 

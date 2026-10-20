@@ -211,6 +211,20 @@ describe("RadioGroup", () => {
     expect(group.getAttribute("aria-describedby")).toBe(hint.id);
   });
 
+  it("names a Radio wrapped in layout elements too", () => {
+    render(
+      <RadioGroup legend="Sort" name="sort">
+        <div className="flex gap-3">
+          <Radio label="Due" value="due" />
+          <span>
+            <Radio label="Name" value="name" />
+          </span>
+        </div>
+      </RadioGroup>,
+    );
+    for (const radio of screen.getAllByRole("radio")) expect(radio.getAttribute("name")).toBe("sort");
+  });
+
   it("announces an error and joins it to the group; disabled disables every radio", () => {
     render(
       <RadioGroup legend="Sort" name="sort" error="Choose a sort." disabled>
@@ -521,6 +535,38 @@ describe("Combobox", () => {
     await waitFor(() => expect(screen.queryByRole("listbox")).toBeNull());
     expect(onOpenChange).not.toHaveBeenCalled();
     expect(screen.getByRole("dialog")).toBeTruthy();
+  });
+
+  it("inside a drawer, an Escape on a closed list clears nothing and reaches the drawer", async () => {
+    const onOpenChange = vi.fn();
+    render(
+      <Drawer open onOpenChange={onOpenChange} title="Edit task">
+        <Combobox label="Status" options={OPTIONS} defaultValue="draft" />
+      </Drawer>,
+    );
+    const input = (await screen.findByRole("combobox", { name: "Status" })) as HTMLInputElement;
+    input.focus();
+    expect(screen.queryByRole("listbox")).toBeNull();
+    await userEvent.keyboard("{Escape}");
+    expect(input.value).toBe("Draft");
+    expect(onOpenChange).toHaveBeenCalledWith(false, "escape");
+  });
+
+  it("on Tab leaves without choosing — unlike Work OS's grid chooser, which commits", async () => {
+    const onValueChange = vi.fn();
+    render(
+      <>
+        <Chooser onValueChange={onValueChange} />
+        <button>Next</button>
+      </>,
+    );
+    const input = screen.getByRole("combobox", { name: "Status" });
+    await userEvent.clear(input);
+    await userEvent.type(input, "appr");
+    await screen.findByRole("listbox");
+    await userEvent.tab();
+    await waitFor(() => expect(screen.queryByRole("listbox")).toBeNull());
+    expect(onValueChange).not.toHaveBeenCalledWith("approved");
   });
 
   it("is named by a Field's label that wraps it", () => {
