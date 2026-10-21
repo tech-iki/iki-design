@@ -43,7 +43,7 @@ import { Pill, tones } from "@tech-iki/design";
 Until the package is on npm, install it from a tag:
 
 ```json
-"@tech-iki/design": "github:tech-iki/iki-design#v0.1.0"
+"@tech-iki/design": "github:tech-iki/iki-design#v0.4.0"
 ```
 
 ## Working on it

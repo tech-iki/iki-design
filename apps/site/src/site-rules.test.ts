@@ -94,6 +94,23 @@ export function sectionTitles(source: string): string[] {
   return titles;
 }
 
+/**
+ * `className` values, quoted or template literal, that grow a flex item
+ * (`flex-1`, `flex-auto`, `flex-grow`, `grow`) without an unconditional,
+ * unprefixed `min-w-0`. A flex item will not shrink below its min-content
+ * width, so one such item in the shell lets the widest code block or table
+ * widen the whole page. `cn(…)` and ternary values are not read.
+ */
+export function growingWithoutMinW0(source: string): string[] {
+  return (source.match(/className=(?:"[^"]*"|\{`[^`]*`\})/g) ?? []).filter(
+    (c) =>
+      /(?<![\w-])(?:flex-1|flex-auto|flex-grow|grow)(?![\w-])/.test(c) &&
+      // Unprefixed only: `md:min-w-0` leaves the item stuck below `md`.
+      // A `min-w-0` inside `${…}` may not apply, so it does not count.
+      !/(?<![\w:-])min-w-0(?![\w-])/.test(c.replace(/\$\{[^}]*\}/g, "")),
+  );
+}
+
 export function duplicates(items: string[]): string[] {
   return items.filter((item, i) => items.indexOf(item) !== i);
 }
@@ -168,6 +185,23 @@ describe("controls: each matcher catches what it guards against", () => {
     expect(motionClasses('className="px-3"')).toEqual([]);
   });
 
+  it("catches a growing flex item that cannot shrink", () => {
+    expect(growingWithoutMinW0('<div className="iki-app flex flex-1">')).toEqual([
+      'className="iki-app flex flex-1"',
+    ]);
+    expect(growingWithoutMinW0("<div className={`iki-app flex grow ${x}`}>")).toEqual([
+      "className={`iki-app flex grow ${x}`}",
+    ]);
+    expect(growingWithoutMinW0('<div className="flex-auto">')).toEqual(['className="flex-auto"']);
+    expect(growingWithoutMinW0('<div className="flex min-w-0 flex-1">')).toEqual([]);
+    expect(growingWithoutMinW0('<div className="grow-0 md:min-w-0 flex-col">')).toEqual([]);
+    expect(growingWithoutMinW0('<div className="flex-1 md:min-w-0">')).toEqual(['className="flex-1 md:min-w-0"']);
+    expect(growingWithoutMinW0('<div className="flex-grow">')).toEqual(['className="flex-grow"']);
+    expect(growingWithoutMinW0('<div className={`flex-1 ${a ? "min-w-0" : ""}`}>')).toEqual([
+      'className={`flex-1 ${a ? "min-w-0" : ""}`}',
+    ]);
+  });
+
   it("collects section titles and finds repeats", () => {
     const fixture = '<Section title="A">x</Section><Section title={`B`}>y</Section><Section title="A">z</Section>';
     expect(sectionTitles(fixture)).toEqual(["A", "B", "A"]);
@@ -211,6 +245,12 @@ describe("the site obeys the system's rules", () => {
 
   it("has no transition or animation class", () => {
     for (const f of files) expect(motionClasses(f.source), f.name).toEqual([]);
+  });
+
+  it("lets every growing flex item in the shell shrink, so no page scrolls sideways at 375px", () => {
+    const shell = files.find((f) => f.name === join("app", "layout.tsx"));
+    expect(shell).toBeDefined();
+    expect(growingWithoutMinW0(shell!.source)).toEqual([]);
   });
 
   it("gives no two sections of one file the same title, so heading ids stay unique", () => {

@@ -127,6 +127,7 @@ export default function LayoutPage() {
         />
         <DataTable
           label="The gap steps in use"
+          scrollable
           columns={[
             { header: "Class" },
             { header: "Size", numeric: true },
@@ -149,6 +150,7 @@ export default function LayoutPage() {
       <Section title="Radius and borders">
         <DataTable
           label="Border radius"
+          scrollable
           columns={[
             { header: "Name" },
             { header: "Class" },
@@ -203,6 +205,7 @@ export default function LayoutPage() {
       <Section title="Layering">
         <DataTable
           label="The z-index layers"
+          scrollable
           columns={[
             { header: "Layer" },
             { header: "Class" },
@@ -230,6 +233,7 @@ export default function LayoutPage() {
         </P>
         <DataTable
           label="Breakpoints and what changes at each"
+          scrollable
           columns={[
             { header: "Prefix" },
             { header: "Min width", numeric: true },

@@ -7,12 +7,22 @@ import { focusRing } from "@tech-iki/design";
  * The `<pre>` scrolls inside its own frame, never the page. A scrollable
  * region needs a tab stop so a keyboard user can scroll it (WCAG 2.1.1,
  * design-system §10), but a frame that cannot overflow does not. `scrollable`
- * therefore defaults to whether any line of `code` is longer than 60
+ * therefore defaults to whether any line of `code` is longer than `FITS`
  * characters, and an explicit prop wins.
  */
 
-/** Longest line, in characters, that is assumed to fit a 375px frame. */
-const FITS = 60;
+/**
+ * Longest line, in characters, that fits the narrowest frame at 320px, the
+ * width WCAG 1.4.10 reflow is judged at. A `<pre>` inside a Specimen leaves
+ * 141px for text: 320 less a 15px desktop scrollbar, the 56px rail, the 48px
+ * page padding, the Specimen's 34px, and the `<pre>`'s 2px border and 24px
+ * padding. A Geist Mono `text-xs` glyph is 7.2px wide.
+ *
+ * The cost is a tab stop on some frames that do not scroll at desktop width.
+ * Knowing which do would take a measurement in the browser, and the site keeps
+ * client components to the overlay specimens.
+ */
+const FITS = 19;
 export function CodeBlock({
   code,
   file,

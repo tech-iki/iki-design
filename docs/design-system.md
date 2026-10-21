@@ -1592,7 +1592,7 @@ per-stack notes that follow.
   `dependencies`:
 
   ```json
-  "@tech-iki/design": "github:tech-iki/iki-design#v0.1.0"
+  "@tech-iki/design": "github:tech-iki/iki-design#v0.4.0"
   ```
 
 ### 13a. Any stack — custom properties
@@ -1917,7 +1917,7 @@ This block is `packages/design/dist/tokens.json`, generated from
 ```json
 {
   "name": "IKI design system",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "source": "tech-iki/iki-design packages/design/src/tokens.ts",
   "colour": {
     "navy": "#12304a",
