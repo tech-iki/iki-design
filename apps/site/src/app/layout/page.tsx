@@ -14,6 +14,8 @@ import {
 import { DataTable } from "@/components/data-table";
 import { Mono, Rich } from "@/components/rich";
 import { BulletList, P, Section } from "@/components/section";
+import { MARKDOWN } from "@/lib/design-doc";
+import { section, table } from "@/lib/markdown";
 
 export const metadata: Metadata = {
   title: "Layout",
@@ -35,20 +37,56 @@ const SPACING: { n: number; gap: string; bar: string; use: string }[] = [
 
 type RadiusName = keyof typeof RADIUS_PX;
 
-const RADIUS: Record<RadiusName, { cls: string; where: string }> = {
-  xs: { cls: "rounded-xs", where: "The focus-ring corner on inline links." },
-  sm: {
-    cls: "rounded-sm",
-    where:
-      "Things inside a cell or a panel: chips, cell triggers, option rows. Work OS writes this one as the bare `rounded`.",
-  },
-  md: {
-    cls: "rounded-md",
-    where: "The default box: fields, buttons, cards, tables, panels, tiles.",
-  },
-  lg: { cls: "rounded-lg", where: "The login card, once." },
-  full: { cls: "rounded-full", where: "Pills, count badges, the active-nav bar." },
+const SPACING_SECTION = "## 6. Spacing, shape, elevation, layering, motion";
+
+/**
+ * The package names its radii by the Tailwind suffix, the document by the
+ * class. They agree except for `sm`, which the document writes as the bare
+ * `rounded` (4px), as Work OS does.
+ */
+const RADIUS_CLASS_ALIAS: Partial<Record<RadiusName, string>> = {
+  sm: "rounded",
 };
+
+/*
+ * The class each sample is drawn with, a literal because Tailwind generates
+ * only the classes it finds in the site's source and never reads the document.
+ */
+const RADIUS_SAMPLE: Record<RadiusName, string> = {
+  xs: "rounded-xs",
+  sm: "rounded-sm",
+  md: "rounded-md",
+  lg: "rounded-lg",
+  full: "rounded-full",
+};
+
+/** The document's class for a package radius. */
+const radiusClass = (name: RadiusName) =>
+  RADIUS_CLASS_ALIAS[name] ?? `rounded-${name}`;
+
+const DOC_RADIUS = table(section(MARKDOWN, SPACING_SECTION), [
+  "Class",
+  "px",
+  "Where",
+]);
+
+/** The document's radius rows, one per package radius, in the package's order. */
+const RADIUS = (Object.keys(RADIUS_PX) as RadiusName[]).map((name) => {
+  const cls = radiusClass(name);
+  const row = DOC_RADIUS.find(([c]) => c.replace(/`/g, "") === cls);
+  if (!row) throw new Error(`Radius "${name}" (${cls}) has no row in the design-system document`);
+  // `full` has no pixel size; the document writes a dash.
+  const px = name === "full" ? "—" : String(RADIUS_PX[name]);
+  if (row[1] !== px) {
+    throw new Error(`Radius ${cls} is ${px} in the package and ${row[1]} in the document`);
+  }
+  return { name, cls, where: row[2] };
+});
+for (const [c] of DOC_RADIUS) {
+  if (!RADIUS.some((r) => r.cls === c.replace(/`/g, ""))) {
+    throw new Error(`The document's radius ${c} has no matching package radius`);
+  }
+}
 
 const ELEVATION: { name: string; cls: string; use: string }[] = [
   {
@@ -75,30 +113,59 @@ const ELEVATION: { name: string; cls: string; use: string }[] = [
 
 type ZName = keyof typeof Z_INDEX;
 
-const LAYER: Record<ZName, { cls: string; what: string }> = {
-  skipLink: {
-    cls: "z-50",
-    what: "The skip link when focused; every overlay portalled to document.body to escape a scroll container — the cell popovers and the Move to… menu.",
-  },
-  drawer: { cls: "z-40", what: "The record drawer and its scrim." },
-  popover: { cls: "z-30", what: "Toolbar popovers." },
-  frozenHeader: { cls: "z-20", what: "Frozen header cells." },
-  stickyHeader: { cls: "z-10", what: "Header cells and the column-resize handle." },
-  frozenBodyCell: { cls: "z-[1]", what: "Frozen body cells, which also inherit their row’s background." },
-};
+const DOC_LAYER = table(section(MARKDOWN, SPACING_SECTION), ["z", "What"]);
+
+/**
+ * The document's layering rows, joined to the package by the number in the
+ * class (`z-50`, or `z-[1]`), highest first.
+ */
+const LAYER = (Object.keys(Z_INDEX) as ZName[])
+  .sort((a, b) => Z_INDEX[b] - Z_INDEX[a])
+  .map((name) => {
+    const row = DOC_LAYER.find(
+      ([c]) => zValue(c) === Z_INDEX[name],
+    );
+    if (!row) throw new Error(`Layer "${name}" (${Z_INDEX[name]}) has no row in the design-system document`);
+    return { name, cls: row[0], what: row[1] };
+  });
+for (const [c] of DOC_LAYER) {
+  if (!LAYER.some((l) => l.cls === c)) {
+    throw new Error(`The document's layer ${c} has no matching package layer`);
+  }
+}
+
+/** `z-50` → 50, `z-[1]` → 1. */
+function zValue(cell: string): number {
+  const m = /^`z-(?:(\d+)|\[(\d+)\])`$/.exec(cell);
+  if (!m) throw new Error(`Not a z-index class: ${cell}`);
+  return Number(m[1] ?? m[2]);
+}
 
 type BreakpointName = keyof typeof BREAKPOINTS_PX;
 
-const BREAKPOINT: Record<BreakpointName, string> = {
-  sm: "KPI tiles go from one to two columns; import chips from two to four; guide legend rows go horizontal; the create form goes two-column; record panel field rows become label and value pairs.",
-  md: "The touch floor is released; tables stack or become cards; the toolbar collapses into a “Filter & sort” sheet; table minimum widths begin to apply.",
-  lg: "The rail widens to 224px with labels; the record drawer becomes a 480px side panel instead of a full-screen sheet; KPI tiles reach four columns.",
-};
+const DOC_BREAKPOINT = table(section(MARKDOWN, "### Breakpoints"), [
+  "Prefix",
+  "Min width",
+  "What changes",
+]);
 
-const PREFIXES = Object.keys(BREAKPOINTS_PX) as BreakpointName[];
-const LAYERS = (Object.keys(Z_INDEX) as ZName[]).sort(
-  (a, b) => Z_INDEX[b] - Z_INDEX[a],
+const BREAKPOINT = (Object.keys(BREAKPOINTS_PX) as BreakpointName[]).map(
+  (prefix) => {
+    const row = DOC_BREAKPOINT.find(([c]) => c.replace(/`/g, "") === prefix);
+    if (!row) throw new Error(`Breakpoint "${prefix}" has no row in the design-system document`);
+    if (row[1] !== `${BREAKPOINTS_PX[prefix]}px`) {
+      throw new Error(
+        `Breakpoint ${prefix} is ${BREAKPOINTS_PX[prefix]}px in the package and ${row[1]} in the document`,
+      );
+    }
+    return { prefix, what: row[2] };
+  },
 );
+for (const [c] of DOC_BREAKPOINT) {
+  if (!BREAKPOINT.some((b) => b.prefix === c.replace(/`/g, ""))) {
+    throw new Error(`The document's breakpoint ${c} has no matching package breakpoint`);
+  }
+}
 
 export default function LayoutPage() {
   return (
@@ -158,16 +225,16 @@ export default function LayoutPage() {
             { header: "Sample" },
             { header: "Where" },
           ]}
-          rows={(Object.keys(RADIUS_PX) as RadiusName[]).map((name) => [
+          rows={RADIUS.map(({ name, cls, where }) => [
             <Mono key="name">{name}</Mono>,
-            <Mono key="cls">{RADIUS[name].cls}</Mono>,
+            <Mono key="cls">{cls}</Mono>,
             name === "full" ? "full" : `${RADIUS_PX[name]}px`,
             <span
               key="sample"
               aria-hidden="true"
-              className={`block h-8 w-14 border border-grid-strong bg-teal-soft ${RADIUS[name].cls}`}
+              className={`block h-8 w-14 border border-grid-strong bg-teal-soft ${RADIUS_SAMPLE[name]}`}
             />,
-            <Rich key="where">{RADIUS[name].where}</Rich>,
+            <Rich key="where">{where}</Rich>,
           ])}
         />
         <P>
@@ -212,11 +279,11 @@ export default function LayoutPage() {
             { header: "Value", numeric: true },
             { header: "What" },
           ]}
-          rows={LAYERS.map((name) => [
+          rows={LAYER.map(({ name, cls, what }) => [
             <Mono key="name">{name}</Mono>,
-            <Mono key="cls">{LAYER[name].cls}</Mono>,
+            <Rich key="cls">{cls}</Rich>,
             String(Z_INDEX[name]),
-            LAYER[name].what,
+            <Rich key="what">{what}</Rich>,
           ])}
         />
         <P>
@@ -239,10 +306,10 @@ export default function LayoutPage() {
             { header: "Min width", numeric: true },
             { header: "What changes" },
           ]}
-          rows={PREFIXES.map((p) => [
-            <Mono key="p">{p}</Mono>,
-            `${BREAKPOINTS_PX[p]}px`,
-            BREAKPOINT[p],
+          rows={BREAKPOINT.map(({ prefix, what }) => [
+            <Mono key="p">{prefix}</Mono>,
+            `${BREAKPOINTS_PX[prefix]}px`,
+            <Rich key="what">{what}</Rich>,
           ])}
         />
         <BulletList

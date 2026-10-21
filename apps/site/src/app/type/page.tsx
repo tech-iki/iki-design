@@ -12,6 +12,8 @@ import { CodeBlock } from "@/components/code-block";
 import { DataTable } from "@/components/data-table";
 import { Mono, Rich } from "@/components/rich";
 import { BulletList, Eyebrow, P, Section } from "@/components/section";
+import { MARKDOWN } from "@/lib/design-doc";
+import { section, table } from "@/lib/markdown";
 
 export const metadata: Metadata = {
   title: "Type",
@@ -19,25 +21,52 @@ export const metadata: Metadata = {
     "Geist and Geist Mono, the eight sizes in use, three weights, the heading hierarchy and tabular figures.",
 };
 
-type Size = (typeof TYPE_SCALE_PX)[number];
 type Weight = (typeof WEIGHTS)[number];
 
+const DOC_SCALE = table(section(MARKDOWN, "### The scale in use"), [
+  "Class",
+  "Size",
+  "Uses",
+  "What it is for",
+]);
+
 /**
- * Each size in the scale and the Tailwind class that draws it. Typed over the
- * package's own scale, so a size added there is a type error here until it is
- * shown. 10px and 11px are the two sizes with no named class; the system writes
- * them as arbitrary values, and says so as drift (see Decisions).
+ * The document's scale rows, one per size in the package's own scale, so a
+ * size added there fails the build until the document lists it, and the other
+ * way round. The class and the text come from the document; the package
+ * supplies the size.
  */
-const SCALE: Record<Size, { cls: string; use: string }> = {
-  10: { cls: "text-[10px]", use: "The compact pill on a policy card, through Pill’s layout-only className." },
-  11: { cls: "text-[11px]", use: "Rail group headings, count badges, and a few sites on the policy board." },
-  12: { cls: "text-xs", use: "Table headers, every pill, form labels, hints, mono identifiers, eyebrows, KPI label bars." },
-  14: { cls: "text-sm", use: "The working size: tables, inputs, buttons, nav links, section headings, page descriptions." },
-  16: { cls: "text-base", use: "The guide’s section headings; the login h1." },
-  18: { cls: "text-lg", use: "Import summary chip value." },
-  20: { cls: "text-xl", use: "Page h1; report h1." },
-  30: { cls: "text-3xl", use: "KPI tile figure." },
+/*
+ * The class each sample is drawn with. It stays a literal here, not the
+ * document's cell, because Tailwind generates only the classes it finds in
+ * the site's source and never reads the document; the build fails if the
+ * document names a different class.
+ */
+const SAMPLE_CLASS: Record<(typeof TYPE_SCALE_PX)[number], string> = {
+  10: "text-[10px]",
+  11: "text-[11px]",
+  12: "text-xs",
+  14: "text-sm",
+  16: "text-base",
+  18: "text-lg",
+  20: "text-xl",
+  30: "text-3xl",
 };
+
+const SCALE = TYPE_SCALE_PX.map((px) => {
+  const row = DOC_SCALE.find(([, size]) => size === `${px}px`);
+  if (!row) throw new Error(`Type size ${px}px has no row in the design-system document`);
+  const cls = SAMPLE_CLASS[px];
+  if (row[0] !== `\`${cls}\``) {
+    throw new Error(`Type size ${px}px is ${cls} here and ${row[0]} in the document`);
+  }
+  return { px, cls, use: row[3] };
+});
+for (const [cls, size] of DOC_SCALE) {
+  if (!SCALE.some((s) => `${s.px}px` === size)) {
+    throw new Error(`The document's type size ${cls} (${size}) is not in the package's scale`);
+  }
+}
 
 const WEIGHT: Record<Weight, { cls: string; shown: string; use: string }> = {
   400: { cls: "font-normal", shown: "none — the body default", use: "Body text, descriptions, table cells." },
@@ -122,17 +151,14 @@ export default function TypePage() {
             { header: "Sample" },
             { header: "What it is for" },
           ]}
-          rows={TYPE_SCALE_PX.map((px) => {
-            const { cls, use } = SCALE[px];
-            return [
-              `${px}px`,
-              <Mono key="cls">{cls}</Mono>,
-              <span key="sample" className={`${cls} whitespace-nowrap text-ink`}>
-                Islands Knowledge Institute
-              </span>,
-              use,
-            ];
-          })}
+          rows={SCALE.map(({ px, cls, use }) => [
+            `${px}px`,
+            <Mono key="cls">{cls}</Mono>,
+            <span key="sample" className={`${cls} whitespace-nowrap text-ink`}>
+              Islands Knowledge Institute
+            </span>,
+            <Rich key="use">{use}</Rich>,
+          ])}
         />
       </Section>
 

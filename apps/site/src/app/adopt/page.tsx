@@ -14,6 +14,7 @@ import {
 import { CodeBlock } from "@/components/code-block";
 import { Mono, Rich } from "@/components/rich";
 import { BulletList, Eyebrow, P, Section } from "@/components/section";
+import { DOC } from "@/lib/design-doc";
 
 export const metadata: Metadata = {
   title: "Adopt",
@@ -124,25 +125,9 @@ export default function AdoptPage() {
 
       <Section title="What a consumer must respect">
         <BulletList
-          items={[
-            <Rich key="cdn">
-              {"**No CDN, for anything.** The policy is `default-src 'self'`, `script-src` nonce-only with `strict-dynamic`, `style-src` nonce-only, `img-src 'self' blob: data:`, `font-src 'self'`. A hosted stylesheet, an icon font, a CDN script and a remote image are all blocked. A shared package must be files in the repository."}
-            </Rich>,
-            <Rich key="cssinjs">
-              {
-                "**No CSS-in-JS that injects `<style>`** unless it can be given the per-request nonce. Tailwind v4 compiles to a static stylesheet and is fine."
-              }
-            </Rich>,
-            <Rich key="inline">
-              {"**Inline `style` attributes are allowed**, through `style-src-attr 'unsafe-inline'`, because a nonce cannot apply to an attribute and React server-renders the grid’s column widths that way. Everything else stays strict."}
-            </Rich>,
-            <Rich key="library">
-              **No component library**, per ADR 0003 and ADR 0006. A shadcn project keeps its source-owned primitives and re-points their tokens.
-            </Rich>,
-            <Rich key="light">
-              **Light only.** Do not add a dark palette on the consumer side; propose it as an ADR.
-            </Rich>,
-          ]}
+          items={DOC.constraints.map((constraint) => (
+            <Rich key={constraint}>{constraint}</Rich>
+          ))}
         />
       </Section>
 
