@@ -29,9 +29,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
          * `min-w-0` because this is a flex item of <body>, and a flex item will
          * not shrink below its min-content width by default. Without it the
          * widest line of any code block or table set that width, and every page
-         * scrolled sideways at 375px. The `min-w-0` on the column below only
-         * lets the column shrink inside this row; it cannot stop this row
-         * growing.
+         * scrolled sideways at 375px. The `min-w-0` on the column below is the
+         * same rule one row down, and both are needed: that one lets the
+         * column shrink inside this row, this one stops the row growing.
+         * `site-rules.test.ts` fails if either goes.
          */}
         <div className="iki-app flex min-h-full min-w-0 flex-1">
           <a

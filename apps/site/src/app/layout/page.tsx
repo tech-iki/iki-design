@@ -127,6 +127,7 @@ export default function LayoutPage() {
         />
         <DataTable
           label="The gap steps in use"
+          scrollable
           columns={[
             { header: "Class" },
             { header: "Size", numeric: true },

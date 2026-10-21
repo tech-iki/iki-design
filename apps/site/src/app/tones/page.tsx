@@ -139,6 +139,7 @@ export default function TonesPage() {
         </P>
         <DataTable
           label="Pill width for each example label"
+          scrollable
           columns={[
             { header: "Label" },
             { header: "pillWidth(label)", numeric: true },
