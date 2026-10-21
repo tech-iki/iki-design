@@ -5,57 +5,14 @@ import { CodeBlock } from "@/components/code-block";
 import { Mono, Rich } from "@/components/rich";
 import { BulletList, Eyebrow, P, Section } from "@/components/section";
 import { SECTIONS } from "@/components/site-nav";
+import { DOC } from "@/lib/design-doc";
 
 export const metadata: Metadata = {
   // The root layout's title template does not apply to a page in the same segment, so the suffix is spelled out.
   title: "Overview · IKI design",
   description:
-    "What the IKI design system is, the ten principles behind it, and the lines that install it.",
+    "What the IKI design system is, the principles behind it, and the lines that install it.",
 };
-
-/** Design-system document §2, in order: the rule in bold, then what stands behind it. */
-const PRINCIPLES: [rule: string, why: string][] = [
-  [
-    "The data carries the colour; the chrome gets out of the way.",
-    "Navy is furniture, teal marks actions, and the status fills are the only colour that means something (ADR 0006).",
-  ],
-  [
-    "Colour is never the only signal.",
-    "A pill always carries its label; the active nav item has weight and a bar as well as a tint (#57).",
-  ],
-  [
-    "Contrast is asserted, not claimed.",
-    "ADR 0003 said “AA-safe throughout”; measurement said 4.11:1. Now a test walks every pair (#57).",
-  ],
-  [
-    "Light only.",
-    "The workbook is light and the fixed palette is the point; a parallel dark theme doubles every decision for no demand (ADR 0003).",
-  ],
-  [
-    "No component library.",
-    "The primitives are small hand-rolled Tailwind components; a themed library would fight the workbook look (ADR 0003, ADR 0006).",
-  ],
-  [
-    "Measured, not assumed.",
-    "Print orientation, row tints, logo legibility on navy: each rule cites the number that settled it.",
-  ],
-  [
-    "Density on the desk, room on the phone.",
-    "Controls are about 26px tall with a mouse and 44px under a thumb, through a responsive minimum rather than one loose size (#63).",
-  ],
-  [
-    "One definition per rule.",
-    "Focus rings, button classes, status colours and email chrome exist once; per-component copies were deleted so a component cannot drift (ADR 0006 §4).",
-  ],
-  [
-    "An icon is not a name.",
-    "Every icon is `aria-hidden`; its control carries an `sr-only` label and a `title` (#95).",
-  ],
-  [
-    "Add a token, add its contrast pair.",
-    "Otherwise the suite fails (ADR 0006).",
-  ],
-];
 
 const TAILWIND = `@import "tailwindcss";
 @import "@tech-iki/design/theme.css";`;
@@ -94,9 +51,12 @@ export default function OverviewPage() {
       <Section title="Principles">
         <BulletList
           ordered
-          items={PRINCIPLES.map(([rule, why]) => (
+          items={DOC.principles.map(([rule, why]) => (
             <span key={rule}>
-              <span className="font-semibold">{rule}</span> <Rich>{why}</Rich>
+              <span className="font-semibold">
+                <Rich>{rule}</Rich>
+              </span>
+              <Rich>{why}</Rich>
             </span>
           ))}
         />

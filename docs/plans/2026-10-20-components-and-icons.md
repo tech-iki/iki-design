@@ -227,6 +227,12 @@ Two new pages: `/icons` (every name, both sizes, the Lucide source name) and
 `design-system-doc.test.ts`. §15 gains the three decisions above; §16 loses
 question 4.
 
+**Phase 3 — done, 21 October 2026**, with the phases it describes rather than in
+a PR of its own: `/icons` (every name at its one size, with its Lucide source)
+and `/components` landed in #8 and grew in #10 and #11; every component's §8
+block is held by `design-system-doc.test.ts`, `components.test.ts` or
+`phase-2.test.tsx`; §15 carries the §7 decisions; question 4 left §16 in #10.
+
 ## 6. Risks and open decisions
 
 1. **Adoption order.** No consumer imports 0.2.0 yet. Phase 0 can ship now; phase
