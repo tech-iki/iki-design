@@ -8,7 +8,7 @@ token or class is a major.
 
 ## [Unreleased]
 
-### Phase 1 — goes out as 0.4.0
+## [0.4.0] — 2026-10-21
 
 Phase 1 of the plan of 20 October 2026: the overlays, on Base UI (ADR 0002,
 decided by Brian on 21 October). A minor, in its own version-bump PR as the
@@ -16,7 +16,7 @@ workflow asks. It was to wait for Work OS's port (tech-iki/iki-work-os #443)
 to exercise the `Drawer`; Brian lifted that gate on 21 October so the next
 phase could start, and #443 validates the `Drawer` against `main` instead.
 
-#### Added
+### Added
 
 - **One runtime dependency: `@base-ui/react` 1.9.0**, pinned exactly, imported
   by per-component subpath (`/dialog`, `/popover`, `/menu`, `/collapsible`) and
