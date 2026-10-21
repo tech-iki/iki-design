@@ -39,29 +39,36 @@ const whiteOnNavy = (alpha: number) =>
 
 /*
  * The rules below are §4's own words, which print their ratios as numbers.
- * These are the same ratios computed from the package. Every ratio the rules
- * print must be one of these or a WCAG threshold, and every one of these must
- * be printed, so a token change that moves a ratio fails the build until the
- * document says the new number.
+ * These are the same ratios computed from the package, each with the words
+ * the document prints just before it, so a number moved to the wrong token is
+ * caught as well as a wrong number. Every other ratio the rules print must be
+ * a WCAG threshold, so a token change that moves a ratio fails the build
+ * until the document says the new number.
  */
-const CITED = [
-  ratio(COLOUR["teal-deep"], COLOUR["row-hover"]),
-  ratio(blend(COLOUR["warm-fg"], 0.4, COLOUR["warm-bg"]), COLOUR["warm-bg"]),
-  ratio(blend(COLOUR["warm-fg"], 0.7, COLOUR["warm-bg"]), COLOUR["warm-bg"]),
-  whiteOnNavy(0.75),
-  whiteOnNavy(0.7),
-  whiteOnNavy(0.5),
+const CITED: [before: string, ratio: string][] = [
+  ["On `row-hover` it is ", ratio(COLOUR["teal-deep"], COLOUR["row-hover"])],
+  [
+    "composited to ",
+    ratio(blend(COLOUR["warm-fg"], 0.4, COLOUR["warm-bg"]), COLOUR["warm-bg"]),
+  ],
+  [
+    `clears ${THRESHOLD.nonText}:1 at `,
+    ratio(blend(COLOUR["warm-fg"], 0.7, COLOUR["warm-bg"]), COLOUR["warm-bg"]),
+  ],
+  ["text `paper/75` (", whiteOnNavy(0.75)],
+  ["saved views `paper/70` (", whiteOnNavy(0.7)],
+  ["group headings `paper/50` (", whiteOnNavy(0.5)],
 ];
-const THRESHOLDS = Object.values(THRESHOLD).map((t) => `${t}:1`);
-const PRINTED = DOC.colourRules.flatMap((r) => r.match(/\d+(?:\.\d+)?:1\b/g) ?? []);
-for (const printed of PRINTED) {
-  if (!CITED.includes(printed) && !THRESHOLDS.includes(printed)) {
-    throw new Error(`§4 Rules print ${printed}, which the package does not compute`);
+const RULES = DOC.colourRules.join(" ");
+for (const [before, value] of CITED) {
+  if (!RULES.includes(`${before}${value}`)) {
+    throw new Error(`§4 Rules do not print "${before}${value}", which the package computes`);
   }
 }
-for (const cited of CITED) {
-  if (!PRINTED.includes(cited)) {
-    throw new Error(`The package computes ${cited}, which §4 Rules do not print`);
+const THRESHOLDS = Object.values(THRESHOLD).map((t) => `${t}:1`);
+for (const printed of RULES.match(/\d+(?:\.\d+)?:1\b/g) ?? []) {
+  if (!CITED.some(([, value]) => value === printed) && !THRESHOLDS.includes(printed)) {
+    throw new Error(`§4 Rules print ${printed}, which the package does not compute`);
   }
 }
 
