@@ -54,7 +54,7 @@ export default function Page() {
   );
 }`;
 
-const GIT_TAG = `"@tech-iki/design": "github:tech-iki/iki-design#v0.4.0"`;
+const GIT_TAG = `"@tech-iki/design": "github:tech-iki/iki-design#v0.5.0"`;
 
 export default function AdoptPage() {
   return (

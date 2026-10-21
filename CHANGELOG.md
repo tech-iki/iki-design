@@ -8,14 +8,14 @@ token or class is a major.
 
 ## [Unreleased]
 
-### Phase 2 — goes out as 0.5.0
+## [0.5.0] — 2026-10-21
 
 Phase 2 of the plan of 20 October 2026: the rest of the components the
 consumers draw by hand. The plan said each would ship only when a consumer
 issue asked for it; none has, and Brian said on 21 October to proceed anyway
 (§15). A minor, in its own version-bump PR after 0.4.0's.
 
-#### Added
+### Added
 
 - `TableFrame`, `rowClass` and `ActionsHeader`: Work OS's bounded scroll frame
   (eight sites), server-safe. Sticky header only when bounded, and **no
