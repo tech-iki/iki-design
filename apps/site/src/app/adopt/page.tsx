@@ -108,9 +108,16 @@ export default function AdoptPage() {
 
       <Section title="Components">
         <P>
-          Four components come from the package root, with the tones, the class
-          strings and the contrast arithmetic. They are React 19 server
-          components with no client JavaScript.{" "}
+          The components come from the package root, with the tones, the class
+          strings and the contrast arithmetic. Most are server-safe and ship no
+          client JavaScript; the overlays, <Mono>Tooltip</Mono>,{" "}
+          <Mono>Tabs</Mono> and <Mono>Combobox</Mono> are built on Base UI and
+          carry <Mono>&quot;use client&quot;</Mono>, so a Server Component can
+          render them but they are shipped to the browser.{" "}
+          <Link href="/components" className={linkClass}>
+            Components
+          </Link>
+          ,{" "}
           <Link href="/controls" className={linkClass}>
             Controls
           </Link>{" "}

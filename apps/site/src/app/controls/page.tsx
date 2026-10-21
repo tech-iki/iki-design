@@ -70,7 +70,7 @@ export default function ControlsPage() {
     <PageMain variant="readable">
       <PageTitle
         title="Controls"
-        description="There is no component library; these class strings are the library. Each is drawn below exactly as the package exports it."
+        description="There is no styled component library; these class strings are the library. Each is drawn below exactly as the package exports it."
       />
 
       <Section title="Buttons">

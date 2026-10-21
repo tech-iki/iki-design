@@ -305,14 +305,20 @@ export default function LayoutPage() {
       <Section title={`Motion: ${MOTION}`}>
         <P>
           Nothing animates. The system has no transitions, durations,
-          animations or keyframes. State changes are instant colour swaps,{" "}
+          animations or keyframes, and the overlays add none: one frame in,
+          one frame out. State changes are instant colour swaps,{" "}
           <Mono>opacity-50</Mono> when disabled, <Mono>opacity-60</Mono> while
           a cell commits, and a ring on focus.
         </P>
         <P>
-          Nothing exists for <Mono>prefers-reduced-motion</Mono> to reduce, so
-          there is no global rule to inherit. A consumer that introduces a
-          transition must add the reduced-motion counterpart itself.
+          The rule is written. A transition is allowed only with a{" "}
+          <Mono>motion-reduce:</Mono> counterpart on the class that removes
+          it. <Mono>base.css</Mono> and <Mono>theme.css</Mono> ship a global{" "}
+          <Mono>prefers-reduced-motion</Mono> reset that cuts animation and
+          transition durations to almost nothing and turns smooth scrolling
+          off, so a consumer inherits that floor from the stylesheet it already
+          imports. The counterpart is still required: the reset is a floor, not
+          a design.
         </P>
       </Section>
     </PageMain>

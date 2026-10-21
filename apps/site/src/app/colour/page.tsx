@@ -16,6 +16,7 @@ import { Mono, Rich } from "@/components/rich";
 import { RatioCell, Verdict, formatRatio, passes } from "@/components/ratio";
 import { BulletList, P, Section } from "@/components/section";
 import { Swatch } from "@/components/swatch";
+import { DOC } from "@/lib/design-doc";
 
 export const metadata: Metadata = {
   title: "Colour",
@@ -35,6 +36,34 @@ const ratio = (fg: string, bg: string) => formatRatio(contrast(fg, bg));
 /** White at an alpha over navy, flattened — the rail's text colours. */
 const whiteOnNavy = (alpha: number) =>
   ratio(blend(COLOUR.paper, alpha, COLOUR.navy), COLOUR.navy);
+
+/*
+ * The rules below are §4's own words, which print their ratios as numbers.
+ * These are the same ratios computed from the package. Every ratio the rules
+ * print must be one of these or a WCAG threshold, and every one of these must
+ * be printed, so a token change that moves a ratio fails the build until the
+ * document says the new number.
+ */
+const CITED = [
+  ratio(COLOUR["teal-deep"], COLOUR["row-hover"]),
+  ratio(blend(COLOUR["warm-fg"], 0.4, COLOUR["warm-bg"]), COLOUR["warm-bg"]),
+  ratio(blend(COLOUR["warm-fg"], 0.7, COLOUR["warm-bg"]), COLOUR["warm-bg"]),
+  whiteOnNavy(0.75),
+  whiteOnNavy(0.7),
+  whiteOnNavy(0.5),
+];
+const THRESHOLDS = Object.values(THRESHOLD).map((t) => `${t}:1`);
+const PRINTED = DOC.colourRules.flatMap((r) => r.match(/\d+(?:\.\d+)?:1\b/g) ?? []);
+for (const printed of PRINTED) {
+  if (!CITED.includes(printed) && !THRESHOLDS.includes(printed)) {
+    throw new Error(`§4 Rules print ${printed}, which the package does not compute`);
+  }
+}
+for (const cited of CITED) {
+  if (!PRINTED.includes(cited)) {
+    throw new Error(`The package computes ${cited}, which §4 Rules do not print`);
+  }
+}
 
 /** The fill/text pairs: every status `-bg` token with the `-fg` token beside it. */
 const STATUS_PAIRS = COLOURS.filter(
@@ -100,17 +129,6 @@ function StatusPairs() {
   );
 }
 
-function Rule({ lead, children }: { lead: string; children: string }) {
-  return (
-    <>
-      <span className="font-semibold">
-        <Rich>{lead}</Rich>
-      </span>{" "}
-      <Rich>{children}</Rich>
-    </>
-  );
-}
-
 export default function ColourPage() {
   const passing = TOKEN_PAIRS.filter((p) => passes(p.fg, p.bg, p.kind)).length;
 
@@ -171,38 +189,9 @@ export default function ColourPage() {
 
         <Section title="Rules">
           <BulletList
-            items={[
-              <Rule key="teal" lead="Teal carries text only as `teal-deep`.">
-                {`Plain \`teal\` stays for large decorative fills, where ${THRESHOLD.nonText}:1 applies. Darkening \`teal\` itself was rejected: the chart columns legitimately want the workbook hue (ADR 0006).`}
-              </Rule>,
-              <Rule
-                key="bounds"
-                lead="Controls are bounded by `grid-strong`, tables by `grid`."
-              >
-                {`A separator needs no ratio; a control boundary needs ${THRESHOLD.nonText}:1.`}
-              </Rule>,
-              <Rule key="opaque" lead="A row’s background is always opaque.">
-                Frozen cells inherit it. A state colour keeps a hover through `brightness-95`, a filter that cannot introduce alpha.
-              </Rule>,
-              <Rule
-                key="indicator"
-                lead="`teal-deep` inside a row is an indicator, never text."
-              >
-                {`On \`row-hover\` it is ${ratio(COLOUR["teal-deep"], COLOUR["row-hover"])} — fine at ${THRESHOLD.nonText}:1, short of ${THRESHOLD.text}:1. Every in-row use is an \`aria-hidden\` glyph beside \`sr-only\` words. If a row ever gains real link text, the hover tint must get lighter, and there is no colour that keeps text at AA and still beats the zebra.`}
-              </Rule>,
-              <Rule key="alpha" lead="Translucent borders are measured flattened.">
-                {`\`warm-fg/40\` looked AA-safe and composited to ${ratio(blend(COLOUR["warm-fg"], 0.4, COLOUR["warm-bg"]), COLOUR["warm-bg"])}; \`/70\` clears ${THRESHOLD.nonText}:1 at ${ratio(blend(COLOUR["warm-fg"], 0.7, COLOUR["warm-bg"]), COLOUR["warm-bg"])}.`}
-              </Rule>,
-              <Rule
-                key="raw"
-                lead="No raw Tailwind palette classes, and no hex outside the token files."
-              >
-                Work OS’s source has no `bg-zinc-*`, no `text-gray-*` and no numbered palette utility. The only hex outside its token files is Google’s four brand colours on the sign-in button, which are Google’s and literal on purpose. This site follows the same rule.
-              </Rule>,
-              <Rule key="rail" lead="The navy rail uses white at fixed alphas:">
-                {`text \`paper/75\` (${whiteOnNavy(0.75)}), saved views \`paper/70\` (${whiteOnNavy(0.7)}), group headings \`paper/50\` (${whiteOnNavy(0.5)}), hover \`paper/10\`, active fill \`paper/12\`, rules \`paper/15\`, and the sign-out border \`paper/50\`, a boundary that needs only ${THRESHOLD.nonText}:1. \`white\` itself is not a utility here: theme.css switches Tailwind's palette off, so \`paper\` is the only white.`}
-              </Rule>,
-            ]}
+            items={DOC.colourRules.map((rule) => (
+              <Rich key={rule}>{rule}</Rich>
+            ))}
           />
         </Section>
       </div>

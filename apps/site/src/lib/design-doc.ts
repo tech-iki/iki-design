@@ -38,6 +38,8 @@ export const HEADINGS = {
   drift: "## 14. Known drift inside Work OS",
   register: "## 15. Decision register",
   reversed: "### Reversed — do not re-adopt",
+  maps: "### The semantic maps",
+  rules: "### Rules",
   scale: "### The scale in use",
   shape: "## 6. Spacing, shape, elevation, layering, motion",
   breakpoints: "### Breakpoints",
@@ -59,6 +61,7 @@ export const REGISTER_COLUMNS = [
   "What settled it",
 ] as const;
 
+export const MAP_COLUMNS = ["Map", "Entries"] as const;
 export const SCALE_COLUMNS = ["Class", "Size", "Uses", "What it is for"] as const;
 export const RADIUS_COLUMNS = ["Class", "px", "Where"] as const;
 export const LAYER_COLUMNS = ["z", "What"] as const;
@@ -98,6 +101,10 @@ export function readDesignDoc(markdown: string) {
     reversed: list(section(markdown, HEADINGS.reversed), {
       ordered: false,
     }).map(boldLead),
+    /** §4: Work OS's vocabulary maps, one row per map. */
+    pillMaps: table(section(markdown, HEADINGS.maps), MAP_COLUMNS),
+    /** §4: the colour rules, each opening with its rule in bold. */
+    colourRules: list(section(markdown, HEADINGS.rules), { ordered: false }),
     /** §5: the type sizes in use. */
     scale: table(section(markdown, HEADINGS.scale), SCALE_COLUMNS),
     /** §6: the radius in use, and the z-index layers. */

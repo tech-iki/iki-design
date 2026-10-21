@@ -68,7 +68,7 @@ disagrees with Work OS's `globals.css`.
 5. **No component library.** The primitives are small hand-rolled Tailwind
    components; a themed library would fight the workbook look (ADR 0003, ADR 0006).
 6. **Measured, not assumed.** Print orientation, row tints, logo legibility on
-   navy: each rule below cites the number that settled it.
+   navy: each rule cites the number that settled it.
 7. **Density on the desk, room on the phone.** Controls are about 26px tall with
    a mouse and 44px under a thumb, through a responsive minimum rather than one
    loose size (#63).
@@ -155,7 +155,7 @@ website's accent moves to `teal-deep` for text while keeping lagoon for
 decoration — the smallest change, and it fixes an existing contrast failure.
 (b) The apps adopt the website's Pacific blue and lagoon, which re-opens every
 contrast pair and every workbook association staff already read. (c) Leave all
-three and treat the logo as the only shared mark. This document describes (a)'s
+three and treat the logo as the only shared mark. The system describes (a)'s
 palette without choosing.
 
 ## 4. Colour
@@ -1896,8 +1896,8 @@ button). A consumer should copy the rule, not the exception; each of these is a 
 
 ## 16. Open questions
 
-1. **The three colour families** ([§3](#three-colour-families-today)). The
-   options are laid out; the choice is Brian's. The website's lagoon accent
+1. **The three colour families.** The options are laid out in
+   [§3](#three-colour-families-today); the choice is Brian's. The website's lagoon accent
    failing AA at 3.73:1 is the part with a deadline attached to it.
 2. **Whether the logo's indigo should ever become a token.** Every app colour
    comes from the workbook; the login card is the only place the logo's own hue

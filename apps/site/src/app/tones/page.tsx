@@ -17,6 +17,7 @@ import { Mono } from "@/components/rich";
 import { formatRatio } from "@/components/ratio";
 import { Eyebrow, P, Section } from "@/components/section";
 import { Swatch } from "@/components/swatch";
+import { DOC } from "@/lib/design-doc";
 
 export const metadata: Metadata = {
   title: "Pills",
@@ -44,24 +45,48 @@ const LABEL: Record<ToneName, string> = {
 const ENTRIES = Object.entries(LABEL) as [ToneName, string][];
 const LABELS = ENTRIES.map(([, label]) => label);
 
+/*
+ * How §4's semantic-maps table names each tone, and the package's name for
+ * it. An entry the document writes some other way fails the build.
+ */
+const DOC_TONE: Record<string, ToneName> = {
+  NEUTRAL: "neutral",
+  POSITIVE: "positive",
+  "NEUTRAL + `line-through`": "cancelled",
+  "`bg-teal-soft text-navy`": "completed",
+  info: "info",
+  warm: "warm",
+  overdue: "overdue",
+  stale: "stale",
+  "priority-low": "low",
+};
+
+/** §4's `STATUS_PILL` row as label → tone, in the document's order. */
+const STATUS_ENTRIES = (() => {
+  const row = DOC.pillMaps.find(([map]) => map === "`STATUS_PILL`");
+  if (!row) throw new Error("§4 has no `STATUS_PILL` row");
+  return row[1].split("; ").map((entry) => {
+    const [label, docTone] = entry.split(" → ");
+    const tone = DOC_TONE[docTone];
+    if (!label || !tone) {
+      throw new Error(`§4 STATUS_PILL entry "${entry}" names no known tone`);
+    }
+    return [label, tone] as const;
+  });
+})();
+
+/** The example, written from §4's row, so it cannot show a mapping the system does not. */
 const STATUS_PILL = `import { Pill, tones, type PillTone } from "@tech-iki/design";
 
 type TaskStatus =
-  | "Not Started"
-  | "In Progress"
-  | "Awaiting Input"
-  | "On Hold"
-  | "Completed"
-  | "Cancelled";
+${STATUS_ENTRIES.map(([label]) => `  | "${label}"`).join("\n")};
 
 // The vocabulary belongs to the app; the colour belongs to the system.
 const STATUS_PILL: Record<TaskStatus, PillTone> = {
-  "Not Started": tones.neutral,
-  "In Progress": tones.info,
-  "Awaiting Input": tones.warm,
-  "On Hold": tones.neutral,
-  Completed: tones.positive,
-  Cancelled: tones.cancelled,
+${STATUS_ENTRIES.map(
+  ([label, tone]) =>
+    `  ${/^[A-Za-z]+$/.test(label) ? label : `"${label}"`}: tones.${tone},`,
+).join("\n")}
 };
 
 <Pill tone={STATUS_PILL[task.status]}>{task.status}</Pill>`;
