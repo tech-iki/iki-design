@@ -102,6 +102,11 @@ describe("TableFrame", () => {
     render(<TableFrame caption="Wide" scrollableByKeyboard>{rows}</TableFrame>);
     const region = screen.getByRole("region", { name: "Wide" });
     expect(region.tabIndex).toBe(0);
+    // Named once: the region carries the caption and the table inside it does not.
+    const table = screen.getByRole("table");
+    expect(region.contains(table)).toBe(true);
+    expect(table.hasAttribute("aria-label")).toBe(false);
+    expect(document.querySelectorAll('[aria-label="Wide"]')).toHaveLength(1);
     expect(hasClasses(region, classes.focusRing)).toBe(true);
     await userEvent.tab();
     expect(document.activeElement).toBe(region);

@@ -21,7 +21,9 @@ issue asked for it; none has, and Brian said on 21 October to proceed anyway
   (eight sites), server-safe. Sticky header only when bounded, and **no
   z-index on the sticky rule** (§6); cards below `md` when `stacked`; the
   caption as `aria-label`; `scrollableByKeyboard` makes the frame a named
-  `role="region"` tab stop with the focus ring, which Work OS's lacked. For
+  `role="region"` tab stop with the focus ring, which Work OS's lacked, and
+  the caption then names the region only — Work OS named both, and a screen
+  reader said the name twice. For
   the port: `frameRef`/`frameStyle`/`onScroll` become `ref`/`style`/`onScroll`
   through `...rest`, `tableStyle`/`describedBy` become `tableProps`, and
   `caption` is required. The class strings are exported and held by §8.

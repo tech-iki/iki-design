@@ -27,7 +27,10 @@ import {
  *   its own `z-10`, which a frozen cell can still override.
  * - **The table is named by `caption`**, as `aria-label`, never a
  *   `<caption>`: a stacked table is no longer displayed as a table and a
- *   `<caption>` stops naming it.
+ *   `<caption>` stops naming it. **The name is given once**: when the frame
+ *   is a named region (below), the region carries it and the table does not,
+ *   because both carrying it made a screen reader say it twice on arrival —
+ *   "Tasks, region, Tasks, table" — which people reported as a bug.
  * - **`stacked`** turns rows into cards below `md`, each cell labelled from
  *   its `data-label`, and drops the frame's bound there. **`fixed`** is
  *   `table-fixed` with the frame hugging the table. `minWidthClass` is stated
@@ -112,7 +115,7 @@ export function TableFrame({
       <table
         {...tableRest}
         role={role}
-        aria-label={caption}
+        aria-label={scrollableByKeyboard ? undefined : caption}
         aria-readonly={role === "grid" ? readOnly : undefined}
         className={table}
       >

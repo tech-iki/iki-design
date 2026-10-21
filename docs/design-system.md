@@ -888,8 +888,8 @@ How `TableFrame` puts them together, held by `phase-2.test.tsx`:
 <!-- components:table -->
 ```
 TableFrame      <div>    {tableFrameClass} {maxHeightClass} {tableFrameStackedClass when stacked and bounded} {tableFrameFixedClass when fixed} {focusRing when scrollableByKeyboard}
-  table         <table>  {tableClass} {tableStickyHeadClass when bounded} {tableStackedClass when stacked} {table-fixed | w-full} {minWidthClass}   aria-label={caption}
-  keyboard      scrollableByKeyboard: the frame is role="region", tabIndex 0, named by the caption
+  table         <table>  {tableClass} {tableStickyHeadClass when bounded} {tableStackedClass when stacked} {table-fixed | w-full} {minWidthClass}   aria-label={caption}, unless the frame carries it
+  keyboard      scrollableByKeyboard: the frame is role="region", tabIndex 0, named by the caption, and the table is not
 rowClass(i)     bg-paper | bg-paper-tint (odd)   hover:bg-row-hover
 rowClass(i,s)   {s} hover:brightness-95
 ActionsHeader   <th scope="col">  {thClass}, its label sr-only
@@ -919,7 +919,10 @@ ActionsHeader   <th scope="col">  {thClass}, its label sr-only
 - **A frame that can overflow and has no cursor is a tab stop**
   (`scrollableByKeyboard`): `role="region"`, named by the caption, with the
   focus ring — Work OS's frame took the tab stop without the ring, and an
-  `aria-label` on a bare `<div>` names nothing, so the port adds both.
+  `aria-label` on a bare `<div>` names nothing, so the port adds both. **The
+  caption names the region and not the table then**: Work OS gave both the
+  same name, and a screen reader arriving on the frame said it twice
+  ("Tasks, region, Tasks, table"), which people reported as a bug.
 - **Controls in cells keep the 44px floor below `md` themselves.** A `Button`,
   an icon button or a `Checkbox` row carries `touchTarget`; a cell sets no
   floor of its own, so the desk keeps the density the grid was measured at.
