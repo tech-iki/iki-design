@@ -14,8 +14,7 @@ import {
 import { DataTable } from "@/components/data-table";
 import { Mono, Rich } from "@/components/rich";
 import { BulletList, P, Section } from "@/components/section";
-import { MARKDOWN } from "@/lib/design-doc";
-import { section, table } from "@/lib/markdown";
+import { DOC } from "@/lib/design-doc";
 
 export const metadata: Metadata = {
   title: "Layout",
@@ -37,43 +36,25 @@ const SPACING: { n: number; gap: string; bar: string; use: string }[] = [
 
 type RadiusName = keyof typeof RADIUS_PX;
 
-const SPACING_SECTION = "## 6. Spacing, shape, elevation, layering, motion";
-
-/**
- * The package names its radii by the Tailwind suffix, the document by the
- * class. They agree except for `sm`, which the document writes as the bare
- * `rounded` (4px), as Work OS does.
- */
-const RADIUS_CLASS_ALIAS: Partial<Record<RadiusName, string>> = {
-  sm: "rounded",
-};
-
 /*
- * The class each sample is drawn with, a literal because Tailwind generates
- * only the classes it finds in the site's source and never reads the document.
+ * Each radius as the document writes its class, and the class its sample is
+ * drawn with. They differ only for `sm`, which the document writes as the bare
+ * `rounded` (4px), as Work OS does. The sample stays a literal because
+ * Tailwind generates only the classes it finds in the site's source and never
+ * reads the document.
  */
-const RADIUS_SAMPLE: Record<RadiusName, string> = {
-  xs: "rounded-xs",
-  sm: "rounded-sm",
-  md: "rounded-md",
-  lg: "rounded-lg",
-  full: "rounded-full",
+const RADIUS_CLASS: Record<RadiusName, { doc: string; sample: string }> = {
+  xs: { doc: "rounded-xs", sample: "rounded-xs" },
+  sm: { doc: "rounded", sample: "rounded-sm" },
+  md: { doc: "rounded-md", sample: "rounded-md" },
+  lg: { doc: "rounded-lg", sample: "rounded-lg" },
+  full: { doc: "rounded-full", sample: "rounded-full" },
 };
-
-/** The document's class for a package radius. */
-const radiusClass = (name: RadiusName) =>
-  RADIUS_CLASS_ALIAS[name] ?? `rounded-${name}`;
-
-const DOC_RADIUS = table(section(MARKDOWN, SPACING_SECTION), [
-  "Class",
-  "px",
-  "Where",
-]);
 
 /** The document's radius rows, one per package radius, in the package's order. */
 const RADIUS = (Object.keys(RADIUS_PX) as RadiusName[]).map((name) => {
-  const cls = radiusClass(name);
-  const row = DOC_RADIUS.find(([c]) => c.replace(/`/g, "") === cls);
+  const cls = RADIUS_CLASS[name].doc;
+  const row = DOC.radius.find(([c]) => c.replace(/`/g, "") === cls);
   if (!row) throw new Error(`Radius "${name}" (${cls}) has no row in the design-system document`);
   // `full` has no pixel size; the document writes a dash.
   const px = name === "full" ? "—" : String(RADIUS_PX[name]);
@@ -82,7 +63,7 @@ const RADIUS = (Object.keys(RADIUS_PX) as RadiusName[]).map((name) => {
   }
   return { name, cls, where: row[2] };
 });
-for (const [c] of DOC_RADIUS) {
+for (const [c] of DOC.radius) {
   if (!RADIUS.some((r) => r.cls === c.replace(/`/g, ""))) {
     throw new Error(`The document's radius ${c} has no matching package radius`);
   }
@@ -113,8 +94,6 @@ const ELEVATION: { name: string; cls: string; use: string }[] = [
 
 type ZName = keyof typeof Z_INDEX;
 
-const DOC_LAYER = table(section(MARKDOWN, SPACING_SECTION), ["z", "What"]);
-
 /**
  * The document's layering rows, joined to the package by the number in the
  * class (`z-50`, or `z-[1]`), highest first.
@@ -122,13 +101,13 @@ const DOC_LAYER = table(section(MARKDOWN, SPACING_SECTION), ["z", "What"]);
 const LAYER = (Object.keys(Z_INDEX) as ZName[])
   .sort((a, b) => Z_INDEX[b] - Z_INDEX[a])
   .map((name) => {
-    const row = DOC_LAYER.find(
+    const row = DOC.layers.find(
       ([c]) => zValue(c) === Z_INDEX[name],
     );
     if (!row) throw new Error(`Layer "${name}" (${Z_INDEX[name]}) has no row in the design-system document`);
     return { name, cls: row[0], what: row[1] };
   });
-for (const [c] of DOC_LAYER) {
+for (const [c] of DOC.layers) {
   if (!LAYER.some((l) => l.cls === c)) {
     throw new Error(`The document's layer ${c} has no matching package layer`);
   }
@@ -143,15 +122,9 @@ function zValue(cell: string): number {
 
 type BreakpointName = keyof typeof BREAKPOINTS_PX;
 
-const DOC_BREAKPOINT = table(section(MARKDOWN, "### Breakpoints"), [
-  "Prefix",
-  "Min width",
-  "What changes",
-]);
-
 const BREAKPOINT = (Object.keys(BREAKPOINTS_PX) as BreakpointName[]).map(
   (prefix) => {
-    const row = DOC_BREAKPOINT.find(([c]) => c.replace(/`/g, "") === prefix);
+    const row = DOC.breakpoints.find(([c]) => c.replace(/`/g, "") === prefix);
     if (!row) throw new Error(`Breakpoint "${prefix}" has no row in the design-system document`);
     if (row[1] !== `${BREAKPOINTS_PX[prefix]}px`) {
       throw new Error(
@@ -161,7 +134,7 @@ const BREAKPOINT = (Object.keys(BREAKPOINTS_PX) as BreakpointName[]).map(
     return { prefix, what: row[2] };
   },
 );
-for (const [c] of DOC_BREAKPOINT) {
+for (const [c] of DOC.breakpoints) {
   if (!BREAKPOINT.some((b) => b.prefix === c.replace(/`/g, ""))) {
     throw new Error(`The document's breakpoint ${c} has no matching package breakpoint`);
   }
@@ -232,7 +205,7 @@ export default function LayoutPage() {
             <span
               key="sample"
               aria-hidden="true"
-              className={`block h-8 w-14 border border-grid-strong bg-teal-soft ${RADIUS_SAMPLE[name]}`}
+              className={`block h-8 w-14 border border-grid-strong bg-teal-soft ${RADIUS_CLASS[name].sample}`}
             />,
             <Rich key="where">{where}</Rich>,
           ])}

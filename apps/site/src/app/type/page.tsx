@@ -12,8 +12,7 @@ import { CodeBlock } from "@/components/code-block";
 import { DataTable } from "@/components/data-table";
 import { Mono, Rich } from "@/components/rich";
 import { BulletList, Eyebrow, P, Section } from "@/components/section";
-import { MARKDOWN } from "@/lib/design-doc";
-import { section, table } from "@/lib/markdown";
+import { DOC } from "@/lib/design-doc";
 
 export const metadata: Metadata = {
   title: "Type",
@@ -22,13 +21,6 @@ export const metadata: Metadata = {
 };
 
 type Weight = (typeof WEIGHTS)[number];
-
-const DOC_SCALE = table(section(MARKDOWN, "### The scale in use"), [
-  "Class",
-  "Size",
-  "Uses",
-  "What it is for",
-]);
 
 /**
  * The document's scale rows, one per size in the package's own scale, so a
@@ -54,7 +46,7 @@ const SAMPLE_CLASS: Record<(typeof TYPE_SCALE_PX)[number], string> = {
 };
 
 const SCALE = TYPE_SCALE_PX.map((px) => {
-  const row = DOC_SCALE.find(([, size]) => size === `${px}px`);
+  const row = DOC.scale.find(([, size]) => size === `${px}px`);
   if (!row) throw new Error(`Type size ${px}px has no row in the design-system document`);
   const cls = SAMPLE_CLASS[px];
   if (row[0] !== `\`${cls}\``) {
@@ -62,7 +54,7 @@ const SCALE = TYPE_SCALE_PX.map((px) => {
   }
   return { px, cls, use: row[3] };
 });
-for (const [cls, size] of DOC_SCALE) {
+for (const [cls, size] of DOC.scale) {
   if (!SCALE.some((s) => `${s.px}px` === size)) {
     throw new Error(`The document's type size ${cls} (${size}) is not in the package's scale`);
   }

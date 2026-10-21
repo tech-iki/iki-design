@@ -11,6 +11,8 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import AdoptPage from "@/app/adopt/page";
 import DecisionsPage from "@/app/decisions/page";
+import LayoutPage from "@/app/layout/page";
+import TypePage from "@/app/type/page";
 import OverviewPage from "@/app/page";
 import { DOC, HEADINGS, findDoc, readDesignDoc } from "@/lib/design-doc";
 import { DocShapeError } from "@/lib/markdown";
@@ -22,8 +24,8 @@ function rawLines(heading: string): string[] {
   const lines = MARKDOWN.split("\n");
   const start = lines.indexOf(heading);
   expect(start, `${heading} is in the document`).toBeGreaterThan(-1);
-  const end = lines.findIndex((l, i) => i > start && /^#{1,6} /.test(l));
-  return lines.slice(start + 1, end);
+  const next = lines.findIndex((l, i) => i > start && /^#{1,6} /.test(l));
+  return lines.slice(start + 1, next === -1 ? lines.length : next);
 }
 
 const RAW = {
@@ -34,6 +36,10 @@ const RAW = {
   families: rawLines(HEADINGS.families).filter((l) => l.startsWith("| ")).length - 2,
   familyNotes: rawLines(HEADINGS.families).filter((l) => l.startsWith("- ")).length,
   constraints: rawLines(HEADINGS.constraints).filter((l) => l.startsWith("- **")).length,
+  scale: rawLines(HEADINGS.scale).filter((l) => l.startsWith("| `text-")).length,
+  radius: rawLines(HEADINGS.shape).filter((l) => l.startsWith("| `rounded")).length,
+  layers: rawLines(HEADINGS.shape).filter((l) => l.startsWith("| `z-")).length,
+  breakpoints: rawLines(HEADINGS.breakpoints).filter((l) => l.startsWith("| `")).length,
   open: rawLines(HEADINGS.open).filter((l) => /^\d+\. \*\*/.test(l)).length,
 };
 
@@ -65,6 +71,10 @@ describe("the readers return every row the document holds", () => {
     expect(RAW.families).toBeGreaterThanOrEqual(8);
     expect(RAW.familyNotes).toBeGreaterThanOrEqual(3);
     expect(RAW.constraints).toBeGreaterThanOrEqual(6);
+    expect(RAW.scale).toBeGreaterThanOrEqual(8);
+    expect(RAW.radius).toBeGreaterThanOrEqual(5);
+    expect(RAW.layers).toBeGreaterThanOrEqual(6);
+    expect(RAW.breakpoints).toBeGreaterThanOrEqual(3);
   });
 
   it("reads each table and list at its raw count", () => {
@@ -76,6 +86,10 @@ describe("the readers return every row the document holds", () => {
     expect(DOC.familyRows).toHaveLength(RAW.families);
     expect(DOC.familyNotes).toHaveLength(RAW.familyNotes);
     expect(DOC.constraints).toHaveLength(RAW.constraints);
+    expect(DOC.scale).toHaveLength(RAW.scale);
+    expect(DOC.radius).toHaveLength(RAW.radius);
+    expect(DOC.layers).toHaveLength(RAW.layers);
+    expect(DOC.breakpoints).toHaveLength(RAW.breakpoints);
     expect(DOC.familyOptions).toMatch(/^\*\*Options, for Brian to decide\.\*\*/);
   });
 
@@ -104,6 +118,16 @@ describe("the rendered pages show every row", () => {
 
   it("renders the whole colour-families table", () => {
     expect(bodyRows(decisions, "Colour families across IKI surfaces")).toBe(RAW.families);
+  });
+
+  const layout = renderToStaticMarkup(createElement(LayoutPage));
+  const type = renderToStaticMarkup(createElement(TypePage));
+
+  it("renders every row of the layout and type tables", () => {
+    expect(bodyRows(type, "The type scale in use")).toBe(RAW.scale);
+    expect(bodyRows(layout, "Border radius")).toBe(RAW.radius);
+    expect(bodyRows(layout, "The z-index layers")).toBe(RAW.layers);
+    expect(bodyRows(layout, "Breakpoints and what changes at each")).toBe(RAW.breakpoints);
   });
 
   it("renders every constraint a consumer must respect", () => {

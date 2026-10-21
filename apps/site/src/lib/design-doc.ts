@@ -38,6 +38,9 @@ export const HEADINGS = {
   drift: "## 14. Known drift inside Work OS",
   register: "## 15. Decision register",
   reversed: "### Reversed — do not re-adopt",
+  scale: "### The scale in use",
+  shape: "## 6. Spacing, shape, elevation, layering, motion",
+  breakpoints: "### Breakpoints",
   constraints: "### 13d. Constraints a shared package must respect",
   open: "## 16. Open questions",
 } as const;
@@ -56,10 +59,16 @@ export const REGISTER_COLUMNS = [
   "What settled it",
 ] as const;
 
+export const SCALE_COLUMNS = ["Class", "Size", "Uses", "What it is for"] as const;
+export const RADIUS_COLUMNS = ["Class", "px", "Where"] as const;
+export const LAYER_COLUMNS = ["z", "What"] as const;
+export const BREAKPOINT_COLUMNS = ["Prefix", "Min width", "What changes"] as const;
+
 /** Everything the site reads from one copy of the document. */
 export function readDesignDoc(markdown: string) {
   const drift = section(markdown, HEADINGS.drift);
   const families = section(markdown, HEADINGS.families);
+  const shape = section(markdown, HEADINGS.shape);
   const options = paragraphs(families).filter((p) =>
     p.startsWith("**Options"),
   );
@@ -89,6 +98,16 @@ export function readDesignDoc(markdown: string) {
     reversed: list(section(markdown, HEADINGS.reversed), {
       ordered: false,
     }).map(boldLead),
+    /** §5: the type sizes in use. */
+    scale: table(section(markdown, HEADINGS.scale), SCALE_COLUMNS),
+    /** §6: the radius in use, and the z-index layers. */
+    radius: table(shape, RADIUS_COLUMNS),
+    layers: table(shape, LAYER_COLUMNS),
+    /** §7: what changes at each breakpoint. */
+    breakpoints: table(
+      section(markdown, HEADINGS.breakpoints),
+      BREAKPOINT_COLUMNS,
+    ),
     /** §13d: what a consumer must respect, each opening with its rule in bold. */
     constraints: list(section(markdown, HEADINGS.constraints), {
       ordered: false,

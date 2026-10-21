@@ -160,6 +160,18 @@ describe("list", () => {
     ).toThrow(/numbered 3 where 2/);
   });
 
+  it("throws on a loose list rather than stopping at its blank line", () => {
+    expect(() =>
+      list("1. **One.** a\n\n2. **Two.** b", { ordered: true }),
+    ).toThrow(/broken by a blank line/);
+  });
+
+  it("throws on an unindented continuation line", () => {
+    expect(() =>
+      list("- **One.** begins\nand runs on", { ordered: false }),
+    ).toThrow(/unindented/);
+  });
+
   it("throws when there is no list of the kind asked for", () => {
     expect(() => list(section(DOC, "### Reversed"), { ordered: true })).toThrow(
       /No numbered list/,
@@ -187,6 +199,9 @@ describe("paragraphs", () => {
     expect(paragraphs(section(DOC, "## 2. Register"))).toEqual([
       "A paragraph above the table, over two lines.",
       "Prose after the table.",
+    ]);
+    expect(paragraphs("| A |\n| --- |\n| 1 |\nGlued to the table.")).toEqual([
+      "Glued to the table.",
     ]);
     expect(() => paragraphs(section(DOC, "### Reversed"))).toThrow(
       /No paragraph/,

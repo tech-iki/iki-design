@@ -225,6 +225,12 @@ for (const [phrase] of OPEN_DETAIL) {
     );
   }
 }
+for (const [question] of DOC.open) {
+  const phrases = OPEN_DETAIL.filter(([phrase]) => question.includes(phrase));
+  if (phrases.length > 1) {
+    throw new Error(`§16 "${question}" matches ${phrases.length} details, expected one at most`);
+  }
+}
 
 export default function DecisionsPage() {
   return (

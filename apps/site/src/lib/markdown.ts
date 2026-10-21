@@ -127,7 +127,8 @@ export function list(body: string, { ordered }: { ordered: boolean }): string[] 
   }
 
   const items: string[] = [];
-  for (const line of lines.slice(start)) {
+  let end = lines.length;
+  for (const [i, line] of lines.slice(start).entries()) {
     const m = marker.exec(line);
     if (m) {
       if (ordered && Number(m[1]) !== items.length + 1) {
@@ -138,9 +139,18 @@ export function list(body: string, { ordered }: { ordered: boolean }): string[] 
       items.push(m[ordered ? 2 : 1].trim());
     } else if (/^\s+\S/.test(line)) {
       items[items.length - 1] += ` ${line.trim()}`;
-    } else {
+    } else if (line.trim() === "") {
+      end = start + i;
       break;
+    } else {
+      // Markdown would fold this line into the item; reading it as prose would drop it.
+      throw new DocShapeError(`List item continues on an unindented line: ${line}`);
     }
+  }
+  // A blank line and then more items is one loose list; stopping at the blank would drop them.
+  const later = lines.slice(end).find((l) => marker.test(l));
+  if (later !== undefined) {
+    throw new DocShapeError(`List is broken by a blank line before: ${later}`);
   }
   return items;
 }
@@ -181,10 +191,13 @@ export function paragraphs(body: string): string[] {
       current = [];
       inBlock = false;
     } else if (/^(\||- |\d+\. )/.test(trimmed) || (inBlock && /^\s/.test(line))) {
+      // A table row, a list item, or an item's indented continuation.
       if (current.length) out.push(current.join(" "));
       current = [];
       inBlock = true;
-    } else if (!inBlock) {
+    } else {
+      // Unindented prose: a table ends at it, so it opens a paragraph.
+      inBlock = false;
       current.push(trimmed);
     }
   }
