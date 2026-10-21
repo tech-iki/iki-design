@@ -1074,7 +1074,7 @@ row clamp          short: max-h-6 overflow-hidden whitespace-nowrap | medium: ma
 | Ctrl or ⌘ + arrow | Nothing (not claimed) |
 | Enter | Edit, when the value is the cell's only control; otherwise step into the cell's first control (the title's expand, the evidence link, the actions) |
 | F2 | Edit, always |
-| A printable character | Open the editor with the value **replaced** by what was typed (Excel's rule); a date ignores it |
+| A printable character | Open the editor with the value **replaced** by what was typed (Excel's rule); a chooser opens filtered by it; a date and a multi-select ignore it |
 | Space | Expand the row into the record drawer; consumed even with no listener, so the frame never scrolls |
 | Tab / Shift+Tab | Leave the grid (one tab stop) |
 | Delete / Backspace | Nothing — clearing a cell is not decided (ADR 0007) |
@@ -1161,8 +1161,8 @@ title expand     shrink-0 rounded px-1 text-xs text-ink-muted opacity-0 hover:bg
 - **Each control is a panel opened on demand** (ADR 0006 §1): View, a
   Responsible quick filter, Filter, Sort, Group, Export, Hide fields and Row
   height, then a search box and the count ("12 of 54"). One panel is open at a
-  time; Escape or an outside press closes it and focus returns to the
-  trigger. A trigger in use wears the active state and a badge: the number of
+  time; an outside press closes it, and Escape closes it and returns focus
+  to the trigger. A trigger in use wears the active state and a badge: the number of
   conditions, of sort keys (only when not the default, due date ascending), of
   hidden fields; Group shows the field's name.
 - **Filter is one list of conditions**, field–operator–value, that must all
@@ -1191,7 +1191,8 @@ title expand     shrink-0 rounded px-1 text-xs text-ink-muted opacity-0 hover:bg
   only an administrator a shared one, and only an administrator may change
   it, because a tidy-up would change what the whole team sees before a
   meeting. A view with unsaved changes says so on the View trigger
-  ("Unsaved") with Save and Reset in its menu.
+  ("Unsaved"); its menu offers Reset to everyone and Save to those who may
+  change the view — anyone else keeps the setup by saving a new view.
 
 #### Grid: column resizing
 
