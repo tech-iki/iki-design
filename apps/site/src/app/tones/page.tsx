@@ -17,6 +17,8 @@ import { Mono } from "@/components/rich";
 import { formatRatio } from "@/components/ratio";
 import { Eyebrow, P, Section } from "@/components/section";
 import { Swatch } from "@/components/swatch";
+import { DOC } from "@/lib/design-doc";
+import { pillMapEntries } from "@/lib/pill-maps";
 
 export const metadata: Metadata = {
   title: "Pills",
@@ -44,24 +46,21 @@ const LABEL: Record<ToneName, string> = {
 const ENTRIES = Object.entries(LABEL) as [ToneName, string][];
 const LABELS = ENTRIES.map(([, label]) => label);
 
+/** §4's `STATUS_PILL` row as label → tone, in the document's order. */
+const STATUS_ENTRIES = pillMapEntries(DOC.pillMaps, "STATUS_PILL");
+
+/** The example, written from §4's row, so it cannot show a mapping the system does not. */
 const STATUS_PILL = `import { Pill, tones, type PillTone } from "@tech-iki/design";
 
 type TaskStatus =
-  | "Not Started"
-  | "In Progress"
-  | "Awaiting Input"
-  | "On Hold"
-  | "Completed"
-  | "Cancelled";
+${STATUS_ENTRIES.map(([label]) => `  | ${JSON.stringify(label)}`).join("\n")};
 
 // The vocabulary belongs to the app; the colour belongs to the system.
 const STATUS_PILL: Record<TaskStatus, PillTone> = {
-  "Not Started": tones.neutral,
-  "In Progress": tones.info,
-  "Awaiting Input": tones.warm,
-  "On Hold": tones.neutral,
-  Completed: tones.positive,
-  Cancelled: tones.cancelled,
+${STATUS_ENTRIES.map(
+  ([label, tone]) =>
+    `  ${/^[A-Za-z]+$/.test(label) ? label : JSON.stringify(label)}: tones.${tone},`,
+).join("\n")}
 };
 
 <Pill tone={STATUS_PILL[task.status]}>{task.status}</Pill>`;

@@ -10,8 +10,10 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import AdoptPage from "@/app/adopt/page";
+import ColourPage from "@/app/colour/page";
 import DecisionsPage from "@/app/decisions/page";
 import LayoutPage from "@/app/layout/page";
+import TonesPage from "@/app/tones/page";
 import TypePage from "@/app/type/page";
 import OverviewPage from "@/app/page";
 import { DOC, HEADINGS, findDoc, readDesignDoc } from "@/lib/design-doc";
@@ -40,6 +42,8 @@ const RAW = {
   radius: rawLines(HEADINGS.shape).filter((l) => l.startsWith("| `rounded")).length,
   layers: rawLines(HEADINGS.shape).filter((l) => l.startsWith("| `z-")).length,
   breakpoints: rawLines(HEADINGS.breakpoints).filter((l) => l.startsWith("| `")).length,
+  rules: rawLines(HEADINGS.rules).filter((l) => l.startsWith("- **")).length,
+  maps: rawLines(HEADINGS.maps).filter((l) => l.startsWith("| `")).length,
   open: rawLines(HEADINGS.open).filter((l) => /^\d+\. \*\*/.test(l)).length,
 };
 
@@ -75,6 +79,8 @@ describe("the readers return every row the document holds", () => {
     expect(RAW.radius).toBeGreaterThanOrEqual(5);
     expect(RAW.layers).toBeGreaterThanOrEqual(6);
     expect(RAW.breakpoints).toBeGreaterThanOrEqual(3);
+    expect(RAW.rules).toBeGreaterThanOrEqual(7);
+    expect(RAW.maps).toBeGreaterThanOrEqual(5);
   });
 
   it("reads each table and list at its raw count", () => {
@@ -90,6 +96,8 @@ describe("the readers return every row the document holds", () => {
     expect(DOC.radius).toHaveLength(RAW.radius);
     expect(DOC.layers).toHaveLength(RAW.layers);
     expect(DOC.breakpoints).toHaveLength(RAW.breakpoints);
+    expect(DOC.colourRules).toHaveLength(RAW.rules);
+    expect(DOC.pillMaps).toHaveLength(RAW.maps);
     expect(DOC.familyOptions).toMatch(/^\*\*Options, for Brian to decide\.\*\*/);
   });
 
@@ -128,6 +136,26 @@ describe("the rendered pages show every row", () => {
     expect(bodyRows(layout, "Border radius")).toBe(RAW.radius);
     expect(bodyRows(layout, "The z-index layers")).toBe(RAW.layers);
     expect(bodyRows(layout, "Breakpoints and what changes at each")).toBe(RAW.breakpoints);
+  });
+
+  const colour = renderToStaticMarkup(createElement(ColourPage));
+  const tones = renderToStaticMarkup(createElement(TonesPage));
+
+  it("renders every colour rule", () => {
+    expect(listItems(colour, "rules")).toBe(RAW.rules);
+    expect(colour).not.toContain("**");
+  });
+
+  it("writes the STATUS_PILL example from §4's row, every entry of it", () => {
+    const row = MARKDOWN.split("\n").find((l) => l.startsWith("| `STATUS_PILL` |"));
+    expect(row).toBeDefined();
+    const labels = row!.split(" | ")[1].split("; ").map((e) => e.split(" → ")[0]);
+    expect(labels.length).toBeGreaterThanOrEqual(6);
+    for (const label of labels) {
+      expect(tones).toContain(`| &quot;${label}&quot;`);
+    }
+    expect(tones).toContain("Cancelled: tones.cancelled,");
+    expect(tones).toContain("&quot;In Progress&quot;: tones.info,");
   });
 
   it("renders every constraint a consumer must respect", () => {
