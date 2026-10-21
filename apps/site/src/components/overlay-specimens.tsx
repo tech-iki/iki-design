@@ -3,20 +3,28 @@
 import { useState } from "react";
 import {
   Button,
+  Combobox,
   Disclosure,
   Drawer,
   Field,
+  Icon,
   Menu,
   MenuItem,
   Notice,
   Popover,
   PopoverOption,
+  Tab,
+  TabList,
+  TabPanel,
+  Tabs,
+  Tooltip,
   linkClass,
   type DrawerCloseReason,
 } from "@tech-iki/design";
 
 /*
- * The live specimens for the four overlays on `/components`. The page is a
+ * The live specimens for the four overlays and the three phase 2 components
+ * on Base UI (Tooltip, Tabs, Combobox) on `/components`. The page is a
  * Server Component, as every page of this site is; the overlays are client
  * components (design system §13), and so is anything that holds their open
  * state. This file is the one `"use client"` the site allows, named in
@@ -201,6 +209,97 @@ export function DisclosureSpecimen() {
           </ul>
         </Disclosure>
       ))}
+    </div>
+  );
+}
+
+/** Icon buttons with a tooltip: hover or Tab to them. Each keeps its sr-only name; the tooltip shows it. */
+export function TooltipSpecimen() {
+  const [last, setLast] = useState<string | null>(null);
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <Tooltip content="Expand record">
+        <Button variant="icon" onClick={() => setLast("Expand record")}>
+          <Icon name="expand" />
+          <span className="sr-only">Expand record</span>
+        </Button>
+      </Tooltip>
+      <Tooltip content="Set password">
+        <Button variant="icon" onClick={() => setLast("Set password")}>
+          <Icon name="key" />
+          <span className="sr-only">Set password</span>
+        </Button>
+      </Tooltip>
+      <Tooltip content="Move to Trash" side="bottom">
+        <Button variant="warnIcon" onClick={() => setLast("Move to Trash")}>
+          <Icon name="drop" />
+          <span className="sr-only">Move to Trash</span>
+        </Button>
+      </Tooltip>
+      <span className="text-xs text-ink-muted">{last ? `Pressed: ${last}` : "Hover, or Tab to a button."}</span>
+    </div>
+  );
+}
+
+/** Work OS's policy text editor: Edit and Preview, plus a disabled tab. */
+export function TabsSpecimen() {
+  const [tab, setTab] = useState("edit");
+  return (
+    <div className="flex w-full max-w-xl flex-col gap-4">
+      <Tabs value={tab} onValueChange={setTab}>
+        <TabList label="Edit or preview">
+          <Tab value="edit">Edit</Tab>
+          <Tab value="preview">Preview</Tab>
+          <Tab value="history" disabled>
+            History
+          </Tab>
+        </TabList>
+        <TabPanel value="edit">
+          <Field label="Policy text">
+            <textarea rows={3} defaultValue="Staff may claim travel within seven days." />
+          </Field>
+        </TabPanel>
+        <TabPanel value="preview">
+          <p className="rounded-md border border-grid p-4 text-sm text-ink">
+            Staff may claim travel within seven days.
+          </p>
+        </TabPanel>
+      </Tabs>
+      <Tabs defaultValue="a">
+        <TabList label="Manual activation" activation="manual">
+          <Tab value="a">Summary</Tab>
+          <Tab value="b">Detail</Tab>
+        </TabList>
+        <TabPanel value="a">
+          <p className="text-sm text-ink">Arrow keys move focus; Enter or Space selects.</p>
+        </TabPanel>
+        <TabPanel value="b">
+          <p className="text-sm text-ink">The detail panel.</p>
+        </TabPanel>
+      </Tabs>
+    </div>
+  );
+}
+
+const STATUS_OPTIONS = [
+  { value: "draft", label: "Draft" },
+  { value: "review", label: "In review" },
+  { value: "approved", label: "Approved" },
+  { value: "published", label: "Published" },
+  { value: "retired", label: "Retired", disabled: true },
+];
+
+/** The grid's cell chooser: type to filter, arrows and Enter to choose, Escape to close. */
+export function ComboboxSpecimen() {
+  const [status, setStatus] = useState<string | null>("review");
+  return (
+    <div className="flex flex-wrap items-end gap-3">
+      <div className="w-56">
+        <Field label="Status">
+          <Combobox options={STATUS_OPTIONS} value={status} onValueChange={setStatus} />
+        </Field>
+      </div>
+      <span className="text-xs text-ink-muted">Value: {status ?? "none"}</span>
     </div>
   );
 }

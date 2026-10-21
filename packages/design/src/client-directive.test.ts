@@ -1,7 +1,8 @@
 /**
  * Which component files are Client Components, held as a list.
  *
- * The four overlays use state, effects and Base UI, so they carry
+ * The overlays and the phase 2 components on Base UI (Tooltip, Tabs,
+ * Combobox) use state, effects and Base UI, so they carry
  * `"use client";`; everything else in `src/components` stays a Server
  * Component. The set is compared whole, so a new client file fails here until
  * it is added on purpose, and a stray directive on a server file fails too.
@@ -15,7 +16,15 @@ import { describe, expect, it } from "vitest";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const COMPONENTS = join(HERE, "components");
-const CLIENT = ["disclosure.tsx", "drawer.tsx", "menu.tsx", "popover.tsx"];
+const CLIENT = [
+  "combobox.tsx",
+  "disclosure.tsx",
+  "drawer.tsx",
+  "menu.tsx",
+  "popover.tsx",
+  "tabs.tsx",
+  "tooltip.tsx",
+];
 
 // Same technique as apps/site/src/site-rules.test.ts.
 function stripComments(source: string): string {
@@ -33,7 +42,7 @@ describe("the client directive", () => {
     expect(files.length).toBeGreaterThanOrEqual(CLIENT.length);
   });
 
-  it("is on exactly the overlay files, as their first line", () => {
+  it("is on exactly the client files, as their first line", () => {
     const withDirective = files.filter((f) => read(f).split("\n")[0].trim() === '"use client";').sort();
     expect(withDirective).toEqual([...CLIENT].sort());
   });

@@ -190,6 +190,23 @@ export const TOKEN_PAIRS: {
   { what: "drawer refusal band: overdue-fg on health-overdue-bg", fg: TOKENS.healthOverdueFg, bg: TOKENS.healthOverdueBg, kind: "text" },
   { what: "disclosure count: ink-muted on paper", fg: TOKENS.inkMuted, bg: TOKENS.paper, kind: "text" },
 
+  // Phase 2 (0.5.0). The table frame renders pairs already held above — paper
+  // on navy in the head, ink and ink-muted on paper and paper-tint in the
+  // zebra, the row-hover set — and its stacked card border is grid-strong on
+  // paper. Named here so the frame's own list is complete.
+  { what: "checkbox mark: paper on teal-deep", fg: TOKENS.paper, bg: TOKENS.tealDeep, kind: "nonText" },
+
+  /*
+   * Phase 2 (0.5.0). Every pair the five new components render is already
+   * held above and is not listed twice: paper on navy (the table head, the
+   * tooltip); ink, ink-muted on paper and paper-tint (zebra rows, tabs,
+   * options, legends, disabled rows, "No matches."); ink on teal-soft (the
+   * hovered tab, the highlighted option); grid-strong on paper and paper-tint
+   * (stacked cards, the tab rule, the list border); teal-deep on paper and
+   * on teal-soft as a graphic (the checked fill, the selected tab's bar, the
+   * tick). The one new pair is the browser's checkmark drawn on that fill.
+   */
+
   // Control boundaries and meaningful graphics — 3:1
   { what: "input border on paper", fg: TOKENS.gridStrong, bg: TOKENS.paper, kind: "nonText" },
   { what: "input border on paper-tint", fg: TOKENS.gridStrong, bg: TOKENS.paperTint, kind: "nonText" },

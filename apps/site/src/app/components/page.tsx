@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import {
+  ActionsHeader,
   Button,
+  Checkbox,
   EmptyState,
   Field,
   Icon,
@@ -8,13 +10,24 @@ import {
   Notice,
   PageMain,
   PageTitle,
+  Radio,
+  RadioGroup,
+  TableFrame,
+  rowClass,
+  tbodyClass,
+  tdClass,
+  theadClass,
+  thClass,
 } from "@tech-iki/design";
 import { CodeBlock } from "@/components/code-block";
 import {
+  ComboboxSpecimen,
   DisclosureSpecimen,
   DrawerSpecimen,
   MenuSpecimen,
   PopoverSpecimen,
+  TabsSpecimen,
+  TooltipSpecimen,
 } from "@/components/overlay-specimens";
 import { Mono } from "@/components/rich";
 import { Specimen } from "@/components/specimen";
@@ -23,7 +36,7 @@ import { P, Section } from "@/components/section";
 export const metadata: Metadata = {
   title: "Components",
   description:
-    "Button, Field, Notice, EmptyState, KpiTile, and the four overlays — Drawer, Popover, Menu, Disclosure — drawn live with the usage beneath each.",
+    "Button, Field, Notice, EmptyState, the four overlays, TableFrame, Checkbox and Radio, Tooltip, Tabs, Combobox and KpiTile, drawn live with the usage beneath each.",
 };
 
 const BUTTON_USE = `<Button>Save task</Button>
@@ -118,6 +131,69 @@ const DISCLOSURE_USE = `<Disclosure
 >
   <ul>{tasks.map((t) => <TaskLine key={t.id} task={t} />)}</ul>
 </Disclosure>`;
+
+const TABLE_USE = `<TableFrame caption="Tasks due this week" maxHeightClass={gridHeightClass} stacked minWidthClass="md:min-w-xl">
+  <thead className={theadClass}>
+    <tr>
+      <th scope="col" className={thClass}>Task</th>
+      <th scope="col" className={\`\${thClass} text-right\`}>Days</th>
+      <ActionsHeader />
+    </tr>
+  </thead>
+  <tbody className={tbodyClass}>
+    {tasks.map((t, i) => (
+      <tr key={t.id} className={rowClass(i)}>
+        <td data-label="Task" className={tdClass}>{t.title}</td>
+        <td data-label="Days" className={\`\${tdClass} text-right tabular-nums\`}>{t.days}</td>
+        <td className={tdClass}>…</td>
+      </tr>
+    ))}
+  </tbody>
+</TableFrame>`;
+
+const CHOICE_USE = `<Checkbox label="Share with everyone" name="share" defaultChecked />
+<Checkbox label="Archived (read-only)" disabled />
+
+<RadioGroup legend="Group by" name="group-by" hint="Applies to this view only.">
+  <Radio label="None" value="none" defaultChecked />
+  <Radio label="Owner" value="owner" />
+  <Radio label="Workstream" value="workstream" />
+</RadioGroup>`;
+
+const TASKS = [
+  { title: "Draft the quarterly report", owner: "Amina", days: 3 },
+  { title: "Chase the finance figures", owner: "Tui", days: 1 },
+  { title: "Book the board room", owner: "Rose", days: 0 },
+  { title: "Send the agenda", owner: "Kemuel", days: 5 },
+  { title: "Collect the apologies", owner: "Amina", days: 6 },
+  { title: "Print the handouts", owner: "Rose", days: 7 },
+];
+
+const TOOLTIP_USE = `{/* the sr-only name stays; the tooltip shows it to a pointer or keyboard user */}
+<Tooltip content="Expand record">
+  <Button variant="icon">
+    <Icon name="expand" />
+    <span className="sr-only">Expand record</span>
+  </Button>
+</Tooltip>`;
+
+const TABS_USE = `<Tabs value={tab} onValueChange={setTab}>
+  <TabList label="Edit or preview">          {/* activation="manual" for a slow panel */}
+    <Tab value="edit">Edit</Tab>
+    <Tab value="preview">Preview</Tab>
+  </TabList>
+  <TabPanel value="edit">…</TabPanel>
+  <TabPanel value="preview">…</TabPanel>
+</Tabs>`;
+
+const COMBOBOX_USE = `{/* the grid's cell chooser; forms keep the native <select> */}
+<Combobox
+  label="Status"
+  options={[{ value: "draft", label: "Draft" }, { value: "review", label: "In review" }]}
+  value={status}
+  onValueChange={setStatus}
+  onEscape={() => !innerLayerIsOpen}   // false keeps the list open
+/>`;
 
 const KPI_USE = `<KpiTile label="Open tasks" value={42} hint="across 6 workstreams" />
 <KpiTile label="Due soon" value={7} hint="in the next 7 days" tone="warm" />
@@ -307,6 +383,127 @@ export default function ComponentsPage() {
           <DisclosureSpecimen />
         </Specimen>
         <CodeBlock code={DISCLOSURE_USE} />
+      </Section>
+
+      <Section title="Table frame">
+        <P>
+          The frame every table sits in: a bordered box that scrolls on its
+          own, so a wide table never makes the page scroll sideways. Bounded
+          by <Mono>maxHeightClass</Mono>, its header sticks — the sticky rule
+          carries no z-index, so a frozen column’s header can still sit above
+          it. <Mono>stacked</Mono> turns rows into labelled cards below{" "}
+          <Mono>md</Mono>; narrow the window to see it. The caption is the
+          table’s accessible name. Zebra comes from the row index, through{" "}
+          <Mono>rowClass</Mono>.
+        </P>
+        <Specimen name="bounded, sticky header, stacked below md">
+          <div className="w-full">
+            <TableFrame caption="Tasks due this week" maxHeightClass="max-h-48" stacked minWidthClass="md:min-w-xl">
+              <thead className={theadClass}>
+                <tr>
+                  <th scope="col" className={thClass}>Task</th>
+                  <th scope="col" className={thClass}>Owner</th>
+                  <th scope="col" className={`${thClass} text-right`}>Days</th>
+                  <ActionsHeader />
+                </tr>
+              </thead>
+              <tbody className={tbodyClass}>
+                {TASKS.map((t, i) => (
+                  <tr key={t.title} className={rowClass(i)}>
+                    <td data-label="Task" className={tdClass}>{t.title}</td>
+                    <td data-label="Owner" className={tdClass}>{t.owner}</td>
+                    <td data-label="Days" className={`${tdClass} text-right tabular-nums`}>{t.days}</td>
+                    <td className={tdClass}>
+                      <Button variant="icon" title="Expand">
+                        <Icon name="expand" />
+                        <span className="sr-only">Expand {t.title}</span>
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </TableFrame>
+          </div>
+        </Specimen>
+        <P>
+          The spreadsheet grids use <Mono>gridHeightClass</Mono> as their
+          bound; the specimen uses a shorter one so the sticky header shows.
+        </P>
+        <CodeBlock code={TABLE_USE} />
+      </Section>
+
+      <Section title="Checkbox and radio">
+        <P>
+          The browser’s own controls, styled: the label wraps the input, so
+          the words are the name and the whole row is the target; the checked
+          fill is <Mono>teal-deep</Mono> through <Mono>accent-color</Mono>;
+          the row is 44px tall below <Mono>md</Mono>; a disabled input mutes
+          its row. A <Mono>RadioGroup</Mono> is a fieldset whose legend asks
+          the question and whose <Mono>name</Mono> reaches every radio. Space
+          toggles a checkbox and the arrow keys move within a group, natively.
+        </P>
+        <div className="flex flex-wrap gap-8">
+          <div className="flex flex-col gap-1">
+            <Checkbox label="Share with everyone" name="share" defaultChecked />
+            <Checkbox label="Notify the owner" name="notify" />
+            <Checkbox label="Archived (read-only)" name="archived" disabled />
+          </div>
+          <RadioGroup legend="Group by" name="group-by" hint="Applies to this view only.">
+            <Radio label="None" value="none" defaultChecked />
+            <Radio label="Owner" value="owner" />
+            <Radio label="Workstream" value="workstream" />
+          </RadioGroup>
+          <RadioGroup legend="Row height" name="row-height" error="Choose a row height." disabled>
+            <Radio label="Short" value="short" />
+            <Radio label="Tall" value="tall" />
+          </RadioGroup>
+        </div>
+        <CodeBlock code={CHOICE_USE} />
+      </Section>
+
+      <Section title="Tooltip">
+        <P>
+          A hint on hover and on keyboard focus, for an icon button whose
+          picture may need a word. It never replaces the name: the button
+          keeps its <Mono>sr-only</Mono> label and loses its{" "}
+          <Mono>title</Mono>, so the hint is not shown twice. Escape closes
+          it. Touch gets no tooltip — Base UI opens it on mouse and pen only,
+          because a long press is the browser’s menu — so anything a person
+          needs in order to act goes in visible words.
+        </P>
+        <Specimen name="IconButton with a tooltip">
+          <TooltipSpecimen />
+        </Specimen>
+        <CodeBlock code={TOOLTIP_USE} />
+      </Section>
+
+      <Section title="Tabs">
+        <P>
+          APG tabs: one tab stop for the row, the arrow keys move along it,
+          Home and End jump. By default the arrow selects as it moves, as Work
+          OS’s editor does; <Mono>activation=&quot;manual&quot;</Mono> waits
+          for Enter or Space. The selected tab is marked by weight and a bar,
+          not colour alone. A disabled tab stays in the row, muted.
+        </P>
+        <Specimen name="automatic, then manual activation">
+          <TabsSpecimen />
+        </Specimen>
+        <CodeBlock code={TABS_USE} />
+      </Section>
+
+      <Section title="Combobox">
+        <P>
+          The grid’s cell chooser: type to filter, the first match is
+          highlighted, the arrows move, Enter chooses, Escape closes the list
+          and nothing else. The chosen option has a tick. Forms keep the
+          native <Mono>&lt;select&gt;</Mono>, which gets the phone’s own
+          picker; this is for a cell, or for a list long enough that typing
+          beats scrolling.
+        </P>
+        <Specimen name="in a Field, with a disabled option">
+          <ComboboxSpecimen />
+        </Specimen>
+        <CodeBlock code={COMBOBOX_USE} />
       </Section>
 
       <Section title="KPI tile">
