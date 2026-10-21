@@ -96,16 +96,18 @@ export function sectionTitles(source: string): string[] {
 
 /**
  * `className` values, quoted or template literal, that grow a flex item
- * (`flex-1`, `flex-auto`, `flex-grow`, `grow`) without an unprefixed `min-w-0`. A flex item will not
- * shrink below its min-content width, so one such item in the shell lets the
- * widest code block or table widen the whole page.
+ * (`flex-1`, `flex-auto`, `flex-grow`, `grow`) without an unconditional,
+ * unprefixed `min-w-0`. A flex item will not shrink below its min-content
+ * width, so one such item in the shell lets the widest code block or table
+ * widen the whole page. `cn(…)` and ternary values are not read.
  */
 export function growingWithoutMinW0(source: string): string[] {
   return (source.match(/className=(?:"[^"]*"|\{`[^`]*`\})/g) ?? []).filter(
     (c) =>
       /(?<![\w-])(?:flex-1|flex-auto|flex-grow|grow)(?![\w-])/.test(c) &&
       // Unprefixed only: `md:min-w-0` leaves the item stuck below `md`.
-      !/(?<![\w:-])min-w-0(?![\w-])/.test(c),
+      // A `min-w-0` inside `${…}` may not apply, so it does not count.
+      !/(?<![\w:-])min-w-0(?![\w-])/.test(c.replace(/\$\{[^}]*\}/g, "")),
   );
 }
 
@@ -195,6 +197,9 @@ describe("controls: each matcher catches what it guards against", () => {
     expect(growingWithoutMinW0('<div className="grow-0 md:min-w-0 flex-col">')).toEqual([]);
     expect(growingWithoutMinW0('<div className="flex-1 md:min-w-0">')).toEqual(['className="flex-1 md:min-w-0"']);
     expect(growingWithoutMinW0('<div className="flex-grow">')).toEqual(['className="flex-grow"']);
+    expect(growingWithoutMinW0('<div className={`flex-1 ${a ? "min-w-0" : ""}`}>')).toEqual([
+      'className={`flex-1 ${a ? "min-w-0" : ""}`}',
+    ]);
   });
 
   it("collects section titles and finds repeats", () => {
