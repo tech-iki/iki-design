@@ -12,12 +12,17 @@ import { focusRing } from "@tech-iki/design";
  */
 
 /**
- * Longest line, in characters, that fits the narrowest frame at 375px: a
- * `<pre>` inside a Specimen leaves 211px for text (375 less the 56px rail, the
- * 48px page padding, the Specimen's 34px and the `<pre>`'s own 24px), and a
- * Geist Mono `text-xs` glyph is 7.2px wide.
+ * Longest line, in characters, that fits the narrowest frame at 320px, the
+ * width WCAG 1.4.10 reflow is judged at. A `<pre>` inside a Specimen leaves
+ * 141px for text: 320 less a 15px desktop scrollbar, the 56px rail, the 48px
+ * page padding, the Specimen's 34px, and the `<pre>`'s 2px border and 24px
+ * padding. A Geist Mono `text-xs` glyph is 7.2px wide.
+ *
+ * The cost is a tab stop on some frames that do not scroll at desktop width.
+ * Knowing which do would take a measurement in the browser, and the site keeps
+ * client components to the overlay specimens.
  */
-const FITS = 29;
+const FITS = 19;
 export function CodeBlock({
   code,
   file,
