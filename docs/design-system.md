@@ -948,6 +948,323 @@ It persists while the grid is unfocused, which is what Sheets and Airtable do.
 The hover preview is the same box one weight lighter, only on cells the cursor
 could land on, and the two are never drawn together.
 
+### Task grid
+
+Work OS's task table is the system's most complex surface: a spreadsheet grid
+on `TaskGrid` (`src/components/task-grid.tsx`), shared by Tasks, My tasks and
+the policy list. **The grid is not a package component.** This section is how
+it behaves, read from Work OS's ADRs 0004–0007 and its `main` at `3916ee7`
+(21 October 2026), so that the next grid copies the behaviour and not only the
+strings. The frame and the two skins are [Table frame](#table-frame); the
+cursor's outline is [Grid cursor](#grid-cursor); the decisions are the
+[§15](#15-decision-register) rows #56, #59/#69, #61, #62, #63, #86, ADR
+0007/#93, #95, #98, #165, #246 and #261. Class strings below in an unmarked
+block are **Work OS's**, quoted from its files; the package does not export
+them and no test holds them here.
+
+#### What the package provides for it
+
+| The grid needs | The package has |
+| --- | --- |
+| The scroll frame, sticky header, sheet skin, numeric alignment | `TableFrame`, `sheetRowClass`, `sheetTdClass`, `gridHeightClass` ([Table frame](#table-frame)) |
+| The cursor's box and the hover preview | `cellCursor`, `cellHover` ([Grid cursor](#grid-cursor)) |
+| The one-click chooser | `Combobox` — whose **Tab leaves without choosing**, so the grid keeps its own Tab-to-commit ([Combobox](#combobox)) |
+| The record drawer; the phone's "Filter & sort" sheet | `Drawer` ([Drawer and popover](#drawer-and-popover)) |
+| The toolbar's panels and their option rows | `Popover`, `PopoverOption` with `choiceInputClass` |
+| A pill column's width | `pillWidth` ([Pill, chip, tile](#pill-chip-tile)) |
+
+What it does not have is everything that makes those parts a grid: the cursor
+model (`src/lib/grid-cursor.ts`), the cell editor (`editable-cell.tsx`), the
+column registry and `fitPills` (`src/lib/task-columns.ts`), the resizer, the
+toolbar, and saved views. Work OS still draws its own record panel, toolbar
+panels and chooser until the #443 port moves them onto `Drawer`, `Popover` and
+`Combobox`. Whether the grid itself should become a package component is open
+([§16](#16-open-questions)).
+
+#### Grid: model and anatomy
+
+- **Airtable is the interaction model; the grid is the product** (ADR 0006
+  §1). Chrome gets out of the way and the data carries the colour: a rail,
+  frozen columns, a fixed row height with an expand-record panel for long
+  text, a toolbar whose controls open on demand, and saved views. Settled by
+  42% of the grid off-screen at 1440px, a header that never stuck and no way
+  to read a record whole (#56).
+- **The column registry is the one list.** `TASK_COLUMNS`
+  (`task-columns.ts:186`) gives each column an `id`, `label`, `width` and
+  `minWidth`, and optionally `numeric` (right-aligned, `tabular-nums`),
+  `frozen`, `required` (cannot be hidden), `onCard` (shown on the phone card)
+  and `alwaysInteractive`. Tasks has nineteen columns, none hidden by default
+  (#86 reversed #59's nine). Widths are clamped to `[minWidth, 800]`.
+- **A pill column sizes itself from its vocabulary.** `fitPills(width,
+  minWidth, labels, "editable" | "readOnly")` takes the larger of the declared
+  value and the widest pill plus the cell's chrome (`CELL_CHROME`: 32px
+  editable, 24px read-only), for both the width and the resize floor, so a drag
+  cannot clip a pill (#261).
+- **Frozen columns stay put and are opaque.** Task ID and the title on Tasks
+  and on the policy list; the title alone on My tasks. Offsets are the running
+  sum of the frozen widths, set inline as `left`, on a `table-fixed` table of
+  exactly the summed width so they cannot drift. The cells are `sticky z-[1]
+  bg-inherit`, inheriting the row's opaque fill (#69); a frozen header cell is
+  `sticky z-20` over `thClass`'s `z-10`. **The shadow marks the boundary only
+  once the grid is scrolled sideways** (`scrollLeft > 0`), on the last frozen
+  column's header and body cells.
+- **The header is sticky only inside a bounded frame** (`gridHeightClass`,
+  #58), and its measured height becomes the frame's `scroll-padding-top`, so
+  a cursor moved upward is never hidden under it.
+- **Rows are clamped to a fixed height** — short by default, medium or tall
+  from the toolbar — because unclamped cells varied from 57px to 121px. The
+  actions cell is never clamped. Long text is read in the record drawer.
+- **Group bands are a sticky-left strip in a full-width row.** Grouping is by
+  workstream, responsible, status, priority or health. The band is a toggle
+  (`aria-expanded`, ▸/▾) with a count; a collapsed group contributes no rows.
+  Collapse state is per tab, in `sessionStorage`; it is not in a saved view.
+
+```
+frozen cell        sticky z-[1] bg-inherit
+frozen header      sticky z-20
+frozen edge        shadow-[2px_0_5px_-1px_rgba(18,48,74,0.25)]        last frozen column, scrolled only
+row                align-top {sheetRowClass}
+group row          bg-sky
+  band             sticky left-0 flex w-fit items-center gap-2 bg-sky px-3 py-1.5
+  toggle           flex items-center gap-1.5 rounded px-1 text-sm font-semibold text-navy hover:bg-teal-soft {focusRing}
+  count            rounded-full bg-paper px-2 text-xs tabular-nums text-ink-muted
+row clamp          short: max-h-6 overflow-hidden whitespace-nowrap | medium: max-h-11 overflow-hidden | tall: max-h-21 overflow-hidden
+```
+
+#### Grid: keyboard and focus
+
+- **One tab stop** (ADR 0007 §1). A roving tabindex over the `<td>`s: the
+  cursor cell is `tabindex="0"`, every other cell the cursor may land on
+  `-1`, and a cell it may not land on has none. Settled by 2,881 focusable
+  elements in the Tasks body (#93). Every button and link inside a cell is
+  `tabindex="-1"`; Enter steps into them.
+- **The cursor is a pair of keys, not indexes** (ADR 0007 §2): `{ row, column }`
+  over the row and column ids, in a pure module with tests. It stays on the
+  cell through a sort, filter, group or revalidate; when the cell goes, it
+  falls to the position it held, so trashing a task leaves you on the next
+  one. It is drawn while the grid is unfocused, and entering the grid by Tab
+  returns to it.
+- **Edges stop; they do not wrap** (ADR 0007 §3). The key is still consumed,
+  so Down on the last row does not scroll the page.
+- **The cursor lands only where the keyboard works** (#96). Left and Right
+  walk the row's accepting cells; Up and Down keep the column where the next
+  row accepts it and otherwise take the nearest accepting column on screen; a
+  row with nothing accepting is stepped over like a group band. Which cells
+  accept is the page's `acceptsInput(column, row)`.
+- **`role="grid"` only when something accepts the keyboard** (ADR 0007 §5).
+  It hands a screen reader's arrow keys to the page, which is honest only if
+  the whole key map works. A grid with no accepting cell — My tasks — is a
+  plain `role="table"` with no cursor, no handlers and no hint, and the frame
+  takes the tab stop instead (`scrollableByKeyboard`). The grid is described by
+  an `sr-only` hint: "Use the arrow keys to move between cells. Press Enter to
+  edit the selected cell, or Escape to stop editing."
+- **Focus is rescued when its element is removed** — an editor closing, a
+  revalidate replacing a `<td>` — by a focus-event net and a layout effect,
+  neither on `requestAnimationFrame`, because a background tab never gets a
+  frame. A cell still in the document when focus left it was left on purpose
+  and is not chased; the cursor follows itself only while the grid holds
+  focus, so a filter typed in the search box never steals the keyboard.
+
+| Key, on the cursor cell | Effect |
+| --- | --- |
+| ← → ↑ ↓ | Move the cursor; edges stop |
+| Home / End | First / last accepting cell of the row |
+| Ctrl or ⌘ + Home / End | First cell of the first row / last cell of the last row |
+| PageUp / PageDown | Move by the rows that fit in the frame |
+| Ctrl or ⌘ + arrow | Nothing (not claimed) |
+| Enter | Edit, when the value is the cell's only control; otherwise step into the cell's first control (the title's expand, the evidence link, the actions) |
+| F2 | Edit, always |
+| A printable character | Open the editor with the value **replaced** by what was typed (Excel's rule); a chooser opens filtered by it; a date and a multi-select ignore it |
+| Space | Expand the row into the record drawer; consumed even with no listener, so the frame never scrolls |
+| Tab / Shift+Tab | Leave the grid (one tab stop) |
+| Delete / Backspace | Nothing — clearing a cell is not decided (ADR 0007) |
+| **On a control inside a cell** | |
+| Tab / Shift+Tab | The cell's next / previous control; past either end, back to the cell |
+| Escape | Back to the cell |
+| **In an editor** | |
+| Enter | Commit, and move the cursor down |
+| Tab / Shift+Tab | Commit, and move the cursor right / left |
+| F2 | Commit in place |
+| Escape | Cancel; the cursor stays |
+| Click outside | Text, date and multi-select: commit. Single choice: cancel |
+| ↑ ↓ Home End (chooser) | Move the highlight; typing filters |
+
+For the single-choice chooser, Enter's move down comes from the grid's own
+handler on the chooser's input, not from the chooser; that is read from the
+code (`task-grid.tsx:544–577`, `editable-cell.tsx:898–908`), not exercised.
+
+#### Grid: editing
+
+- **One click selects, a second edits — for text** (ADR 0007 §4). Pointing
+  at a cell to read a value the clamp has cut off must not drop a caret in
+  it.
+- **A choice cell opens on the first click** (#95): status, priority,
+  percent, people and the multi-selects. Opening mutates nothing, so the
+  second click bought delay and no protection; with the native `<select>` it
+  replaced, a status change took four clicks, and Safari has no
+  `select.showPicker()`. Dates keep the native input, opened with
+  `showPicker()`, which Safari has.
+- **The cell is the unit** (#98). The cursor and the hover are drawn on the
+  `<td>`, not on the trigger inside it, and the open editor draws no border,
+  radius or fill of its own — the cursor is already its frame. A second click
+  anywhere in the cell opens it, edge to edge. Settled by a hover ring inset
+  9/35/5/9px off the cell's edge and a 172px input in a 216px cell.
+- **The grid asks a cell to open; it does not reach inside one** (ADR 0007
+  §6). It dispatches an open event the cell answers; a cell with no listener
+  cannot be edited. That is how My tasks shares the grid without its editing.
+- **A commit is optimistic and goes through the full record's validation**
+  (ADR 0004). The new value shows at once; the server loads the task,
+  overrides the one field and runs the same validator as the drawer, so
+  there is no second update path. An unchanged value sends nothing.
+- **Pending is the trigger at 60% opacity** — no spinner, as everywhere
+  ([Fields and labels](#fields-and-labels)). There is no `aria-busy` on the
+  cell.
+- **A refusal reverts the cell and says why beside it.** The value goes back
+  to the committed one (the draft is not kept), the trigger takes a red ring
+  and the reason as its `title`, and a `role="alert"` box opens below the cell
+  (above it near the bottom of the viewport), portalled and clamped inside it.
+  Escape or any press dismisses it; the next commit clears it.
+
+| State | What shows | Work OS's classes |
+| --- | --- | --- |
+| Idle | The value; the row's own fill | `{sheetTdClass}` in a `{sheetRowClass}` row |
+| Cursor | 2px teal box inside the cell, focused or not | `{cellCursor}` |
+| Hover | The same box at 1px, only on cells the cursor could land on, never on the cursor's own | `{cellHover}` |
+| Editing | The value replaced by a borderless input, or the chooser's filter input and a portalled list, inside the cursor box | `w-full px-1 py-0.5 bg-transparent text-sm text-ink focus:outline-none` |
+| Pending | The new value, faded | `opacity-60` on the trigger |
+| Refused | The old value, a red ring, a portalled alert box | `ring-1 ring-health-overdue-fg`; box `fixed z-50 rounded-md border border-health-overdue-fg bg-paper px-2 py-1 text-xs font-medium text-health-overdue-fg shadow-lg`, 256px |
+| Read-only | Plain text; no tabindex, no box, no hover; a click keeps the cursor where it was | `text-ink` |
+
+The read-only state has no visual mark of its own — no muting, no tooltip; a
+cell says it is not yours by not taking the cursor.
+
+#### Grid: row actions
+
+- **Expand opens the record drawer** — one drawer for create, edit and
+  history (#61). It is reached three ways: Space on any cursor cell, the
+  expand icon in the actions cell, and a `⤢` beside the title that appears on
+  row hover or focus. A tap on a phone card does the same.
+- **Drop sends the task to Trash, and is a confirm in words.** The resting
+  control is a warn icon button ("Drop task"); pressing it arms the row and
+  the cell shows a "Drop" and a "Cancel" in text, because the "yes, really"
+  has to be read ([Buttons](#buttons)). One row is armed at a time. It is
+  "Drop", not "Delete", because Trash can be restored. From the cursor:
+  Enter on the actions cell focuses Expand, Tab moves to Drop.
+
+```
+actions cell     flex gap-1 whitespace-nowrap      {iconButtonClass} Expand, {warnIconButtonClass} Drop, both tabindex -1
+title expand     shrink-0 rounded px-1 text-xs text-ink-muted opacity-0 hover:bg-teal-soft hover:text-ink group-hover/row:opacity-100 focus-visible:opacity-100 {focusRing}
+```
+
+#### Grid: toolbar and saved views
+
+- **Each control is a panel opened on demand** (ADR 0006 §1): View, a
+  Responsible quick filter, Filter, Sort, Group, Export, Hide fields and Row
+  height, then a search box and the count ("12 of 54"). One panel is open at a
+  time; an outside press closes it, and Escape closes it and returns focus
+  to the trigger. A trigger in use wears the active state and a badge: the number of
+  conditions, of sort keys (only when not the default, due date ascending), of
+  hidden fields; Group shows the field's name.
+- **Filter is one list of conditions**, field–operator–value, that must all
+  match — except several "is" values for one field, which match any (#60).
+  **Sort is an ordered list of keys**, "First … then …", and the last cannot
+  be removed. Search covers title, deliverable and notes.
+- **Below `md` the toolbar is one "Filter & sort" button** with the total
+  badge, opening a `Drawer` sheet that holds the search and the same controls.
+- **Only three things live in the Tasks URL**: `view` (the saved view's
+  slug), `record` (the open record, by reference) and `responsible` (the quick
+  filter, written only when it differs from the view's). They are written with
+  `history.replaceState`, so Back leaves the page rather than stepping
+  through clicks; switching views is a navigation. **Filter, sort, group,
+  hidden fields and search are not in the URL** — they are page state seeded
+  from the view, and a reload without saving loses them. The policy list
+  differs and mirrors its search, filters and sort into the URL
+  ([Board, card and Move to… menu](#board-card-and-move-to-menu)).
+- **A saved view stores the whole working setup** (#62): the conditions,
+  sorts and search, the hidden columns, the column widths, the row height and
+  the grouping. Not the collapsed groups, the open record or the quick
+  filter. Settled by somebody rebuilding the same filter by hand before every
+  meeting.
+- **Views are listed in the rail under Tasks**, addressed by slug
+  (`/tasks?view=…`), shared views and your own, a personal one marked "(your
+  view)"; hidden while the rail is narrow. Anyone may save a personal view;
+  only an administrator a shared one, and only an administrator may change
+  it, because a tidy-up would change what the whole team sees before a
+  meeting. A view with unsaved changes says so on the View trigger
+  ("Unsaved"); its menu offers Reset to everyone and Save to those who may
+  change the view — anyone else keeps the setup by saving a new view.
+
+#### Grid: column resizing
+
+- **Every header has a handle**: an 8px button inside the cell's right edge
+  — inside, because overhanging by 4px inflated every header's scroll width
+  into a phantom overflow (#59). Drag to resize; double-click to reset.
+- **It has a keyboard**: it is its own tab stop, ← and → step 16px (4px with
+  Shift), Enter or Space resets. Its name states the width ("Resize Status
+  column, currently 132 pixels").
+- **The floor is the column's `minWidth`**, which for a pill column is
+  `fitPills`'s; the ceiling is 800px.
+- **Widths persist in a cookie** (`iki_grid`, `iki_my_grid`,
+  `iki_policy_grid`, a year), so the server renders the same shape on the next
+  visit; a write is debounced 200ms and skipped while nothing has changed, so
+  visiting never writes. A saved view's widths win over the cookie.
+- **Its focus style is known drift** ([§14](#14-known-drift-inside-work-os)):
+  a fill and `focus-visible:outline-none`, no ring.
+
+```
+resize handle    absolute inset-y-0 right-0 z-10 w-2 cursor-col-resize touch-none bg-transparent hover:bg-white/40 focus-visible:bg-white/60 focus-visible:outline-none
+```
+
+#### Grid: privileges
+
+- **The server is the authority; the grid's restraint is a courtesy** (ADR
+  0005). Both ask the same pure functions in `src/lib/permissions.ts`, so a
+  cell that takes no cursor and a write that is refused cannot disagree. An
+  administrator edits everything; a workstream lead everything in their
+  workstream; staff on a task only its progress fields; anyone else nothing.
+- **A cell accepts the keyboard if the reader may edit it** — the field is in
+  their `editableFields` for that task, or, for workstream and responsible,
+  they may reassign it. The title and actions cells always accept (expand is
+  everyone's), and the evidence cell accepts whenever it holds a link to
+  open. So the same cell takes the cursor for an administrator and not for a
+  member of staff: **the box means "your keyboard works here", not "someone's
+  could"** (`tasks-manager.tsx:1416`).
+- **Drop is shown only to those who may delete** — an administrator or the
+  workstream's lead — and the action checks again.
+
+#### Grid: phone and print
+
+- **Below `md` the grid becomes cards** (#63): 14% of the grid was visible at
+  375px, with the two frozen columns taking 300px of it. Both layouts are
+  rendered and toggled with `md:hidden` / `hidden md:block`, not by measuring
+  the viewport, so the page server-renders without a hydration mismatch, and
+  both walk the same rows, so the view's filter, sort and grouping hold on
+  both. A card shows the `onCard` columns; a tap opens the record drawer as a
+  full-screen sheet — "tap card, tap field, pick". Group bands become 44px
+  toggles. The card's string is under [Task card](#task-card-chart-empty-states).
+- **Print has no rules of its own.** The frame drops its bound and its
+  overflow on paper (`tableFrameClass`'s `print:` pair), so the grid is not
+  cut to its scrollport; the rail is `print:hidden`; the app-wide `@page` is
+  A4 landscape in Chrome. Nothing hides the toolbar or the actions column,
+  and nothing unsticks the frozen columns for print. That is the code; how a
+  printed Tasks grid looks has not been measured.
+
+#### Grid: where the ADRs and the code disagree
+
+Listed, not resolved:
+
+| ADR says | The code does | Where |
+| --- | --- | --- |
+| Staff may edit **five** progress fields (ADR 0005) | Six: `evidenceNote` was added by #192 | `permissions.ts:89–103` |
+| Commit on blur; Esc cancels (ADR 0004) | Text, date and multi-select commit on an outside press; the single-choice chooser **cancels** ("a stray click would change a value nobody chose") | `editable-cell.tsx:850–858`, `1090–1097` |
+| `focus:outline-none` never on its own; one `focusRing` (ADR 0006 §4) | The resize handle has `focus-visible:outline-none` and a fill | `column-resizer.tsx:85`, already in §14 |
+| A table where nothing accepts has "no tab stop" (ADR 0007, #96) | The cursor's tab stop goes, but the frame becomes one (`scrollableByKeyboard`), named by the caption | `task-grid.tsx:815` |
+| A "17-column" grid (ADR 0006 context) | Nineteen columns | `task-columns.ts:186–206` |
+
+And one the code has with itself: the view permission is "who can rename,
+re-save or delete a view", and the server accepts a new name, but the View
+menu has no rename control (`permissions.ts:296`, `tasks-manager.tsx:1231`).
+
 ### Task card, chart, empty states
 
 ```
@@ -1907,6 +2224,14 @@ button). A consumer should copy the rule, not the exception; each of these is a 
 4. **Whether the F-series labels should be mapped in-repo.** The code's
    reasoning cites F13, F24.2 and so on; the feature list stops at F11 and the
    rest resolve only on GitHub.
+5. **Whether the task grid should become a package component.** The package
+   has the grid's frame, cursor strings, chooser, drawer and popover
+   ([Task grid](#task-grid)), but the grid itself — the cursor model, the
+   cell editor, the column registry, resizing, the toolbar and saved views —
+   lives in Work OS alone, used by three of its pages. No second app has a
+   spreadsheet grid yet, the plan of 20 October 2026 does not propose one, and
+   the Combobox port (#443) has still to show how much of the grid's own key
+   handling a package grid would have to carry.
 
 ## Appendix A — tokens as data
 
