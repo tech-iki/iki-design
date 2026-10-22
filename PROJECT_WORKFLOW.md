@@ -134,12 +134,14 @@ substitute a plausible-sounding value to fill either gap.
 - Build artifact type: npm package (`@tech-iki/design` tarball) and a static Next.js site
 - Artifact registry or storage: **not yet configured.** The intended registry is npmjs.com under the
   `@tech-iki` scope; no npm account is logged in on the development machine and the scope has not been
-  claimed. Until it is, consumers install from the git tag: `"@tech-iki/design": "github:tech-iki/iki-design#v0.5.0"`
+  claimed. Until it is, consumers install the release tarball: `"@tech-iki/design": "https://github.com/tech-iki/iki-design/releases/download/v0.5.0/tech-iki-design-0.5.0.tgz"`
   with the package built by its `prepare` script.
 - Artifact digest or checksum command: `npm pack --json -w packages/design` (reports `integrity` and `shasum`)
 - Software bill of materials command: none
-- Release creation command or workflow: **not yet configured.** Intended: a GitHub Release on the tag,
-  with `npm publish --access public -w packages/design` from CI once the registry exists.
+- Release creation command or workflow: `.github/workflows/release.yml` ("Release asset") on a pushed `v*`
+  tag, or run by hand for an existing tag. It verifies the tarball's version equals the tag and that it holds
+  `dist/theme.css`, then creates or updates the GitHub Release with `tech-iki-design-X.Y.Z.tgz` and its `.sha256`.
+  `npm publish --access public -w packages/design` from CI is still intended once the registry exists.
 
 ### Deployment
 

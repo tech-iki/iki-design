@@ -25,7 +25,7 @@ const COMPONENTS = `import { Pill, tones } from "@tech-iki/design";
 
 <Pill tone={tones.overdue}>Overdue</Pill>`;
 
-const GIT_TAG = `"@tech-iki/design": "github:tech-iki/iki-design#v0.5.0"`;
+const GIT_TAG = `"@tech-iki/design": "https://github.com/tech-iki/iki-design/releases/download/v0.5.0/tech-iki-design-0.5.0.tgz"`;
 
 export default function OverviewPage() {
   return (

@@ -1905,12 +1905,18 @@ per-stack notes that follow.
   | `Tabs`, `TabList`, `Tab`, `TabPanel` | **yes** | Tabs |
   | `Combobox` | **yes** | Combobox |
 
-- **Until npm publishing exists**, depend on the tagged release on GitHub, in
-  `dependencies`:
+- **Until npm publishing exists**, depend on the release asset on GitHub, in
+  `dependencies`. Each `vX.Y.Z` release carries the packed tarball
+  `tech-iki-design-X.Y.Z.tgz` and its `.sha256`, attached by the `Release asset`
+  workflow:
 
   ```json
-  "@tech-iki/design": "github:tech-iki/iki-design#v0.5.0"
+  "@tech-iki/design": "https://github.com/tech-iki/iki-design/releases/download/v0.5.0/tech-iki-design-0.5.0.tgz"
   ```
+
+  Do not use a git URL (`github:tech-iki/iki-design#vX.Y.Z`, `git+https://…`).
+  It installs the repository root, which is the private `iki-design` workspace,
+  not the package in `packages/design/`, so the import never resolves.
 
 ### 13a. Any stack — custom properties
 
