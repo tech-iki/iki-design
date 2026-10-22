@@ -1,0 +1,189 @@
+name: Release asset
+
+# Attaches the packed `@tech-iki/design` tarball, and its SHA-256, to the GitHub
+# Release for a version tag. Consumers depend on that asset by URL:
+#
+#   "@tech-iki/design": "https://github.com/tech-iki/iki-design/releases/download/vX.Y.Z/tech-iki-design-X.Y.Z.tgz"
+#
+# A `github:tech-iki/iki-design#vX.Y.Z` dependency cannot work: it installs the
+# repository root, which is the private `iki-design` workspace, not the package.
+#
+# It runs when a `v*` tag is pushed, and by hand for a tag that already exists
+# (Actions, "Release asset", Run workflow, with the tag). The manual run builds
+# the tag's own source, not this branch's, so it can publish the asset for a
+# release that was tagged before this workflow existed.
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing tag to build and release, e.g. v0.5.0"
+        required: true
+        type: string
+      replace_assets:
+        description: "Replace assets already attached to this release (changes the tarball's integrity hash for every consumer)"
+        required: false
+        type: boolean
+        default: false
+
+# Nothing is granted by default; each job asks for what it uses.
+permissions: {}
+
+# One run per tag, queued rather than cancelled: a release half-published by a
+# cancelled run is worse than a short wait.
+concurrency:
+  group: release-${{ github.event.inputs.tag || github.ref_name }}
+  cancel-in-progress: false
+
+env:
+  # A pushed tag carries its own name; a manual run names the tag as an input.
+  # Read from the environment in every script, never interpolated into one.
+  TAG: ${{ github.event.inputs.tag || github.ref_name }}
+
+jobs:
+  build:
+    name: Pack and verify
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Check the tag is a version tag
+        run: |
+          if ! [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+            echo "::error::'$TAG' is not a version tag (vMAJOR.MINOR.PATCH)."
+            exit 1
+          fi
+
+      - uses: actions/checkout@v7
+        with:
+          # `refs/tags/` so a branch that happens to share the name cannot be
+          # built by mistake; a tag that does not exist fails here.
+          ref: refs/tags/${{ env.TAG }}
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      # Scripts skipped so dist/ is built once, by the explicit Build step below.
+      - run: npm ci --ignore-scripts
+      - name: Build
+        run: npm run build -w packages/design
+      - name: Test
+        run: npm run test -w packages/design --if-present
+
+      # Scripts are skipped here only because dist/ was built on the line above.
+      - name: Pack
+        run: |
+          mkdir -p out
+          npm pack -w packages/design --ignore-scripts --pack-destination out
+
+      - name: Verify the tarball
+        run: |
+          set -euo pipefail
+          VERSION="${TAG#v}"
+
+          # Whatever was packed, read for what it says it is: the file name is
+          # not trusted, so a version mismatch is reported as one.
+          shopt -s nullglob
+          PACKED_FILES=(out/*.tgz)
+          if [ "${#PACKED_FILES[@]}" -ne 1 ]; then
+            echo "::error::Expected exactly one tarball in out/, found ${#PACKED_FILES[@]}."
+            exit 1
+          fi
+          TGZ="${PACKED_FILES[0]}"
+
+          NAME="$(tar -xzOf "$TGZ" package/package.json | node -p 'JSON.parse(require("fs").readFileSync(0, "utf8")).name')"
+          PACKED="$(tar -xzOf "$TGZ" package/package.json | node -p 'JSON.parse(require("fs").readFileSync(0, "utf8")).version')"
+          if [ "$NAME" != "@tech-iki/design" ]; then
+            echo "::error::The tarball is '$NAME', not '@tech-iki/design'."
+            exit 1
+          fi
+          if [ "$PACKED" != "$VERSION" ]; then
+            echo "::error::Tag $TAG is version $VERSION but the tarball's package.json says $PACKED. Bump packages/design/package.json before tagging."
+            exit 1
+          fi
+          if [ "$(basename "$TGZ")" != "tech-iki-design-${VERSION}.tgz" ]; then
+            echo "::error::Unexpected tarball name $(basename "$TGZ")."
+            exit 1
+          fi
+
+          # Listed to a file first: `grep -q` closing the pipe early would fail
+          # `tar` under pipefail.
+          tar -tzf "$TGZ" > out/contents.txt
+          if ! grep -qx 'package/dist/theme.css' out/contents.txt; then
+            echo "::error::The tarball has no dist/theme.css; the build did not reach it."
+            exit 1
+          fi
+          rm out/contents.txt
+
+          (cd out && sha256sum "tech-iki-design-${VERSION}.tgz" > "tech-iki-design-${VERSION}.tgz.sha256")
+          cat "$TGZ.sha256"
+
+          # Release notes: this version's CHANGELOG section, if it has one.
+          awk -v v="$VERSION" '
+            /^## \[/ { if (on) exit; on = index($0, "## [" v "]") == 1; next }
+            on
+          ' CHANGELOG.md > out/notes.md
+          if ! grep -q '[^[:space:]]' out/notes.md; then
+            echo "No CHANGELOG section for $VERSION; the release will use generated notes."
+            rm out/notes.md
+          fi
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: release-asset
+          path: out/
+          if-no-files-found: error
+          retention-days: 7
+
+  release:
+    name: Publish the release asset
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      REPLACE_ASSETS: ${{ github.event.inputs.replace_assets || 'false' }}
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: release-asset
+          path: out
+
+      - name: Create or update the release
+        run: |
+          set -euo pipefail
+          VERSION="${TAG#v}"
+          ASSETS=("out/tech-iki-design-${VERSION}.tgz" "out/tech-iki-design-${VERSION}.tgz.sha256")
+
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            # Existing release: its title and notes are left as written.
+            # A published tarball is immutable: consumers pin its integrity
+            # hash, so replacing it breaks their `npm ci`. Replace only when
+            # a manual run explicitly asks for it.
+            EXISTING="$(gh release view "$TAG" --json assets --jq "[.assets[].name | select(. == \"tech-iki-design-${VERSION}.tgz\")] | length")"
+            if [ "$EXISTING" != "0" ] && [ "$REPLACE_ASSETS" != "true" ]; then
+              echo "::error::$TAG already has tech-iki-design-${VERSION}.tgz. Re-run by hand with replace_assets=true only if consumers will update their lockfiles."
+              exit 1
+            fi
+            if [ "$EXISTING" != "0" ]; then
+              gh release upload "$TAG" "${ASSETS[@]}" --clobber
+            else
+              gh release upload "$TAG" "${ASSETS[@]}"
+            fi
+          else
+            ARGS=(--verify-tag --title "$TAG")
+            if [ -f out/notes.md ]; then
+              ARGS+=(--notes-file out/notes.md)
+            else
+              ARGS+=(--generate-notes)
+            fi
+            case "$TAG" in *-*) ARGS+=(--prerelease) ;; esac
+            gh release create "$TAG" "${ASSETS[@]}" "${ARGS[@]}"
+          fi
+
+          gh release view "$TAG" --json url,assets --jq '.url, (.assets[] | "  \(.name)  \(.size) bytes")'
