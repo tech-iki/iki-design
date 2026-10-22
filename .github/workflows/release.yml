@@ -21,6 +21,11 @@ on:
         description: "Existing tag to build and release, e.g. v0.5.0"
         required: true
         type: string
+      replace_assets:
+        description: "Replace assets already attached to this release (changes the tarball's integrity hash for every consumer)"
+        required: false
+        type: boolean
+        default: false
 
 # Nothing is granted by default; each job asks for what it uses.
 permissions: {}
@@ -61,12 +66,12 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
 
-      # `npm ci` runs the package's `prepare`, which builds dist/.
-      - run: npm ci
+      # Scripts skipped so dist/ is built once, by the explicit Build step below.
+      - run: npm ci --ignore-scripts
+      - name: Build
+        run: npm run build -w packages/design
       - name: Test
         run: npm run test -w packages/design --if-present
-      - name: Build
-        run: npm run build -w packages/design --if-present
 
       # Scripts are skipped here only because dist/ was built on the line above.
       - name: Pack
@@ -142,6 +147,7 @@ jobs:
     env:
       GH_TOKEN: ${{ github.token }}
       GH_REPO: ${{ github.repository }}
+      REPLACE_ASSETS: ${{ github.event.inputs.replace_assets || 'false' }}
     steps:
       - uses: actions/download-artifact@v8
         with:
@@ -156,9 +162,19 @@ jobs:
 
           if gh release view "$TAG" > /dev/null 2>&1; then
             # Existing release: its title and notes are left as written.
-            # --clobber replaces the assets, so a re-run after a fix changes
-            # the checksum; it is replaced in the same step.
-            gh release upload "$TAG" "${ASSETS[@]}" --clobber
+            # A published tarball is immutable: consumers pin its integrity
+            # hash, so replacing it breaks their `npm ci`. Replace only when
+            # a manual run explicitly asks for it.
+            EXISTING="$(gh release view "$TAG" --json assets --jq "[.assets[].name | select(. == \"tech-iki-design-${VERSION}.tgz\")] | length")"
+            if [ "$EXISTING" != "0" ] && [ "$REPLACE_ASSETS" != "true" ]; then
+              echo "::error::$TAG already has tech-iki-design-${VERSION}.tgz. Re-run by hand with replace_assets=true only if consumers will update their lockfiles."
+              exit 1
+            fi
+            if [ "$EXISTING" != "0" ]; then
+              gh release upload "$TAG" "${ASSETS[@]}" --clobber
+            else
+              gh release upload "$TAG" "${ASSETS[@]}"
+            fi
           else
             ARGS=(--verify-tag --title "$TAG")
             if [ -f out/notes.md ]; then
