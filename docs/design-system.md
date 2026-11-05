@@ -69,7 +69,7 @@ disagrees with Work OS's `globals.css`.
    components; a themed library would fight the workbook look (ADR 0003, ADR 0006).
 6. **Measured, not assumed.** Print orientation, row tints, logo legibility on
    navy: each rule cites the number that settled it.
-7. **Density on the desk, room on the phone.** Controls measure 28–38px with
+7. **Density on the desk, room on the phone.** Buttons and fields measure 28–38px with
    a mouse and 44px under a thumb, through a responsive minimum rather than one
    loose size (#63).
 8. **One definition per rule.** Focus rings, button classes, status colours and
@@ -1321,7 +1321,7 @@ drawerFooterClass          border-t border-grid-strong px-4 py-3
 popoverTriggerClass        {subtleButtonClass} whitespace-nowrap
 popoverTriggerActiveClass  border-teal-deep bg-teal-soft font-semibold
 popoverBadgeClass          ml-1.5 rounded-full bg-teal-deep px-1.5 text-[11px] font-semibold text-paper
-popoverPanelClass          z-30 w-80 rounded-md border border-grid-strong bg-paper p-2 shadow-lg outline-none
+popoverPanelClass          z-30 max-h-(--available-height) w-80 overflow-y-auto rounded-md border border-grid-strong bg-paper p-2 shadow-lg outline-none
 popoverOptionClass         flex min-h-11 md:min-h-0 items-center gap-2 rounded px-1 py-1 text-sm text-ink hover:bg-teal-soft
 ```
 
@@ -1380,7 +1380,7 @@ column        flex min-h-72 flex-col rounded-md border border-grid bg-paper-tint
 card          flex flex-col gap-1.5 rounded-md border border-grid bg-paper p-2 shadow-sm
   reference   rounded bg-grid px-1.5 py-0.5 font-mono text-[11px] text-ink hover:bg-teal-soft {focusRing}
   refusal     rounded bg-warm-bg px-1.5 py-0.5 text-[11px] font-medium text-warm-fg   (role="alert")
-menu trigger  {touchTarget} rounded-md border border-grid-strong px-2.5 py-1.5 text-[11px] leading-4 text-ink hover:bg-teal-soft disabled:opacity-50 {focusRing}
+menu trigger  {subtleButtonClass} px-1.5 py-0.5 text-[11px]
 menu          fixed z-50 rounded-md border border-grid-strong bg-paper p-1 shadow-lg   (role="menu", portalled)
   item        block w-full rounded px-2 py-1 text-left text-sm text-ink {focusRing}  (role="menuitem")
 ```
@@ -1392,8 +1392,8 @@ package's strings are these, held to the code:
 <!-- classes:menu -->
 ```
 menuTriggerClass  {touchTarget} rounded-md border border-grid-strong px-2.5 py-1.5 text-[11px] leading-4 text-ink hover:bg-teal-soft disabled:opacity-50 {focusRing}
-menuClass         z-50 rounded-md border border-grid-strong bg-paper p-1 shadow-lg outline-none
-menuItemClass     flex min-h-11 md:min-h-0 w-full items-center rounded px-2 py-1 text-left text-sm text-ink data-highlighted:bg-teal-soft aria-disabled:text-ink-muted {focusRing}
+menuClass         z-50 max-h-(--available-height) overflow-y-auto rounded-md border border-grid-strong bg-paper p-1 shadow-lg outline-none
+menuItemClass     block w-full rounded px-2 py-3 text-left text-sm text-ink md:py-1 data-highlighted:bg-teal-soft aria-disabled:text-ink-muted {focusRing}
 ```
 
 Base UI positions it below the trigger (so `fixed` is no longer in the string;

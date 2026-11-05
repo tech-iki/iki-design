@@ -19,7 +19,7 @@
  * The touch-target floor (Work OS #63, F24.7).
  *
  * 44×44px is WCAG 2.5.5, level AAA; the AA rule, 2.5.8, asks for 24px. The system
- * holds the higher one on a phone. The desktop classes measure 28–38px, which
+ * holds the higher one on a phone. Buttons and fields measure 28–38px on desktop, which
  * is fine with a mouse and not with a thumb. Applied as a *responsive* minimum
  * so a phone gets the room and desktop keeps its density — sharing one size
  * would visibly loosen every grid control, which is the risk the issue names.
@@ -221,7 +221,7 @@ export const popoverBadgeClass =
  * Work OS's `absolute left-0 top-full` and its clamp arithmetic.
  */
 export const popoverPanelClass =
-  "z-30 w-80 rounded-md border border-grid-strong bg-paper p-2 shadow-lg outline-none";
+  "z-30 max-h-(--available-height) w-80 overflow-y-auto rounded-md border border-grid-strong bg-paper p-2 shadow-lg outline-none";
 
 /** One option row inside a panel (a labelled checkbox or radio, usually). */
 export const popoverOptionClass =
@@ -239,9 +239,13 @@ export const popoverOptionClass =
  */
 export const menuTriggerClass = subtleButtonClass.replace(" text-xs ", " text-[11px] leading-4 ");
 
-/** The menu: `z-50` (§6: every overlay portalled to `<body>` to escape a scroll container). */
+/**
+ * The menu: `z-50` (§6: every overlay portalled to `<body>` to escape a scroll
+ * container). It scrolls within the height Base UI's positioner measures, as the
+ * popover panel does, because a long list of 44px rows can outgrow a phone.
+ */
 export const menuClass =
-  "z-50 rounded-md border border-grid-strong bg-paper p-1 shadow-lg outline-none";
+  "z-50 max-h-(--available-height) overflow-y-auto rounded-md border border-grid-strong bg-paper p-1 shadow-lg outline-none";
 
 /**
  * One item. Base UI moves a roving highlight with the arrow keys and sets
@@ -249,9 +253,13 @@ export const menuClass =
  * well as the pointer; the pair (ink on teal-soft) is in `TOKEN_PAIRS`.
  * `aria-disabled` items stay in the list, muted, so the current choice is
  * still read out.
+ *
+ * 44px below `md` by padding (20px of text, 12px either side), and not by
+ * `touchRow`: centring in a taller row would take `flex`, which collapses the
+ * space between mixed children, so "Move to <strong>Done</strong>" would read "Move toDone".
  */
 export const menuItemClass =
-  `flex ${touchRow} w-full items-center rounded px-2 py-1 text-left text-sm text-ink data-highlighted:bg-teal-soft aria-disabled:text-ink-muted ${focusRing}`;
+  `block w-full rounded px-2 py-3 text-left text-sm text-ink md:py-1 data-highlighted:bg-teal-soft aria-disabled:text-ink-muted ${focusRing}`;
 
 /**
  * The disclosure's header row: one full-width button inside the heading, with

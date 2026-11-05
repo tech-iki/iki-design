@@ -91,11 +91,32 @@ describe("a field's value is not its label", () => {
 });
 
 describe("a row chosen with a thumb has the touch floor below md", () => {
-  it.each(["menuItemClass", "popoverOptionClass", "comboboxOptionClass"] as const)("%s", (name) => {
+  it.each(["popoverOptionClass", "comboboxOptionClass"] as const)("%s", (name) => {
     const tokens = classes[name].split(" ");
     expect(tokens).toContain("min-h-11");
     expect(tokens).toContain("md:min-h-0");
     // A taller row has to centre its text, or the label sits at the top of it.
     expect(tokens).toContain("items-center");
+  });
+
+  // Padding, not a minimum height, because centring would take `flex`, and a
+  // flex row collapses the space between mixed children: "Move to
+  // <strong>Done</strong>" would read "Move toDone". 20px of text and 12px either
+  // side is 44px.
+  it("menuItemClass stays a block and reaches 44px by padding", () => {
+    const tokens = classes.menuItemClass.split(" ");
+    expect(tokens).toContain("block");
+    expect(tokens).not.toContain("flex");
+    expect(tokens).toContain("text-sm");
+    expect(tokens).toContain("py-3");
+    expect(tokens).toContain("md:py-1");
+  });
+});
+
+describe("a panel of 44px rows can still reach its last row", () => {
+  it.each(["menuClass", "popoverPanelClass"] as const)("%s scrolls within the space it has", (name) => {
+    const tokens = classes[name].split(" ");
+    expect(tokens).toContain("max-h-(--available-height)");
+    expect(tokens).toContain("overflow-y-auto");
   });
 });
