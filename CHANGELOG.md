@@ -8,6 +8,24 @@ token or class is a major.
 
 ## [Unreleased]
 
+### Fixed
+
+- `fieldClass` and `smallFieldClass` set `font-normal`. `Field` nests the control
+  inside `labelClass`, so typed text had been inheriting the label's 500.
+- `menuItemClass`, `popoverOptionClass` and `comboboxOptionClass` take the 44px
+  touch floor below `md`. They were 28px on a phone. Desktop is unchanged.
+- `menuTriggerClass` no longer appends `px-1.5 py-0.5`, which never applied
+  (computed `6px 10px`). The padding it renders is unchanged and the string now
+  says so. It sets `leading-4`, so its height moves from 28.7px to 30px, the
+  same as the subtle button.
+- The touch floor cites WCAG 2.5.5 (44px, AAA), not 2.5.8 (24px, AA). Principle 7
+  states the measured 28–38px in place of "about 26px".
+
+### Added
+
+- `class-strings.test.ts`: fails when a class string sets a measured property
+  twice under one variant, and holds the field weight and the row touch floor.
+
 ## [0.5.0] — 2026-10-21
 
 Phase 2 of the plan of 20 October 2026: the rest of the components the

@@ -18,7 +18,8 @@
 /**
  * The touch-target floor (Work OS #63, F24.7).
  *
- * WCAG 2.5.8 wants 44×44px. The desktop classes were roughly 26px tall, which
+ * 44×44px is WCAG 2.5.5, level AAA; the AA rule, 2.5.8, asks for 24px. The system
+ * holds the higher one on a phone. The desktop classes measure 28–38px, which
  * is fine with a mouse and not with a thumb. Applied as a *responsive* minimum
  * so a phone gets the room and desktop keeps its density — sharing one size
  * would visibly loosen every grid control, which is the risk the issue names.
@@ -27,6 +28,9 @@
  * label still grows.
  */
 export const touchTarget = "min-h-11 min-w-11 md:min-h-0 md:min-w-0";
+
+/** The same floor for a full-width row, which needs height and has width to spare. */
+const touchRow = "min-h-11 md:min-h-0";
 
 /** The one focus indicator in the app. Applied to every interactive class. */
 export const focusRing =
@@ -94,12 +98,15 @@ const disabledField =
  * `:focus-visible` both match — the 2px ring resolved to no outline at all and
  * only the 1px border changed colour. The native ring needs no reset: the
  * browser draws it only on `:focus-visible`, which `focusRing` replaces.
+ *
+ * `font-normal` because `Field` nests the control inside `labelClass`: without
+ * it the typed value inherits the label's 500, and label and value read alike.
  */
 export const fieldClass =
-  `${touchTarget} rounded-md border border-grid-strong px-3 py-2 text-sm text-ink focus:border-teal-deep ${disabledField} ${focusRing}`;
+  `${touchTarget} rounded-md border border-grid-strong px-3 py-2 text-sm font-normal text-ink focus:border-teal-deep ${disabledField} ${focusRing}`;
 
 export const smallFieldClass =
-  `${touchTarget} rounded-md border border-grid-strong px-2 py-1.5 text-sm text-ink focus:border-teal-deep ${disabledField} ${focusRing}`;
+  `${touchTarget} rounded-md border border-grid-strong px-2 py-1.5 text-sm font-normal text-ink focus:border-teal-deep ${disabledField} ${focusRing}`;
 
 export const labelClass = "flex flex-col gap-1 text-xs font-medium text-ink";
 
@@ -218,10 +225,19 @@ export const popoverPanelClass =
 
 /** One option row inside a panel (a labelled checkbox or radio, usually). */
 export const popoverOptionClass =
-  "flex items-center gap-2 rounded px-1 py-1 text-sm text-ink hover:bg-teal-soft";
+  `flex ${touchRow} items-center gap-2 rounded px-1 py-1 text-sm text-ink hover:bg-teal-soft`;
 
-/** The Move to… trigger: `subtleButtonClass` at the card's 11px scale. */
-export const menuTriggerClass = `${subtleButtonClass} px-1.5 py-0.5 text-[11px]`;
+/**
+ * The Move to… trigger: `subtleButtonClass` at the card's 11px scale, with its
+ * padding. This string used to append `px-1.5 py-0.5`, which never applied,
+ * because two utilities for one property are settled by the stylesheet's order
+ * and not the attribute's; it computed `6px 10px`. Applied, it would measure
+ * about 21px, under WCAG 2.5.8's 24px, so the padding that was always drawn is
+ * now the padding written. `leading-4` because `text-xs` was supplying the line
+ * height: without it the trigger inherits 1.5 and measures 30.5px. With it, 30px,
+ * the height of the subtle button it derives from.
+ */
+export const menuTriggerClass = subtleButtonClass.replace(" text-xs ", " text-[11px] leading-4 ");
 
 /** The menu: `z-50` (§6: every overlay portalled to `<body>` to escape a scroll container). */
 export const menuClass =
@@ -235,7 +251,7 @@ export const menuClass =
  * still read out.
  */
 export const menuItemClass =
-  `block w-full rounded px-2 py-1 text-left text-sm text-ink data-highlighted:bg-teal-soft aria-disabled:text-ink-muted ${focusRing}`;
+  `flex ${touchRow} w-full items-center rounded px-2 py-1 text-left text-sm text-ink data-highlighted:bg-teal-soft aria-disabled:text-ink-muted ${focusRing}`;
 
 /**
  * The disclosure's header row: one full-width button inside the heading, with
@@ -380,7 +396,7 @@ export const comboboxPopupClass =
  * `aria-selected`, so it is a shape, not a colour.
  */
 export const comboboxOptionClass =
-  "flex cursor-pointer items-center justify-between gap-2 rounded px-2 py-1 text-sm text-ink data-highlighted:bg-teal-soft data-disabled:cursor-not-allowed data-disabled:text-ink-muted";
+  `flex ${touchRow} cursor-pointer items-center justify-between gap-2 rounded px-2 py-1 text-sm text-ink data-highlighted:bg-teal-soft data-disabled:cursor-not-allowed data-disabled:text-ink-muted`;
 
 /** The tick on the chosen option. */
 export const comboboxTickClass = "text-teal-deep";
