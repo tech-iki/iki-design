@@ -8,6 +8,28 @@ token or class is a major.
 
 ## [Unreleased]
 
+## [0.6.0] — 2026-11-27
+
+The control corrections of PR #32 (the field weight, the option row touch floor,
+the Move to… trigger and the WCAG citation), and the Digital Library's own form and
+base-style needs: the link-button classes and a destructive button, the `Field`
+text size, textarea minimum and `announceError` opt-out, `EmptyState`'s headline
+`title`, and the opt-in `reset.css`. A minor: it adds exports and props, and
+changes no token or class name. Some rendered sizes change, listed first below.
+
+> **For a consumer upgrading from 0.5.0: what you will see.** These changes reach
+> an existing app with no code change. Each is detailed under Added, Changed and Fixed.
+>
+> - Field text is 16px below `md` (14px from `md`), not 14px at every width.
+> - A `<textarea>` inside `Field` has a 112px minimum height (7rem).
+> - Menu, popover and combobox rows are 44px below `md` (they were 28px), and
+>   menu and popover panels scroll within the height available to them.
+> - The Move to… trigger (`menuTriggerClass`) is 30px tall, not 28.7px.
+> - `EmptyState`'s `title` is the visible headline above the sentence, not the
+>   HTML `title` attribute. A tooltip passed that way now shows as a headline.
+> - `ButtonVariant` gains `"destructive"`. An exhaustive `Record<ButtonVariant, …>`
+>   or `switch` must add the case.
+
 ### Added
 
 - `class-strings.test.ts`: fails when a class string sets a measured property
