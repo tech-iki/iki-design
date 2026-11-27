@@ -163,6 +163,16 @@ describe("the rendered pages show every row", () => {
     expect(adopt).toContain("<em>styled</em>");
   });
 
+  // #33: the opt-in reset, shown on the adopt page from the same function that
+  // writes dist/reset.css, with the one instruction a consumer can get wrong.
+  it("shows reset.css and says where its class goes", () => {
+    expect(adopt).toContain('id="without-preflight"');
+    expect(adopt).toContain("@tech-iki/design/reset.css");
+    expect(adopt).toContain(".iki-reset :where(button)");
+    expect(adopt).toContain("iki-reset");
+    expect(adopt).toContain("not on the");
+  });
+
   it("renders the whole decision register", () => {
     expect(bodyRows(decisions, "Decision register")).toBe(RAW.register);
   });

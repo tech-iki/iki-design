@@ -7,9 +7,10 @@ the site that shows them.
 It is one repository doing two jobs:
 
 - **`packages/design`** publishes `@tech-iki/design` — `theme.css` for Tailwind v4
-  apps, `tokens.css` for anything that is plain CSS, `tokens.json` for everything
-  else, and the React primitives (`Pill`, `KpiTile`, `PageTitle`, `PageMain`) with
-  the typed colour maps behind them.
+  apps, `reset.css` (opt in) for a Tailwind app without Preflight, `tokens.css`
+  for anything that is plain CSS, `tokens.json` for everything else, and the
+  React primitives (`Pill`, `KpiTile`, `PageTitle`, `PageMain`) with the typed
+  colour maps behind them.
 - **`apps/site`** is a Next.js site that renders the package live: every token
   with its contrast ratio, every pill tone, every control, so a change to
   `tokens.ts` can be seen before it ships.
@@ -26,6 +27,18 @@ Tailwind v4 app — one line in your global stylesheet:
 @import "tailwindcss";
 @import "@tech-iki/design/theme.css";
 ```
+
+The components assume Tailwind's Preflight, which `@import "tailwindcss"`
+includes. An app that omits it on purpose opts in to the package's reset, and puts
+`iki-reset` on `<body>` (not only the shell: the overlays are portalled there).
+An app with Preflight imports nothing:
+
+```css
+@import "@tech-iki/design/reset.css";
+```
+
+[§13e of the design system](docs/design-system.md#13e-without-preflight--the-opt-in-reset)
+lists the eight rules and what in the package needs each.
 
 Plain CSS (a Ghost theme, WordPress, Docmost):
 

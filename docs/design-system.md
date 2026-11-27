@@ -30,7 +30,7 @@ the file it lives in and the reason it is that value.
 | Table chrome | `src/components/data-table.tsx` | Work OS only; stays in tech-iki/iki-work-os. Header, zebra, hover, frozen columns, stacked rows. |
 | Email chrome | `src/lib/email-chrome.ts` | Work OS only; stays in tech-iki/iki-work-os. Inline styles; mail clients strip stylesheets. |
 | Print | `src/app/globals.css` (`@media print`) | Work OS only; stays in tech-iki/iki-work-os. Page boxes and the Safari caveat. |
-| Generated stylesheets | `packages/design/dist/` | `theme.css`, `tokens.css`, `base.css` and `tokens.json`, built from `tokens.ts` by `scripts/build-css.ts`. Edit the source, not these. |
+| Generated stylesheets | `packages/design/dist/` | `theme.css`, `tokens.css`, `base.css`, `reset.css` and `tokens.json`, built from `tokens.ts` by `scripts/build-css.ts`. Edit the source, not these. |
 
 ### Decided, and open
 
@@ -1860,6 +1860,14 @@ per-stack notes that follow.
   @import "@tech-iki/design/theme.css";
   ```
 
+- **A Tailwind v4 app without Preflight** also imports the opt-in reset and puts
+  `iki-reset` on `<body>`; an app with Preflight does nothing
+  ([§13e](#13e-without-preflight--the-opt-in-reset)):
+
+  ```css
+  @import "@tech-iki/design/reset.css";
+  ```
+
 - **Plain CSS** imports the custom properties, and optionally
   `@import "@tech-iki/design/base.css";` for the body, link and focus rules:
 
@@ -2108,6 +2116,14 @@ the furniture.
 
 ### 13d. Constraints a shared package must respect
 
+- **Tailwind's Preflight is assumed.** The control classes and the components
+  were written on Tailwind v4 with Preflight (Work OS and the members portal
+  import it), and nothing in them says so at run time: without it a `Button`
+  gets the browser's border and grey fill, and a `p` inside a `Notice` keeps
+  its margin. A consumer imports Preflight, as Tailwind's own
+  `@import "tailwindcss"` does, or opts in to the package's `reset.css`
+  ([§13e](#13e-without-preflight--the-opt-in-reset)). Making the package work
+  under another reset (normalize.css and the like) is not offered.
 - **No CDN, for anything.** The policy is `default-src 'self'`, `script-src`
   nonce-only with `strict-dynamic`, `style-src` nonce-only, `img-src 'self'
   blob: data:`, `font-src 'self'`. A hosted stylesheet, an icon font, a CDN
@@ -2133,6 +2149,113 @@ the furniture.
   colour the system lacks proposes a token, not a local `--color-*`.
 - **Light only.** Do not add a dark palette on the consumer side; propose it as
   an ADR.
+
+### 13e. Without Preflight — the opt-in reset
+
+Tailwind v4's `@import "tailwindcss"` brings Preflight, the base layer that
+zeroes margins, strips the browser's button chrome and sets `box-sizing`. The
+package's class strings and components assume it. A Tailwind app that leaves it
+out on purpose (the IKI Digital Library does, to keep its existing pages as
+they are until its own type scale lands) has two choices:
+
+- **Import Preflight.** Nothing else is needed, and nothing in this section
+  applies.
+- **Import `reset.css`.** It is eight rules, each the value Preflight itself
+  sets for those elements, scoped to `.iki-reset` so it reaches nothing that
+  has not asked for it. `site/src/lib/reset-parity.test.ts` holds every
+  declaration against `tailwindcss/preflight.css`.
+
+`reset.css` is a separate file on purpose. It is not in `theme.css`, so a
+consumer that has Preflight never receives a second copy of it, and it is not
+in `base.css`, which is for the plain-CSS hosts and would be wrong for them.
+Importing it adds a rule set and removes nothing, and a consumer that never
+imports it sees no change.
+
+<!-- tokens:reset -->
+```css
+/* Generated from tokens.ts by @tech-iki/design — do not edit; change tokens.ts */
+
+/*
+ * Optional. For a Tailwind v4 app that does NOT import Preflight, and only
+ * for it: an app that has Preflight needs nothing from this file. The
+ * package's components assume these rules (design system §13e).
+ * Put the class iki-reset on <body>, not only on the page shell: Base UI portals
+ * Drawer, Menu, Popover, Combobox and Tooltip to <body>, and a reset scoped
+ * to the shell would not reach them. The .iki-app stacking root is a
+ * different element, and stays a child of <body>.
+ */
+@layer base {
+  .iki-reset :where(button) { border: 0 solid; padding: 0; background-color: transparent; color: inherit; }
+  .iki-reset :where(button, input, select, textarea) { margin: 0; }
+  .iki-reset :where(textarea) { resize: vertical; }
+  .iki-reset :where(h1,h2,h3,h4,h5,h6,p) { margin: 0; }
+  .iki-reset :where(h1,h2,h3,h4,h5,h6) { font-size: inherit; font-weight: inherit; }
+  .iki-reset :where(svg) { vertical-align: middle; }
+  .iki-reset :where(*) { box-sizing: border-box; }
+  .iki-reset :where(button, input, select, textarea) { font: inherit; letter-spacing: inherit; }
+}
+```
+
+**Where the class goes.** On `<body>`. Base UI portals `Drawer`, `Menu`,
+`Popover`, `Combobox` and `Tooltip` to `<body>`, so a reset scoped to the page
+shell would leave the popups drawn in the browser's chrome. This is a different
+element from the stacking root of [§13-0](#13-0-install-the-package): `iki-app`
+stays a child of `<body>`, because a stacking context on `<body>` would hold
+the portals too.
+
+```tsx
+<body className="iki-reset">
+  <div className="iki-app">{children}</div>
+</body>
+```
+
+**Order.** `reset.css` sits in `@layer base`, so any utility, and any rule of
+the app's in a later layer, wins over it, provided the layer order is stated:
+`base` must come before `utilities`. `@import "tailwindcss"` states it for you;
+an app that imports Tailwind's parts, as the Library does, states it itself on
+the first line. Every selector is `.iki-reset :where(…)`, so the reset costs one
+class of specificity and an app's own element rule in the same layer is not
+fought.
+
+```css
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+@import "@tech-iki/design/theme.css";
+@import "@tech-iki/design/reset.css";
+```
+
+**What each rule is for.** The table is held to the code: every name in the
+fourth column is an export of the package, checked by `design-system-doc.test.ts`. The last column is the
+Library's local copy, from its issue 111 (`apps/web/src/styles.css`), which it
+can delete once it imports this file.
+
+| Rule | Mirrors in Preflight | Without it | Package classes that lean on it | The Library's copy |
+| --- | --- | --- | --- | --- |
+| `button`: `border: 0 solid; padding: 0; background-color: transparent; color: inherit` | `*` border and padding; the `button, input…` list | a 2px outset border, a grey `buttonface` fill and the browser's text colour | `primaryButtonClass`, `subtleButtonClass`, `warnButtonClass`, `iconButtonClass`, `warnIconButtonClass`, `tabClass`, `disclosureButtonClass`, `popoverTriggerClass`, `menuTriggerClass` | rule 1 |
+| `button, input, select, textarea`: `margin: 0` | `*` margin | the browser's 2 to 4px margin; a `Checkbox` or `Radio` sits 3 to 4px off its label | `fieldClass`, `smallFieldClass`, `choiceInputClass`, `primaryButtonClass` | rule 2 |
+| `textarea`: `resize: vertical` | `textarea` | a textarea that resizes both ways and breaks its column | `fieldClass`, `smallFieldClass` | rule 3 |
+| `h1…h6, p`: `margin: 0` | `*` margin | the browser's block margins inside `Notice`, `EmptyState`, `KpiTile`, `Drawer`, `Disclosure` and `PageTitle` | `Notice`, `EmptyState`, `KpiTile`, `Drawer`, `Disclosure`, `PageTitle` | rule 4 |
+| `h1…h6`: `font-size: inherit; font-weight: inherit` | `h1…h6` | a `Disclosure` header button inheriting its heading's browser size and weight, not the row's | `Disclosure` | rule 5 |
+| `svg`: `vertical-align: middle` | `img, svg, …` | an `Icon` set in a line of text sitting on the baseline, not the middle; no string depends on it today | `Icon` | rule 6 |
+| `*`: `box-sizing: border-box` | `*, ::after, ::before` | `w-full`, `w-80` and the 44px floor grow by their padding and border | `touchTarget`, `drawerPanelClass`, `popoverPanelClass`, `menuItemClass`, `comboboxPopupClass` | the app's own `* { box-sizing }` |
+| `button, input, select, textarea`: `font: inherit; letter-spacing: inherit` | `button, input, select, optgroup, textarea` | controls drawn in the browser's family and letter-spacing, `text-sm` notwithstanding | `fieldClass`, `smallFieldClass`, `primaryButtonClass`, `tabClass` | the app's own `button, input… { font: inherit }` |
+
+**What it does not do.** It is not Preflight. It leaves links, lists, tables,
+`hr`, placeholders, `[hidden]` and the root `line-height` and font to the app,
+because no package class needs them to render: `linkClass` and `tableClass` set
+what they need, and the browser's own `[hidden] { display: none }` hides an
+element, where Preflight only adds `!important` (the print note on `Tabs` and
+`Disclosure` in [§8](#8-components) is about that, not about a missing rule). The reset
+also reaches the host's own `h1…h6` and `p`, as Preflight would, so an app
+whose pages rely on the browser's margins on them must give those a local rule
+first.
+
+**Not covered by a browser test.** This repository has no browser runner, and
+jsdom draws no native button border, so a computed-style test would pass with
+or without the file. The rules' effect is held by being the six the Library
+measured pixel-identical to Preflight in Chromium, Firefox and WebKit, and by
+the parity test against Preflight above.
 
 ## 14. Known drift inside Work OS
 
@@ -2197,6 +2320,7 @@ button). A consumer should copy the rule, not the exception; each of these is a 
 | 2026-10-21 | plan 2026-10-20 §7-3, PR #10 | Phase 1 merges before the Work OS port has run the `Drawer`; #443 validates it against `main` instead | Brian: merge so the next phase can start. Nothing is published by the merge; a wrong API is a follow-up before 0.4.0 is tagged — **reverses decision 3 of the same day** |
 | 2026-10-21 | plan 2026-10-20 phase 2 | `TableFrame`, `Checkbox`/`Radio`/`RadioGroup` (server-safe, styled natives) and `Tooltip`, `Tabs`, `Combobox` (on Base UI) join the package in one PR for 0.5.0, without waiting for a consumer issue | Brian, 21 October 2026: proceed with phase 2 anyway — **sets aside the plan's "each ships only when a consumer issue asks for it"**. The demand is the plan's own count: 8 table frames, 19 native checkboxes and radios, 29 `title=` hints, one tablist, one cell combobox |
 | 2026-10-21 | plan 2026-10-20 §4.3 | A transition is allowed only with a `motion-reduce:` counterpart; `base.css` and `theme.css` ship the global reduced-motion reset | Nothing animated and nothing needed a guard, so the rule had to be written before a consumer added one — formerly open question §16-4 |
+| 2026-11-27 | #33 | Preflight is a stated assumption of the package, and `reset.css` is its opt-in answer: a separate export scoped to `.iki-reset`, not part of `theme.css` or `base.css` | The Digital Library omits Preflight and carries six rules of its own; Work OS and the members portal have Preflight and must not receive a second copy |
 
 ### Reversed — do not re-adopt
 
