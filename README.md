@@ -7,9 +7,10 @@ the site that shows them.
 It is one repository doing two jobs:
 
 - **`packages/design`** publishes `@tech-iki/design` — `theme.css` for Tailwind v4
-  apps, `tokens.css` for anything that is plain CSS, `tokens.json` for everything
-  else, and the React primitives (`Pill`, `KpiTile`, `PageTitle`, `PageMain`) with
-  the typed colour maps behind them.
+  apps, `reset.css` (opt in) for a Tailwind app without Preflight, `tokens.css`
+  for anything that is plain CSS, `tokens.json` for everything else, and the
+  React primitives (`Pill`, `KpiTile`, `PageTitle`, `PageMain`) with the typed
+  colour maps behind them.
 - **`apps/site`** is a Next.js site that renders the package live: every token
   with its contrast ratio, every pill tone, every control, so a change to
   `tokens.ts` can be seen before it ships.
@@ -26,6 +27,29 @@ Tailwind v4 app — one line in your global stylesheet:
 @import "tailwindcss";
 @import "@tech-iki/design/theme.css";
 ```
+
+The components assume Tailwind's Preflight, which `@import "tailwindcss"`
+includes. Without it, every button shows the browser's border, padding and grey
+fill, headings and paragraphs inside `Notice`, `EmptyState` and `Drawer` keep
+their margins, and `w-full` and the 44px touch floor grow by their padding
+because `box-sizing` is not `border-box`. An app that omits Preflight on purpose
+opts in to the package's reset, and puts `iki-reset` on `<body>` (not only the
+shell: the overlays are portalled there). An app with Preflight imports nothing.
+
+**Declare the layer order first, or the reset breaks every button.** An app that
+imports only Tailwind's theme and utilities ranks `base` above `utilities`
+unless the first line says otherwise:
+
+```css
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+@import "@tech-iki/design/theme.css";
+@import "@tech-iki/design/reset.css";
+```
+
+[§13e of the design system](docs/design-system.md#13e-without-preflight--the-opt-in-reset)
+lists the eight rules and what in the package needs each.
 
 Plain CSS (a Ghost theme, WordPress, Docmost):
 
