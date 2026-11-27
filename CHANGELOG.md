@@ -12,6 +12,10 @@ token or class is a major.
 
 - `class-strings.test.ts`: fails when a class string sets a measured property
   twice under one variant, and holds the field weight and the row touch floor.
+- `EmptyState` takes an optional `title`, rendered above the sentence in a
+  `<div>` 4px above it (`emptyStateTitleClass`; the pair is in `TOKEN_PAIRS`).
+  Not a heading, because the component cannot know the page's level; pass an
+  `<h3>` as the title for one. Without it the markup is unchanged (#41).
 
 ### Changed
 
@@ -19,6 +23,9 @@ token or class is a major.
   to converge on the package (theme, components, icons, and the rail for its
   signed-in pages); the palette-only steps are marked superseded (#42). No code
   or version change.
+- **`EmptyState` no longer passes `title` to the root as the HTML attribute.**
+  A caller that used `title="…"` for a tooltip now gets the visible headline
+  instead. No call site in Work OS or the Digital Library does this.
 
 ### Fixed
 

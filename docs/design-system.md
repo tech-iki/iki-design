@@ -1282,7 +1282,11 @@ Since 0.3.0 the two are components, and the `notice` line above is what Work
 OS still draws by hand until it adopts `Notice`. `Notice` takes a tone and derives its
 role from it, so a confirmation can no longer be plain text while the refusal
 beside it alerts (the drift row in §14); `EmptyState` is the boxed sentence
-with an optional action beneath it.
+with an optional action beneath it and an optional `title` above it. The title
+is a `<div>`, not a heading: the component cannot know the page's heading
+level, and a hard-coded `<h2>` would break the outline. A caller who wants a
+heading passes one as the `title` (`<h3>`), which the `<div>` holds validly.
+`title` is the prop's name, not the HTML attribute, so it is not a tooltip.
 
 <!-- components:notice -->
 ```
@@ -1292,6 +1296,7 @@ Notice           rounded-md px-3 py-2 text-sm {tone}
   tone=warm      bg-warm-bg text-warm-fg                        (role="alert")
   tone=overdue   bg-health-overdue-bg text-health-overdue-fg    (role="alert")
 EmptyState       flex flex-col items-start gap-3 rounded-md border border-grid bg-paper p-5
+  title          -mb-2 text-sm font-semibold text-ink
   sentence       text-sm text-ink-muted
   action         an optional slot beneath the sentence, usually a Button
 ```

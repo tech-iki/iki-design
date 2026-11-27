@@ -4,7 +4,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
 import { Button } from "./components/button.js";
-import { EmptyState, emptyStateClass, emptyStateTextClass } from "./components/empty-state.js";
+import { EmptyState, emptyStateClass, emptyStateTextClass, emptyStateTitleClass } from "./components/empty-state.js";
 import { Field, fieldErrorClass, fieldFrameClass, fieldHintClass } from "./components/field.js";
 import { ICONS, type IconName } from "./icons.generated.js";
 import { Notice, noticeClass, type NoticeTone } from "./components/notice.js";
@@ -209,6 +209,34 @@ describe("EmptyState", () => {
       createElement(EmptyState, { action: createElement(Button, { children: "New task" }), children: "No tasks yet." }),
     );
     expect(withAction).toMatch(/<\/p><div><button/);
+  });
+
+  it("renders without a title exactly as it did before the prop existed", () => {
+    const plain = html(createElement(EmptyState, { children: "No tasks yet." }));
+    expect(plain).toBe(`<div class="${emptyStateClass}"><p class="${emptyStateTextClass}">No tasks yet.</p></div>`);
+    expect(html(createElement(EmptyState, { title: "", children: "No tasks yet." }))).toBe(plain);
+    expect(html(createElement(EmptyState, { title: undefined, children: "No tasks yet." }))).toBe(plain);
+  });
+
+  it("puts a title above the sentence as a plain div, never a heading, and holds §8", () => {
+    expect(line(block("components:notice"), "title")).toBe(emptyStateTitleClass);
+    const titled = html(
+      createElement(EmptyState, {
+        title: "No tasks",
+        action: createElement(Button, { children: "New task" }),
+        children: "Create the first one.",
+      }),
+    );
+    expect(titled).toMatch(
+      new RegExp(
+        `^<div class="${emptyStateClass}"><div class="${emptyStateTitleClass}">No tasks</div><p class="${emptyStateTextClass}">Create the first one.</p><div><button`,
+      ),
+    );
+    expect(titled).not.toMatch(/<h[1-6]/);
+    const heading = html(createElement(EmptyState, { title: createElement("h3", null, "No tasks"), children: "x" }));
+    expect(heading).toContain(`<div class="${emptyStateTitleClass}"><h3>No tasks</h3></div>`);
+    // the title is a prop, not a tooltip: it does not reach the root as an attribute
+    expect(titled).not.toContain('title="No tasks"');
   });
 });
 
