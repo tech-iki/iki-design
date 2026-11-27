@@ -122,12 +122,12 @@ describe("a panel of 44px rows can still reach its last row", () => {
 });
 
 /**
- * The button strings that shipped before `destructive` (#37), written out.
- * A new variant is additive: a consumer pinned to 0.5.0 renders the same pixels
- * from every one of these, so changing one is a different change and has to
- * show up here as one.
+ * The five button strings that shipped in 0.5.0, written out. A consumer
+ * pinned to a minor renders the same pixels from every one of these, so a change
+ * to one is a visible change here, not a quiet one (a new variant, #37, was added
+ * beside them and moved none).
  */
-describe("the existing button strings are unchanged by the destructive variant", () => {
+describe("the existing button strings are held literally", () => {
   const touch = "min-h-11 min-w-11 md:min-h-0 md:min-w-0";
   const ring = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-deep";
 

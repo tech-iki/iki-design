@@ -707,8 +707,9 @@ linkClass            text-teal-deep underline hover:text-navy rounded-xs {focusR
 - **Destructive is for an action that cannot be undone** — reject, withdraw,
   delete. Pick `warn` when the action can be put back (Trash) and `destructive`
   when it cannot. It is filled `health-overdue-fg` with a `paper` label (8.92:1)
-  at primary's size, and its border is the same red so it stays a visible button
-  in forced-colours mode. On hover it inverts to the overdue pill's pair
+  in primary's type and padding, and its border is the same red so it stays a
+  visible button in forced-colours mode. The 1px border makes it 2px taller and
+  wider than primary at `md` and up (38px against 36px); below `md` both are 44px. On hover it inverts to the overdue pill's pair
   (6.10:1). The label carries the meaning, not the colour, and the confirm step
   stays in words.
 - **An icon button is 28px square** (`p-1.5` on a 16px glyph) and keeps the 44px

@@ -101,8 +101,9 @@ describe("Button", () => {
     expect(tokens).toContain("border");
     expect(tokens).toContain("border-health-overdue-fg");
     expect(tokens).toContain("disabled:opacity-50");
-    // Tokens only: no raw palette class, no arbitrary colour, no motion.
-    expect(classes.destructiveButtonClass).not.toMatch(/\b(?:bg|text|border)-(?:red|rose|slate|gray|zinc|neutral|stone)-|#[0-9a-f]{3,8}|\[#|transition|animate-/i);
+    // No motion. Raw palette classes and hex literals are guarded in generate.test.ts
+    // (`--color-*: initial` in theme.css; "no hex literal outside tokens.ts"), not here.
+    expect(classes.destructiveButtonClass).not.toMatch(/transition|animate-/);
   });
 
   it("defaults to type=button, primary, and appends className", () => {

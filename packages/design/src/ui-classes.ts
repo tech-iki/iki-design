@@ -165,9 +165,10 @@ export const warnButtonClass =
  * `Overdue` and the invalid field already use, so it says "stop and read", and
  * `warn`'s warm pair says "this can be put back".
  *
- * Filled `health-overdue-fg` with `paper` text, 8.92:1, at primary's size
- * (14px, semibold) because it is the decisive action on its surface. The
- * border is the same red, so a filled button keeps its boundary in forced-colours
+ * Filled `health-overdue-fg` with `paper` text, 8.92:1, in primary's type and
+ * padding (14px, semibold) because it is the decisive action on its surface.
+ * Its 1px border makes it 2px taller and wider than primary at `md` and up
+ * (38px against 36px); below `md` both are 44px. The border is the same red, so a filled button keeps its boundary in forced-colours
  * mode, where backgrounds are dropped, and on hover it is the whole of the
  * button's edge: the fill goes to `health-overdue-bg` and the label to
  * `health-overdue-fg`, the pair the overdue pill holds at 6.10:1. The words carry

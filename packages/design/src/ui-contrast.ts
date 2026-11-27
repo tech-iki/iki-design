@@ -209,13 +209,20 @@ export const TOKEN_PAIRS: {
 
   /*
    * The destructive button (`destructiveButtonClass`, #37): `health-overdue-fg`
-   * filled, `paper` label. No new token, and most of its pairs are held above
-   * under other names, so only the two that are new are listed:
-   * - rest, fill against the page: overdue-fg on paper is "field error line"
-   *   (a text pair, so stricter than the 3:1 this needs); on paper-tint below.
+   * filled, `paper` label. No new token. Each rendered role is listed below,
+   * the way "primary button: white on teal-deep" is, even though the ratio is
+   * the same as a pair held elsewhere:
+   * - rest, label: paper on overdue-fg. The same ratio as the already-held
+   *   "field error line: overdue-fg on paper", reversed.
+   * - rest, boundary (WCAG 1.4.11, against the surroundings): the fill and
+   *   border are overdue-fg, on paper 8.92:1 (that same "field error line"
+   *   pair, a text pair and so stricter than the 3:1 needed) and on paper-tint
+   *   8.34:1 (listed below).
    * - hover, label: overdue-fg on health-overdue-bg is "pill: overdue".
-   * - hover, border: overdue-fg on health-overdue-bg is "invalid field border".
-   * - focus ring: teal-deep on paper is "focus ring: teal-deep on paper".
+   * - hover, boundary: the border stays overdue-fg, so against the
+   *   surroundings it is the same two pairs as at rest, not its own pale fill.
+   * - focus ring: teal-deep on paper is "focus ring: teal-deep on paper"; on
+   *   paper-tint it is the "link: teal-deep on paper-tint" pair.
    * - disabled: 50% opacity, as on every button, and exempt (WCAG 1.4.3).
    */
   { what: "destructive button label: paper on health-overdue-fg", fg: TOKENS.paper, bg: TOKENS.healthOverdueFg, kind: "text" },

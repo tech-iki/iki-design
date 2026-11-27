@@ -215,7 +215,7 @@ export default function ComponentsPage() {
           <Mono>button</Mono>, so a button never submits a form by accident.
           Every other prop goes to the element.
         </P>
-        <Specimen name="variant" note="The six variants, in order of weight. `warn` is for an action that can be put back; `destructive` is for one that cannot.">
+        <Specimen name="variant" note="The six variants. `destructive` is as heavy as `primary` and `warn` is lighter; `warn` is for an action that can be put back, `destructive` for one that cannot.">
           <Button>Save task</Button>
           <Button variant="subtle">Download PDF</Button>
           <Button variant="warn">Move to Trash</Button>

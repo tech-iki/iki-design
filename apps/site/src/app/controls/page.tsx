@@ -107,7 +107,7 @@ export default function ControlsPage() {
         </Specimen>
         <Specimen
           name="destructiveButtonClass"
-          note="Final and consequential: reject, withdraw, delete. Not `warn`, which is for what can be put back. Filled overdue red with a `paper` label; it takes the overdue pill's pair on hover. The words carry the meaning, and the confirm step stays in words."
+          note="Final and consequential: reject, withdraw, delete. Not `warn`, which is for what can be put back. Filled overdue red with a `paper` label, 2px taller than primary at `md` and up for its border (38px against 36px; both 44px below `md`); it takes the overdue pill's pair on hover. The words carry the meaning, and the confirm step stays in words."
           classString={destructiveButtonClass}
         >
           <button type="button" className={destructiveButtonClass}>
