@@ -697,6 +697,8 @@ warnButtonClass      {touchTarget} rounded-md border border-warm-fg/70 px-2.5 py
 destructiveButtonClass  {touchTarget} rounded-md border border-health-overdue-fg bg-health-overdue-fg px-3 py-2 text-sm font-semibold text-paper hover:bg-health-overdue-bg hover:text-health-overdue-fg disabled:opacity-50 {focusRing}
 iconButtonClass      {touchTarget} inline-flex items-center justify-center rounded-md p-1.5 text-ink-muted hover:bg-teal-soft hover:text-ink disabled:opacity-50 {focusRing}
 warnIconButtonClass  {touchTarget} inline-flex items-center justify-center rounded-md p-1.5 text-warm-fg hover:bg-warm-bg disabled:opacity-50 {focusRing}
+primaryLinkButtonClass  {primaryButtonClass} inline-flex items-center justify-center no-underline
+subtleLinkButtonClass   {subtleButtonClass} inline-flex items-center justify-center no-underline
 linkClass            text-teal-deep underline hover:text-navy rounded-xs {focusRing}
 ```
 
@@ -716,6 +718,14 @@ linkClass            text-teal-deep underline hover:text-navy rounded-xs {focusR
   floor below `md`. The name lives in an `sr-only` span and a `title`; the glyph
   is `aria-hidden`. **A confirm step stays in words** — a resting action can be
   recognised from its icon, but "yes, really" has to be read.
+- **A link drawn as a button** (a router `Link`, an `<a>`) takes
+  `primaryLinkButtonClass` or `subtleLinkButtonClass`: the button's own
+  string plus `inline-flex`, centred content and `no-underline`. A button is
+  already block-like and has no underline; an anchor is inline and underlined, so
+  without these `min-h-11` does nothing to it and it renders under 44px at
+  375px. The colours, border, hover and focus ring are the button's, so the
+  contrast pairs are the button's. There is no warn, icon or `Link` component
+  here; how a router renders its link is the consumer's.
 - **On navy**, the sign-out button is
   `flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-md border border-paper/50 p-1.5 text-sm text-paper/90 hover:bg-paper/10 hover:text-paper md:min-h-0 md:min-w-0 {focusRingOnNavy}`.
 
@@ -772,6 +782,12 @@ Button variant=icon      {iconButtonClass}
 Button variant=warnIcon  {warnIconButtonClass}
   pending                disabled, aria-busy, the verb with an ellipsis: "Save" → "Save…", or pendingLabel
 ```
+
+A string child that already ends in an ellipsis, the character or three full
+stops, keeps it: "Save…" stays "Save…", not "Save……" (#35). `pendingLabel` is shown
+exactly as given, with no ellipsis added. `ref` is accepted like any other prop
+of `<button>` (a plain prop in React 19), so a caller can move focus to the
+button without a cast.
 
 **A refused action costs the click, not the page.** The form stays, the reason
 appears, the values are kept (#157). Pending state is the verb in progress with
@@ -1292,7 +1308,11 @@ Since 0.3.0 the two are components, and the `notice` line above is what Work
 OS still draws by hand until it adopts `Notice`. `Notice` takes a tone and derives its
 role from it, so a confirmation can no longer be plain text while the refusal
 beside it alerts (the drift row in §14); `EmptyState` is the boxed sentence
-with an optional action beneath it.
+with an optional action beneath it and an optional `title` above it. The title
+is a `<div>`, not a heading: the component cannot know the page's heading
+level, and a hard-coded `<h2>` would break the outline. A caller who wants a
+heading passes one as the `title` (`<h3>`), which the `<div>` holds validly.
+`title` is the prop's name, not the HTML attribute, so it is not a tooltip.
 
 <!-- components:notice -->
 ```
@@ -1302,6 +1322,7 @@ Notice           rounded-md px-3 py-2 text-sm {tone}
   tone=warm      bg-warm-bg text-warm-fg                        (role="alert")
   tone=overdue   bg-health-overdue-bg text-health-overdue-fg    (role="alert")
 EmptyState       flex flex-col items-start gap-3 rounded-md border border-grid bg-paper p-5
+  title          -mb-2 text-sm font-semibold text-ink
   sentence       text-sm text-ink-muted
   action         an optional slot beneath the sentence, usually a Button
 ```
@@ -2020,9 +2041,43 @@ body {
 
 ### 13b. Tailwind v4 projects — the IKI Digital Library
 
-The library is Vite + React 19 + Tailwind v4 with source-owned shadcn/ui
-primitives (`components.json`, New York style, lucide icons). Its tokens are
-oklch in `apps/web/src/styles.css`.
+The library is Vite + React 19 + Tailwind v4. It began with source-owned
+shadcn/ui primitives, lucide icons and oklch tokens in
+`apps/web/src/styles.css`. On 25 November 2026 it decided to converge on this
+package (tech-iki/iki-digital-library#96): it takes the package's theme,
+components and icons, and the rail for its signed-in pages. Its public header,
+which serves signed-out visitors only, stays local. The steps below follow that
+decision.
+
+The adoption path:
+
+1. **Import the package theme after Tailwind**, as
+   [§13-0](#13-0-install-the-package) shows, and remove the library's own
+   `:root` palette. The import must come before any `@theme` of the library's,
+   because its first declaration is `--color-*: initial`.
+2. **Add the `iki-app` root class** from [§13-0](#13-0-install-the-package),
+   with the base-style reset that #33 covers. Until that issue is settled, the
+   library carries those rules locally (tech-iki/iki-digital-library#111).
+3. **Use the package's components and icons**: `Button`, `Field`, `Notice`,
+   `EmptyState` and the rest from the package root, and `Icon` for icons, which
+   are lucide drawings at the version recorded in `LUCIDE_VERSION`. The library
+   may keep a thin local wrapper where a spike found one is needed, as it does
+   for forms. Six icon names with no counterpart await #34.
+4. **Use the package's contrast helper** (`contrast`, `TOKEN_PAIRS` and
+   `THRESHOLD`) rather than a copy of `ui-contrast.ts`, and list the pairs the
+   library actually renders.
+5. **The shell comes last, and waits on the package.** The rail, skip link and
+   navigation components are being built in #19 and are not in the package
+   yet. `AppShell.tsx` keeps its current form until they ship
+   (tech-iki/iki-digital-library#106). No step here changes the routing or the
+   query layer.
+
+**Superseded: the palette-only path.** The library first adopted only the
+palette, by the steps below. The converge decision replaces that path. The
+steps, the alias table, the conflicts and the notes after them are kept as the
+record of it, as the register keeps history, and are not the path for new
+work. Where they say to leave `AppShell.tsx` alone, or that the change is not
+a restructure, the path above now says otherwise.
 
 Steps:
 
@@ -2074,7 +2129,7 @@ Steps:
 | Radius | `--radius: 8px`, panels 12px | `rounded-md` 6px | **Take 6px.** The library derives `--radius-sm/md/lg` from one value, so this is a one-line change. |
 | Typeface | Inter, declared in `:root` with no `@font-face` and no `<link>` — so it silently falls back to `ui-sans-serif` today | Geist via `next/font`, self-hosted | **Take Geist and actually load it.** The library's Inter is a declaration without a file; whichever face wins, it should be served, not hoped for. |
 | Focus | `3px solid var(--primary)`, offset 3px (and `-3px` inset on `main`) | 2px / 2px, `focus-visible` only | **Take 2px/2px** for consistency; keep the library's inset ring on `main`, which the app has no equivalent for. |
-| Icons | lucide-react | Hand-drawn, no package | **Keep lucide in the library.** The no-package rule exists because Work OS needs seventeen glyphs; a library that already depends on lucide gains nothing by hand-drawing. Match the weight: 20px nav, 16px inline, `currentColor`. |
+| Icons | lucide-react | Hand-drawn, no package | **Superseded: the package's icons.** This was the palette-only recommendation to keep lucide in the library; the converge decision takes the package's `Icon`, which is lucide underneath. Match the weight: 20px nav, 16px inline, `currentColor`. |
 
 Two things the library already does better, and should keep: 44px minimum
 targets on every nav item, and a `skip-link` that is `position: fixed` rather

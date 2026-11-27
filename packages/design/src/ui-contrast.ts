@@ -188,6 +188,7 @@ export const TOKEN_PAIRS: {
   { what: "active popover trigger border: teal-deep on teal-soft", fg: TOKENS.tealDeep, bg: TOKENS.tealSoft, kind: "nonText" },
   { what: "popover badge: paper on teal-deep", fg: TOKENS.paper, bg: TOKENS.tealDeep, kind: "text" },
   { what: "drawer refusal band: overdue-fg on health-overdue-bg", fg: TOKENS.healthOverdueFg, bg: TOKENS.healthOverdueBg, kind: "text" },
+  { what: "empty state title: ink on paper", fg: TOKENS.ink, bg: TOKENS.paper, kind: "text" },
   { what: "disclosure count: ink-muted on paper", fg: TOKENS.inkMuted, bg: TOKENS.paper, kind: "text" },
 
   // Phase 2 (0.5.0). The table frame renders pairs already held above — paper

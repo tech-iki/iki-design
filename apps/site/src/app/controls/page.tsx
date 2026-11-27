@@ -17,8 +17,10 @@ import {
   labelClass,
   linkClass,
   primaryButtonClass,
+  primaryLinkButtonClass,
   smallFieldClass,
   subtleButtonClass,
+  subtleLinkButtonClass,
   touchTarget,
   warnButtonClass,
   warnIconButtonClass,
@@ -144,6 +146,24 @@ export default function ControlsPage() {
             </Glyph>
             <span className="sr-only">Move to Trash</span>
           </button>
+        </Specimen>
+        <Specimen
+          name="primaryLinkButtonClass"
+          note="`primaryButtonClass` on an anchor: a router `Link` or an `<a>`. The button strings assume a `<button>`; an anchor is inline and underlined, so the 44px floor did nothing and the label was underlined. This adds `inline-flex`, centred content and `no-underline`, and nothing else, so the colours and the contrast pairs are the button’s."
+          classString={primaryLinkButtonClass}
+        >
+          <Link href="/components" className={primaryLinkButtonClass}>
+            Open components
+          </Link>
+        </Specimen>
+        <Specimen
+          name="subtleLinkButtonClass"
+          note="`subtleButtonClass` on an anchor, the same three additions."
+          classString={subtleLinkButtonClass}
+        >
+          <Link href="/components" className={subtleLinkButtonClass}>
+            Open components
+          </Link>
         </Specimen>
       </Section>
 

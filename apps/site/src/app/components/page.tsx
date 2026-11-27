@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import {
   ActionsHeader,
   Button,
@@ -13,6 +14,8 @@ import {
   Radio,
   RadioGroup,
   TableFrame,
+  primaryLinkButtonClass,
+  subtleLinkButtonClass,
   rowClass,
   tbodyClass,
   tdClass,
@@ -46,6 +49,7 @@ const BUTTON_USE = `<Button>Save task</Button>
 
 {/* pending disables the button, sets aria-busy, and says the verb in progress */}
 <Button pending>Save</Button>
+<Button pending>Saving…</Button>  {/* already ends in one: no second */}
 <Button pending pendingLabel="Sending invitation…">Invite</Button>
 
 {/* the icon variants: a glyph, a name for assistive technology, a title */}
@@ -56,7 +60,14 @@ const BUTTON_USE = `<Button>Save task</Button>
 <Button variant="warnIcon" title="Move to Trash">
   <Icon name="drop" />
   <span className="sr-only">Move to Trash</span>
-</Button>`;
+</Button>
+
+{/* ref is a plain prop (React 19), so focus can be moved to the button */}
+<Button ref={saveRef}>Save task</Button>
+
+{/* a link drawn as a button is an <a>, with its own strings */}
+<Link href="/tasks/new" className={primaryLinkButtonClass}>New task</Link>
+<a href="/export" className={subtleLinkButtonClass}>Download PDF</a>`;
 
 const FIELD_USE = `<Field label="Task title" hint="Shown in lists and on the board.">
   <input type="text" name="title" />
@@ -83,7 +94,13 @@ const EMPTY_USE = `<EmptyState action={<Button>New task</Button>}>
   No tasks yet. Create the first one.
 </EmptyState>
 
-<EmptyState>Nothing is overdue.</EmptyState>`;
+<EmptyState>Nothing is overdue.</EmptyState>
+
+{/* title: a plain div above the sentence, not a heading, because the
+    component cannot know the page's heading level. Pass an <h3> to get one. */}
+<EmptyState title="No resources found" action={<Button>Clear filters</Button>}>
+  Nothing matches these filters. Clear them to see everything.
+</EmptyState>`;
 
 const DRAWER_USE = `const [open, setOpen] = useState(false);
 
@@ -242,6 +259,17 @@ export default function ComponentsPage() {
           </Button>
           <Button disabled>Save task</Button>
         </Specimen>
+        <Specimen
+          name="a link drawn as a button"
+          note="`primaryLinkButtonClass` and `subtleLinkButtonClass` on an anchor: inline-flex, centred, no underline, 44px below `md`. Not a `Button`, which renders a `<button>`; the router’s `Link` is the consumer’s."
+        >
+          <Link href="/controls" className={primaryLinkButtonClass}>
+            New task
+          </Link>
+          <Link href="/controls" className={subtleLinkButtonClass}>
+            Download PDF
+          </Link>
+        </Specimen>
         <CodeBlock code={BUTTON_USE} />
       </Section>
 
@@ -320,6 +348,9 @@ export default function ComponentsPage() {
             No tasks yet. Create the first one.
           </EmptyState>
           <EmptyState>Nothing is overdue.</EmptyState>
+          <EmptyState title="No resources found" action={<Button>Clear filters</Button>}>
+            Nothing matches these filters. Clear them to see everything.
+          </EmptyState>
         </div>
         <CodeBlock code={EMPTY_USE} />
       </Section>
