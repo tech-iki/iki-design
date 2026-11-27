@@ -162,7 +162,7 @@ export const Z_INDEX = {
   skipLink: 50,
 } as const;
 
-/** WCAG 2.5.8, applied as a responsive minimum below `md`. */
+/** WCAG 2.5.5 (AAA; AA's 2.5.8 asks for 24px), applied as a responsive minimum below `md`. */
 export const TOUCH_TARGET_PX = 44;
 
 /** WCAG 1.4.3 for text; 1.4.11 for control boundaries and meaningful graphics. */
