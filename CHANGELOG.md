@@ -101,29 +101,32 @@ token or class is a major.
   current on `paper/12` and its bar. Closes the §14 drift row that said they
   rendered unasserted; the `paper/70` of Work OS's child links joins with a
   child-link component when there is one.
-
 - Navigation by links (#20, #22), server-safe, `...rest` on each root, every
   link taking `render` (the router-link convention above): `Pagination`,
   `PrevNextNav`, `ViewSwitch` and `BackLink`. The caller supplies every href
   (`Pagination` takes `hrefFor(page)`); nothing reads the router.
-  - `Pagination` (`page`, `totalPages`, `hrefFor`, `label`, `previousLabel`,
-    `nextLabel`, `status`): Previous, "Page N of M", Next, in a `<nav>` named
-    "Pagination" by default; returns nothing for one page. Previous and Next
-    are links with `rel`; at an end the one that cannot go further is
-    `<span role="link" aria-disabled="true">` with no `href` and no tab stop.
-    The status is plain text with `aria-current="page"`, not a live region.
-    The Digital Library's button-callback pagination becomes links (its
-    #107), so a page is addressable and works without script.
-  - `PrevNextNav` (`label`, `current`, `previous`, `next`, `today`): the
-    period stepper of Work OS's fortnight and holiday-year navs.
-  - `ViewSwitch` (`label`, `views`, `current`): a nav of links, the current
+  - `Pagination` (`page`, `totalPages`, `hrefFor`, `label` (required),
+    `previousLabel`, `nextLabel`, `status`, `pending`): Previous, "Page N of
+    M", Next, in a `<nav>`; returns nothing for one page with the reader on it.
+    Previous and Next are links with `rel`; the one that cannot go further, or
+    both while `pending`, is `<span role="link" aria-disabled="true">` with no
+    `href` and no tab stop. The status is plain text with no `aria-current`
+    and no live region. The reader is never stranded: past the end the status
+    shows the real page and Previous goes to the last page that exists. The
+    Digital Library's button-callback pagination becomes links (its #107).
+  - `PrevNextNav` (`label`, `current`, `previous`, `next`, `today`,
+    `ariaCurrent`): the period stepper of Work OS's fortnight and holiday-year
+    navs; `ariaCurrent` is `"true"` where the page is already current elsewhere.
+  - `ViewSwitch` (`label`, `views`, `current`, `ariaCurrent`): a nav of links, the current
     view `aria-current="page"` with weight and a bar. Closes the second half of
     #22; §8 says when it is right and when `Tabs` is.
   - `BackLink`: a leading arrow (`icon`, `previous` by default) and the
-    destination in the words ("Back to submissions"), 44px below `md`.
+    destination in the words ("Back to submissions"), `linkClass`'s look as a 44px
+    target.
   - The strings `linkNavListClass`, `linkNavItemClass`, `linkNavLinkClass`,
-    `linkNavCurrentClass`, `linkNavUnavailableClass`,
-    `linkNavLabelClass` and `backLinkClass`, in §8's new `classes:linknav`
+    `linkNavIdleClass`, `linkNavCurrentClass`, `linkNavUnavailableClass`,
+    `linkNavStatusClass`, `linkNavLabelClass`, `backLinkClass` and
+    `backLinkIconClass`, in §8's new `classes:linknav`
     block, with the list and underline resets spelled out for a consumer
     without Preflight. No new token and no new `TOKEN_PAIRS` entry: every colour is a pair
     already held, named in a comment in `ui-contrast.ts`. No new icon.

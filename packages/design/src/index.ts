@@ -32,7 +32,7 @@ export { isActivePath } from "./is-active-path.js";
 // How every link-shaped component renders the app's router link (§7).
 export { renderLink, joinClasses, type LinkRender, type LinkSlotProps } from "./link-render.js";
 // Navigation by links (#20, #22), server-safe: the caller supplies every href.
-export { Pagination, PrevNextNav, type PrevNextTarget } from "./components/pagination.js";
+export { Pagination, PrevNextNav, type CurrentMark, type PrevNextTarget } from "./components/pagination.js";
 export { BackLink } from "./components/back-link.js";
 export { ViewSwitch, type ViewSwitchView } from "./components/view-switch.js";
 // Client-only (ADR 0002; design system §13): each file starts with "use client".

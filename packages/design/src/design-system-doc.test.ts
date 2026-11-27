@@ -171,6 +171,7 @@ const PLACEHOLDER: Readonly<Record<string, string>> = {
   "{subtleButtonClass}": classes.subtleButtonClass,
   "{focusRingOnNavy}": classes.focusRingOnNavy,
   "{linkNavItemClass}": classes.linkNavItemClass,
+  "{linkClass}": classes.linkClass,
 };
 
 /** `name  classes` lines → name → classes, placeholders expanded. */

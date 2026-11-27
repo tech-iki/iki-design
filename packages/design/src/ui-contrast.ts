@@ -314,8 +314,9 @@ export const TOKEN_PAIRS: {
    * above: the links are "link: teal-deep on paper" and on paper-tint, hover is
    * "workstream code: navy on teal-soft", the current item and the bar are
    * "body: ink on paper" and the same teal-deep on paper (held at the text
-   * threshold, so stricter than a graphic needs), and an unavailable end or an
-   * ellipsis is "secondary: ink-muted on paper". Listed again they would only
+   * threshold, so stricter than a graphic needs), the status "Page N of M" is
+   * the same ink on paper, and an unavailable end is "secondary: ink-muted on
+   * paper". No element carries two of these text colours at once. Listed again they would only
    * be duplicates.
    */
 ];

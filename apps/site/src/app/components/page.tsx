@@ -351,11 +351,20 @@ const KPI_USE = `<KpiTile label="Open tasks" value={42} hint="across 6 workstrea
 <KpiTile label="Overdue" value={3} hint="past their deadline" tone="overdue" />`;
 
 const LINK_NAV_USE = `// Every destination is a link: the caller supplies the href, the router's Link comes through render.
-import Link from "next/link";
-<Pagination page={page} totalPages={totalPages} hrefFor={(n) => \`/library?page=\${n}\`} render={<Link href="/" />} label="Pagination, library" />
+// Keep the rest of the query in hrefFor, or the filters and the sort are lost on the next page.
+const hrefFor = (n: number) => {
+  const next = new URLSearchParams(searchParams);
+  next.set("page", String(n));
+  return \`?\${next}\`;
+};
 
-// React Router takes \`to\`, so a function hands the href over.
-<Pagination page={page} totalPages={totalPages} hrefFor={(n) => \`?page=\${n}\`}
+// Next.js: Link takes href, and each page's href replaces the element's, so an element is enough.
+import Link from "next/link";
+<Pagination label="Pagination, library" page={page} totalPages={totalPages} hrefFor={hrefFor} render={<Link href="/" />} />
+
+// React Router takes \`to\`: use the function form. An element, render={<Link to="/" />},
+// would send every page to "/".
+<Pagination label="Pagination, library" page={page} totalPages={totalPages} hrefFor={hrefFor} pending={isLoading}
   render={({ href, ...props }) => <Link {...props} to={href ?? ""} />} />
 
 <PrevNextNav label="Fortnights" current="13–26 Nov 2026"
@@ -787,9 +796,12 @@ export default function ComponentsPage() {
           each page is a navigation. Every target is 44px below{" "}
           <Mono>md</Mono>.
         </P>
-        <Specimen name="Pagination: the first, a middle and the last page of 10">
+        <Specimen
+          name="Pagination: the first, a middle and the last page of 10, pending, and past the end"
+          note="Pending dims both ends while a page loads. Past the end (page 99 of 10) the status tells the truth and Previous goes to the last page that exists."
+        >
           <div className="flex w-full flex-col gap-3">
-            {[1, 5, 10].map((page) => (
+            {[1, 5, 10, 99].map((page) => (
               <Pagination
                 key={page}
                 page={page}
@@ -799,6 +811,14 @@ export default function ComponentsPage() {
                 render={<Link href="/" />}
               />
             ))}
+            <Pagination
+              page={5}
+              totalPages={10}
+              label="Pagination, loading"
+              pending
+              hrefFor={(n) => `/components?page=${n}#link-navigation`}
+              render={<Link href="/" />}
+            />
           </div>
         </Specimen>
         <Specimen name="PrevNextNav" note="Work OS’s fortnight stepper. The arrows are decorative; the label is the name.">

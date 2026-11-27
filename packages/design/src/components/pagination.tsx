@@ -3,10 +3,12 @@ import type { ComponentProps, ReactNode } from "react";
 import { joinClasses, renderLink, type LinkRender } from "../link-render.js";
 import {
   linkNavCurrentClass,
+  linkNavIdleClass,
   linkNavItemClass,
   linkNavLabelClass,
   linkNavLinkClass,
   linkNavListClass,
+  linkNavStatusClass,
   linkNavUnavailableClass,
 } from "../ui-classes.js";
 import { Icon } from "./icon.js";
@@ -30,47 +32,55 @@ function Arrow({ side, children }: { side: "previous" | "next"; children: ReactN
   );
 }
 
-/** `page` as a page that exists: the integer part held to `1…total`, and `1` when it is not a number. */
-function clampPage(page: number, total: number): number {
-  return Number.isFinite(page) ? Math.min(Math.max(Math.trunc(page), 1), total) : 1;
-}
+/** What `aria-current` says about a current place: `"page"`, or `"true"` when the page's own entry in the rail already is. */
+export type CurrentMark = "page" | "true";
 
 /**
  * Previous, "Page N of M", Next: the pager for a result set, as links.
  *
- * `page` is the current page and `totalPages` how many there are; `hrefFor`
- * is the caller's builder, called only with a page that exists (`1…totalPages`),
- * and returns where it lives (`(n) => `?page=${n}``). Returns nothing for a
- * single page, or none. An invalid `page` (`NaN`, `0`, `99` of 10) is read as
- * the nearest page that exists.
+ * `page` is the page the reader is on and `totalPages` how many there are,
+ * both whole numbers: a fractional `page` is floored and a fractional
+ * `totalPages` rounded up, so a last, part-filled page is never hidden.
+ * `hrefFor` is the caller's builder, called only with a page that exists
+ * (`1…totalPages`), and returns where it lives; keep the rest of the URL in it
+ * (`(n) => withPage(searchParams, n)`), or the filters and sort are lost.
  *
  * - **Links, not buttons.** Previous and Next are `<a href>`, or the router's
- *   link through `render`, with `rel="prev"` and `rel="next"`. At the first
- *   or last page the one that cannot go further is a
- *   `<span role="link" aria-disabled="true">`: no `href`, no tab stop,
- *   announced as unavailable, drawn muted.
- * - **The status** is plain text, `<span aria-current="page">Page 2 of 10</span>`,
- *   not a live region. Paging is a navigation, so the new page loads (or a
- *   client router re-renders it) and a screen reader meets the status as part
- *   of the page; a `role="status"` would announce on every navigation.
+ *   link through `render`, with `rel="prev"` and `rel="next"`. The one that
+ *   cannot go further is a `<span role="link" aria-disabled="true">`: no
+ *   `href`, no tab stop, announced as unavailable, drawn muted. `pending`
+ *   makes both so, while a page loads.
+ * - **The status** is plain text, "Page 2 of 10": no `aria-current`, because
+ *   an app's rail already marks the current page and a second one would be
+ *   heard as two; and no live region, because paging is a navigation and a
+ *   `role="status"` would announce on every one.
+ * - **The reader is never stranded.** Past the end (`page` 99 of 10) the status
+ *   says so, Previous goes to the last page that exists and Next is
+ *   unavailable. With one page or none and the reader on page 1 there is
+ *   nothing to render and nothing is; on page 5 of 1 there is a way back.
+ *   `Infinity` is the last page; `NaN` and anything below 1 are page 1.
  * - **44px** below `md` on every item, and the package's focus ring on the links.
  *
- * `label` names the `<nav>` ("Pagination"); give each one on a page its own.
- * `previousLabel` and `nextLabel` ("Previous", "Next") and `status` (a function
- * of the page and the total, "Page 2 of 10" by default) are the words, for
- * other copy or another language. `render` is the router's link: Next's
- * `render={<Link />}` takes the `href`; React Router's takes it as `to`,
- * `render={({ href, ...props }) => <Link {...props} to={href ?? ""} />}`.
+ * `label` names the `<nav>` and is required; give each one on a page its own
+ * ("Pagination, reviews"). `previousLabel` and `nextLabel` ("Previous", "Next")
+ * and `status` (a function of the page and the total, "Page 2 of 10" by
+ * default) are the words, for other copy or another language. `render` is the
+ * router's link, and needs the function form for React Router and for any
+ * router whose link takes the destination as a prop of its own:
+ * `render={({ href, ...props }) => <Link {...props} to={href ?? ""} />}`. An
+ * element such as `<Link to="/" />` would send every page to `/`. Next's
+ * `<Link href="/" />` is fine, since each `href` replaces the element's.
  * `...rest` reaches the `<nav>`.
  */
 export function Pagination({
   page,
   totalPages,
   hrefFor,
-  label = "Pagination",
+  label,
   previousLabel = "Previous",
   nextLabel = "Next",
-  status = (current, total) => `Page ${current} of ${total}`,
+  status = (here, total) => `Page ${here} of ${total}`,
+  pending = false,
   render,
   className,
   ...rest
@@ -78,27 +88,35 @@ export function Pagination({
   page: number;
   totalPages: number;
   hrefFor: (page: number) => string;
-  label?: string;
+  label: string;
   previousLabel?: string;
   nextLabel?: string;
   status?: (page: number, totalPages: number) => ReactNode;
+  pending?: boolean;
   render?: LinkRender;
 } & Omit<ComponentProps<"nav">, "children" | "aria-label">) {
-  const total = Number.isFinite(totalPages) ? Math.trunc(totalPages) : 0;
-  if (total <= 1) return null;
-  const current = clampPage(page, total);
+  // The last page that exists: at least 1, so there is always a page to go back to.
+  const last = Math.max(1, Number.isFinite(totalPages) ? Math.ceil(totalPages) : 1);
+  const here = page === Number.POSITIVE_INFINITY ? last : Number.isFinite(page) ? Math.max(1, Math.floor(page)) : 1;
+  if (last <= 1 && here <= 1) return null;
 
-  const step = (target: number, side: "previous" | "next", words: string) => {
+  const step = (target: number | null, side: "previous" | "next", words: string) => {
     const content = <Arrow side={side}>{words}</Arrow>;
-    return target < 1 || target > total ? (
-      // The standard disabled link: a link role with no `href`, so it takes no
-      // focus, and `aria-disabled` so it is read as unavailable.
+    return target === null || pending ? (
+      // A common pattern for a link that is not available (ARIA defines no
+      // disabled link): a link role with no `href`, so it takes no focus, and
+      // `aria-disabled` so it is read as unavailable.
       <span role="link" aria-disabled="true" className={joinClasses(linkNavItemClass, linkNavUnavailableClass)}>
         {content}
       </span>
     ) : (
       renderLink(
-        { href: hrefFor(target), rel: side === "previous" ? "prev" : "next", className: linkNavLinkClass, children: content },
+        {
+          href: hrefFor(target),
+          rel: side === "previous" ? "prev" : "next",
+          className: joinClasses(linkNavLinkClass, linkNavIdleClass),
+          children: content,
+        },
         render,
       )
     );
@@ -107,13 +125,11 @@ export function Pagination({
   return (
     <nav {...rest} aria-label={label} className={className}>
       <ul className={linkNavListClass}>
-        <li>{step(current - 1, "previous", previousLabel)}</li>
+        <li>{step(here > 1 ? Math.min(here - 1, last) : null, "previous", previousLabel)}</li>
         <li>
-          <span aria-current="page" className={joinClasses(linkNavItemClass, "text-ink")}>
-            {status(current, total)}
-          </span>
+          <span className={joinClasses(linkNavItemClass, linkNavStatusClass)}>{status(here, last)}</span>
         </li>
-        <li>{step(current + 1, "next", nextLabel)}</li>
+        <li>{step(here < last ? here + 1 : null, "next", nextLabel)}</li>
       </ul>
     </nav>
   );
@@ -128,8 +144,11 @@ export type PrevNextTarget = { href: string; label: string };
  *
  * `label` names the `<nav>` and is required ("Fortnights", "Holiday year"):
  * a page can hold two. `current` is what the nav is on, the words of the
- * period ("13–26 Nov 2026"), shown as a `<span aria-current="page">`, not a
- * link. `previous` and `next` are `{ href, label }`: leave one out where
+ * period ("13–26 Nov 2026"), shown as a `<span aria-current>`, not a
+ * link. `ariaCurrent` is `"page"` unless the page that holds the nav is itself
+ * the current page of the app's rail or tabs, as Work OS's holiday-year nav is
+ * (its Settings tab is current): then `"true"`, so only one element claims
+ * the page. `previous` and `next` are `{ href, label }`: leave one out where
  * there is no such period, and it is not rendered. The label is the link's
  * name ("Previous fortnight") and shows from `sm`; below it the arrow stands
  * alone, `aria-hidden`, and the name stays. `today` is the optional way back
@@ -145,26 +164,31 @@ export function PrevNextNav({
   previous,
   next,
   today,
+  ariaCurrent = "page",
   render,
   className,
   ...rest
 }: {
   label: string;
   current: ReactNode;
+  ariaCurrent?: CurrentMark;
   previous?: PrevNextTarget;
   next?: PrevNextTarget;
   today?: PrevNextTarget;
   render?: LinkRender;
 } & Omit<ComponentProps<"nav">, "children" | "aria-label">) {
   const link = (target: PrevNextTarget, rel: string | undefined, children: ReactNode) => (
-    <li>{renderLink({ href: target.href, rel, className: linkNavLinkClass, children }, render)}</li>
+    <li>{renderLink(
+        { href: target.href, rel, className: joinClasses(linkNavLinkClass, linkNavIdleClass), children },
+        render,
+      )}</li>
   );
   return (
     <nav {...rest} aria-label={label} className={className}>
       <ul className={linkNavListClass}>
         {previous ? link(previous, "prev", <Arrow side="previous">{previous.label}</Arrow>) : null}
         <li>
-          <span aria-current="page" className={joinClasses(linkNavItemClass, linkNavCurrentClass)}>
+          <span aria-current={ariaCurrent} className={joinClasses(linkNavItemClass, linkNavCurrentClass)}>
             {current}
           </span>
         </li>
