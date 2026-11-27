@@ -35,7 +35,6 @@ export { renderLink, joinClasses, type LinkRender, type LinkSlotProps } from "./
 export { Pagination, PrevNextNav, type PrevNextTarget } from "./components/pagination.js";
 export { BackLink } from "./components/back-link.js";
 export { ViewSwitch, type ViewSwitchView } from "./components/view-switch.js";
-export { pageRange, clampPage, wholePages, type PageRangeItem } from "./page-range.js";
 // Client-only (ADR 0002; design system §13): each file starts with "use client".
 // Base UI is behind them and is never re-exported.
 export { Drawer, type DrawerCloseReason } from "./components/drawer.js";

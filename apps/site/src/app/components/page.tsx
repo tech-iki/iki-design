@@ -780,15 +780,14 @@ export default function ComponentsPage() {
           destination is a link, not a button, so a page is a URL that opens
           in a new tab and works before any script loads. The caller supplies
           the hrefs; these specimens use this site’s own <Mono>Link</Mono>{" "}
-          through <Mono>render</Mono>. The current page is not a link: it is
-          marked by weight and a bar as well as colour. At either end,
-          Previous or Next is a dimmed non-link that Tab skips and a screen
-          reader reads as unavailable. Long ranges truncate with an ellipsis
-          that is not a link; below <Mono>sm</Mono> the Previous and Next
-          words give way to their arrows and stay their names. Every target is
-          44px below <Mono>md</Mono>.
+          through <Mono>render</Mono>. <Mono>Pagination</Mono> is Previous,
+          “Page N of M” and Next: at either end the one that cannot go further
+          is a dimmed non-link that Tab skips and a screen reader reads as
+          unavailable, and the status is plain text, not a live region, since
+          each page is a navigation. Every target is 44px below{" "}
+          <Mono>md</Mono>.
         </P>
-        <Specimen name="Pagination: first, middle and last of 10 pages, and 1000">
+        <Specimen name="Pagination: the first, a middle and the last page of 10">
           <div className="flex w-full flex-col gap-3">
             {[1, 5, 10].map((page) => (
               <Pagination
@@ -800,13 +799,6 @@ export default function ComponentsPage() {
                 render={<Link href="/" />}
               />
             ))}
-            <Pagination
-              page={500}
-              totalPages={1000}
-              label="Pagination, page 500 of 1000"
-              hrefFor={(n) => `/components?page=${n}#link-navigation`}
-              render={<Link href="/" />}
-            />
           </div>
         </Specimen>
         <Specimen name="PrevNextNav" note="Work OS’s fortnight stepper. The arrows are decorative; the label is the name.">

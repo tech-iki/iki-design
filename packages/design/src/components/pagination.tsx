@@ -1,10 +1,8 @@
 import type { ComponentPropsWithoutRef, ReactNode } from "react";
 
 import { joinClasses, renderLink, type LinkRender } from "../link-render.js";
-import { clampPage, pageRange, wholePages } from "../page-range.js";
 import {
   linkNavCurrentClass,
-  linkNavGapClass,
   linkNavItemClass,
   linkNavLabelClass,
   linkNavLinkClass,
@@ -21,7 +19,7 @@ import { Icon } from "./icon.js";
  * the app's router link through `render` (`link-render.ts`). Server-safe.
  */
 
-/** An item that leads with an arrow, or ends with one: its label shows from `sm`, and is the name always. */
+/** A label with its arrow: the label shows from `sm`, and is the name always. */
 function Arrow({ side, children }: { side: "previous" | "next"; children: ReactNode }) {
   return (
     <>
@@ -32,34 +30,35 @@ function Arrow({ side, children }: { side: "previous" | "next"; children: ReactN
   );
 }
 
+/** `page` as a page that exists: the integer part held to `1…total`, and `1` when it is not a number. */
+function clampPage(page: number, total: number): number {
+  return Number.isFinite(page) ? Math.min(Math.max(Math.trunc(page), 1), total) : 1;
+}
+
 /**
- * Page links for a result set: Previous, a row of page numbers, Next.
+ * Previous, "Page N of M", Next: the pager for a result set, as links.
  *
  * `page` is the current page and `totalPages` how many there are; `hrefFor`
- * is the caller's builder, called with a page number that exists (`1…totalPages`),
+ * is the caller's builder, called only with a page that exists (`1…totalPages`),
  * and returns where it lives (`(n) => `?page=${n}``). Returns nothing for a
  * single page, or none. An invalid `page` (`NaN`, `0`, `99` of 10) is read as
  * the nearest page that exists.
  *
- * - **Links, not buttons.** Every page is an `<a href>` (or the router's
- *   link through `render`); the current page and an end that cannot go
- *   further are not links at all.
- * - **The current page** is a `<span aria-current="page">`: marked by weight
- *   and a bar as well as colour, so there is nothing to click that goes
- *   where you already are.
- * - **Previous and Next** carry `rel="prev"` and `rel="next"`. At the first
- *   or last page they are `<span role="link" aria-disabled="true">`: no
- *   `href`, no tab stop, announced as unavailable.
- * - **Long ranges truncate** with an ellipsis (`pageRange`) that is
- *   `aria-hidden`, a gap and not a link. The row is the same length wherever
- *   the current page is, and wraps rather than scrolling on a phone.
- * - **Names.** "Page 3" for a number, "Previous page" and "Next page" for
- *   the ends (an `aria-label` that contains the visible words), and the end
- *   words give way to the arrow below `sm`.
+ * - **Links, not buttons.** Previous and Next are `<a href>`, or the router's
+ *   link through `render`, with `rel="prev"` and `rel="next"`. At the first
+ *   or last page the one that cannot go further is a
+ *   `<span role="link" aria-disabled="true">`: no `href`, no tab stop,
+ *   announced as unavailable, drawn muted.
+ * - **The status** is plain text, `<span aria-current="page">Page 2 of 10</span>`,
+ *   not a live region. Paging is a navigation, so the new page loads (or a
+ *   client router re-renders it) and a screen reader meets the status as part
+ *   of the page; a `role="status"` would announce on every navigation.
+ * - **44px** below `md` on every item, and the package's focus ring on the links.
  *
- * `label` names the `<nav>` ("Pagination"); give each one on a page its own
- * ("Pagination, reviews"). `siblings` is how many numbers show either side
- * of the current page (1). `render` is the router's link: Next's
+ * `label` names the `<nav>` ("Pagination"); give each one on a page its own.
+ * `previousLabel` and `nextLabel` ("Previous", "Next") and `status` (a function
+ * of the page and the total, "Page 2 of 10" by default) are the words, for
+ * other copy or another language. `render` is the router's link: Next's
  * `render={<Link />}` takes the `href`; React Router's takes it as `to`,
  * `render={({ href, ...props }) => <Link {...props} to={href ?? ""} />}`.
  * `...rest` reaches the `<nav>`.
@@ -69,7 +68,9 @@ export function Pagination({
   totalPages,
   hrefFor,
   label = "Pagination",
-  siblings = 1,
+  previousLabel = "Previous",
+  nextLabel = "Next",
+  status = (current, total) => `Page ${current} of ${total}`,
   render,
   className,
   ...rest
@@ -78,61 +79,41 @@ export function Pagination({
   totalPages: number;
   hrefFor: (page: number) => string;
   label?: string;
-  siblings?: number;
+  previousLabel?: string;
+  nextLabel?: string;
+  status?: (page: number, totalPages: number) => ReactNode;
   render?: LinkRender;
 } & Omit<ComponentPropsWithoutRef<"nav">, "children" | "aria-label">) {
-  const total = wholePages(totalPages);
+  const total = Number.isFinite(totalPages) ? Math.trunc(totalPages) : 0;
   if (total <= 1) return null;
   const current = clampPage(page, total);
 
-  // The name is an `aria-label` that contains the visible text ("Page 3" for
-  // "3", "Next page" for "Next": WCAG 2.5.3), so it reads the same whatever
-  // the layout does to the words around it.
-  const link = (target: number, name: string, props: { rel?: string; children: ReactNode }) =>
-    renderLink({ href: hrefFor(target), "aria-label": name, className: linkNavLinkClass, ...props }, render);
-  const unavailable = (name: string, children: ReactNode) => (
-    // The standard disabled link: a link role with no `href`, so it takes no
-    // focus, and `aria-disabled` so it is read as unavailable.
-    <span
-      role="link"
-      aria-disabled="true"
-      aria-label={name}
-      className={joinClasses(linkNavItemClass, linkNavUnavailableClass)}
-    >
-      {children}
-    </span>
-  );
-
-  const previous = <Arrow side="previous">Previous</Arrow>;
-  const next = <Arrow side="next">Next</Arrow>;
+  const step = (target: number, side: "previous" | "next", words: string) => {
+    const content = <Arrow side={side}>{words}</Arrow>;
+    return target < 1 || target > total ? (
+      // The standard disabled link: a link role with no `href`, so it takes no
+      // focus, and `aria-disabled` so it is read as unavailable.
+      <span role="link" aria-disabled="true" className={joinClasses(linkNavItemClass, linkNavUnavailableClass)}>
+        {content}
+      </span>
+    ) : (
+      renderLink(
+        { href: hrefFor(target), rel: side === "previous" ? "prev" : "next", className: linkNavLinkClass, children: content },
+        render,
+      )
+    );
+  };
 
   return (
     <nav {...rest} aria-label={label} className={className}>
       <ul className={linkNavListClass}>
-        <li>{current > 1 ? link(current - 1, "Previous page", { rel: "prev", children: previous }) : unavailable("Previous page", previous)}</li>
-        {pageRange(current, total, siblings).map((item, i) =>
-          item === "ellipsis" ? (
-            <li key={`gap-${i}`} aria-hidden="true" className={linkNavGapClass}>
-              …
-            </li>
-          ) : (
-            <li key={item}>
-              {item === current ? (
-                // One inner span, so the word and the digits stay one run of text
-                // ("Page 3") instead of two flex items with no space between.
-                <span aria-current="page" className={joinClasses(linkNavItemClass, linkNavCurrentClass)}>
-                  <span>
-                    <span className="sr-only">Page </span>
-                    {item}
-                  </span>
-                </span>
-              ) : (
-                link(item, `Page ${item}`, { children: item })
-              )}
-            </li>
-          ),
-        )}
-        <li>{current < total ? link(current + 1, "Next page", { rel: "next", children: next }) : unavailable("Next page", next)}</li>
+        <li>{step(current - 1, "previous", previousLabel)}</li>
+        <li>
+          <span aria-current="page" className={joinClasses(linkNavItemClass, "text-ink")}>
+            {status(current, total)}
+          </span>
+        </li>
+        <li>{step(current + 1, "next", nextLabel)}</li>
       </ul>
     </nav>
   );

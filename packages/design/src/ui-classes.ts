@@ -644,12 +644,12 @@ export const navButtonClass =
 /*
  * Navigation by links (§8; #20, #22): `Pagination`, `PrevNextNav`, `ViewSwitch`
  * and `BackLink`. A `<nav>` holding a list of items, each one a link, the
- * current place, an unavailable end, or a gap. Nothing here is a button, and
+ * current place, or an unavailable end. Nothing here is a button, and
  * nothing moves: no transition, no animation.
  */
 
-/** The list inside the `<nav>`: a row that wraps rather than overflows a phone. */
-export const linkNavListClass = "flex flex-wrap items-center gap-1";
+/** The list inside the `<nav>`: a row that wraps rather than overflows a phone, with the list resets spelled out so it needs no Preflight. */
+export const linkNavListClass = "m-0 flex list-none flex-wrap items-center gap-1 p-0";
 
 /**
  * What every item shares, link or not, so the row has one rhythm: `touchTarget`'s
@@ -658,16 +658,16 @@ export const linkNavListClass = "flex flex-wrap items-center gap-1";
 export const linkNavItemClass =
   `${touchTarget} relative inline-flex items-center justify-center gap-1 rounded-md px-3 py-1.5 text-sm`;
 
-/** A link to somewhere else: `teal-deep`, the tint and `navy` on hover, the package's focus ring. */
+/** A link to somewhere else (`no-underline`, so a consumer without Preflight gets no browser underline): `teal-deep`, the tint and `navy` on hover, the package's focus ring. */
 export const linkNavLinkClass =
-  `${linkNavItemClass} text-teal-deep hover:bg-teal-soft hover:text-navy ${focusRing}`;
+  `${linkNavItemClass} no-underline text-teal-deep hover:bg-teal-soft hover:text-navy ${focusRing}`;
 
 /**
  * Where you are: semibold, `ink`, and a 2px bar along the foot, so it is not
  * marked by colour alone (§2 principle 2). The bar opts out of forced colours'
  * repaint (`forced-color-adjust-none`) and takes `CanvasText`, as the rail's
  * does, so Windows High Contrast still shows it; the weight needs no help.
- * It follows `linkNavItemClass` on a `<span>` (`Pagination`, `PrevNextNav`), or
+ * It follows `linkNavItemClass` on a `<span>` (`PrevNextNav`), or
  * `linkNavLinkClass` on a link (`ViewSwitch`, which keeps the current view a
  * link).
  */
@@ -681,9 +681,6 @@ export const linkNavCurrentClass =
  */
 export const linkNavUnavailableClass = "cursor-not-allowed text-ink-muted";
 
-/** The ellipsis in a long range: muted, and not a target, so no 44px floor. */
-export const linkNavGapClass = "inline-flex items-center px-1 text-sm text-ink-muted";
-
 /**
  * A label that gives way to its icon below `sm` and stays the accessible
  * name: `sr-only`, never `hidden`.
@@ -695,4 +692,4 @@ export const linkNavLabelClass = "max-sm:sr-only";
  * underlines the label alone, so the line does not run under the arrow.
  */
 export const backLinkClass =
-  `${touchTarget} inline-flex items-center gap-1 rounded-md text-sm text-teal-deep hover:text-navy ${focusRing}`;
+  `${touchTarget} inline-flex items-center gap-1 rounded-md text-sm no-underline text-teal-deep hover:text-navy ${focusRing}`;

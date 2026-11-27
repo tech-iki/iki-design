@@ -1902,6 +1902,7 @@ const routerLink = ({ href, ...props }: LinkSlotProps) => <Link {...props} to={h
 
 <BackLink render={<Link to="/submissions" />}>Back to submissions</BackLink>
 <Pagination page={page} totalPages={totalPages} hrefFor={(n) => `?page=${n}`} render={routerLink} label="Pagination, library" />
+// Previous, "Page 2 of 10", Next. Other words: previousLabel, nextLabel, status={(page, total) => `Page ${page} sur ${total}`}
 
 // Next.js: an element is enough, because Link takes `href`.
 <Pagination page={page} totalPages={totalPages} hrefFor={(n) => `/library?page=${n}`} render={<Link href="/" />} />
@@ -1914,43 +1915,36 @@ The strings, shown here and held to the code by the doc test:
 
 <!-- classes:linknav -->
 ```
-linkNavListClass         flex flex-wrap items-center gap-1
+linkNavListClass         m-0 flex list-none flex-wrap items-center gap-1 p-0
 linkNavItemClass         {touchTarget} relative inline-flex items-center justify-center gap-1 rounded-md px-3 py-1.5 text-sm
-linkNavLinkClass         {linkNavItemClass} text-teal-deep hover:bg-teal-soft hover:text-navy {focusRing}
+linkNavLinkClass         {linkNavItemClass} no-underline text-teal-deep hover:bg-teal-soft hover:text-navy {focusRing}
 linkNavCurrentClass      font-semibold text-ink after:absolute after:inset-x-3 after:bottom-0 after:h-0.5 after:rounded-full after:bg-teal-deep after:forced-color-adjust-none forced-colors:after:bg-[CanvasText]
 linkNavUnavailableClass  cursor-not-allowed text-ink-muted
-linkNavGapClass          inline-flex items-center px-1 text-sm text-ink-muted
 linkNavLabelClass        max-sm:sr-only
-backLinkClass            {touchTarget} inline-flex items-center gap-1 rounded-md text-sm text-teal-deep hover:text-navy {focusRing}
+backLinkClass            {touchTarget} inline-flex items-center gap-1 rounded-md text-sm no-underline text-teal-deep hover:text-navy {focusRing}
 ```
 
-- **`Pagination`** takes `page`, `totalPages`, `hrefFor(page)`, `label` (the
-  `<nav>`'s name, "Pagination" by default; give each one on a page its own),
-  `siblings` (numbers either side of the current page, 1) and `render`. It
-  returns nothing for a single page or none, and reads an invalid `page`
-  (`NaN`, `0`, `99` of 10) as the nearest page that exists. `hrefFor` is only
-  ever called with a page that exists.
-  - **The current page is not a link.** It is a `<span aria-current="page">`,
-    marked by weight and a 2px bar as well as colour (§2 principle 2); there
-    is nothing to activate that goes where you already are.
-  - **Previous and Next at an end are not links either:**
-    `<span role="link" aria-disabled="true">`, with no `href` and no tab
-    stop, so they are announced as unavailable and never reached by Tab. There
-    is no `href="#"` anywhere, and no `aria-disabled` on an element with an
-    `href`. In the middle they are links with `rel="prev"` and `rel="next"`.
-  - **Long ranges truncate** by `pageRange(page, totalPages, siblings)`, a pure
-    function (exported, and tested at 1, 2, 7, 10 and 1000 pages, at each
-    end, and with an invalid current page): the first and last page always,
-    the current page and its siblings, an ellipsis between. The row is
-    `2 * siblings + 5` slots wherever you are, so it does not shift as you
-    page, and an ellipsis never stands for a single page. The ellipsis is an
-    `aria-hidden` list item, not a link. The row wraps rather than scrolling.
-  - **Names.** A page link shows "3" and is named "Page 3"; the ends are named
-    "Previous page" and "Next page", from an `aria-label` that contains the
-    visible words (WCAG 2.5.3). Below `sm` the end words give way to the arrow
-    (`max-sm:sr-only`, not `hidden`) and the name stays.
-  - **No "Page N of M" line.** The numbered row and `aria-current` say where
-    you are, and the last number says how many there are.
+- **`Pagination`** is Previous, "Page N of M", Next. It takes `page`,
+  `totalPages`, `hrefFor(page)`, `label` (the `<nav>`'s name, "Pagination" by
+  default; give each one on a page its own), `previousLabel` and `nextLabel`
+  ("Previous", "Next"), `status` (a function of the page and the total, "Page N
+  of M" by default: the words, for other copy or another language) and
+  `render`. It returns nothing for a single page or none, and reads an invalid
+  `page` (`NaN`, `0`, `99` of 10) as the nearest page that exists. `hrefFor`
+  is only ever called with a page that exists.
+  - **Previous and Next are links**, with `rel="prev"` and `rel="next"`. At
+    the first or last page the one that cannot go further is not:
+    `<span role="link" aria-disabled="true">`, muted, with no `href` and no tab
+    stop, so it is announced as unavailable and never reached by Tab. There is
+    no `href="#"` anywhere, and no `aria-disabled` on an element with an
+    `href`. The arrows are `aria-hidden`; the words are the names.
+  - **The status is plain text marked `aria-current="page"`, not
+    `role="status"`:** paging is a navigation, so the new page loads (or the
+    client router re-renders it) and a screen reader meets the status as part
+    of that page, where a live region would announce on every server
+    navigation and say nothing the page does not already say.
+  - **No numbered page list**, no ellipsis and no page-size picker: no
+    consumer has them (#20).
 - **`PrevNextNav`** is the period stepper (Work OS's fortnight and holiday-year
   nav): `label` (required: the `<nav>`'s name, "Fortnights"), `current` (the
   period's words, a `<span aria-current="page">`), `previous` and `next`
@@ -1972,7 +1966,7 @@ backLinkClass            {touchTarget} inline-flex items-center gap-1 rounded-md
   not. `href` or `render`; `...rest` reaches the link.
 - **Targets and focus.** Every link, and the current and unavailable items,
   carry `touchTarget`: 44px below `md`, released at `md`. Links carry
-  `focusRing`. The ellipsis is not a target and has no floor.
+  `focusRing`.
 - **Contrast** needs no new token or pair: teal-deep on paper (the link
   pair), navy on teal-soft (hover), ink and ink-muted on paper (current and
   unavailable) are all in `TOKEN_PAIRS`; the bar is teal-deep on paper, held
@@ -1982,16 +1976,18 @@ backLinkClass            {touchTarget} inline-flex items-center gap-1 rounded-md
   (`forced-color-adjust-none`) and takes `CanvasText`, as the rail's does, and
   semibold needs no help; no class here is a transition or an animation.
 - **What this changes in the Digital Library** (its #107): `Pagination` today
-  is two buttons and a `role="status"` "Page N of M", driven by an
-  `onPageChange` callback, with the caller writing `?page=`. It becomes links,
-  so a page is a URL, opens in a new tab and works before any script loads; the
-  callback becomes `hrefFor`. Its 14 hand-written "Back to …" links become
-  `BackLink`, which adds the arrow and the 44px floor most of them lack.
+  is two `Button`s and a `role="status"` "Page N of M", driven by an
+  `onPageChange` callback, with the caller writing `?page=` itself. It becomes
+  links, so a page is addressable (a URL), opens in a new tab, works before
+  any script has loaded, and is something the router can prefetch; the
+  callback becomes `hrefFor`, and the 15 call sites keep their words. Its 14
+  hand-written "Back to …" links become `BackLink`, which adds the arrow and
+  the 44px floor most of them lack.
 
 What a unit test cannot see, and is stated here instead: that Windows High
 Contrast paints the bar as the classes ask; the measured pixel sizes at each
-breakpoint; the row's wrapping on a 320px phone; and what a screen reader says
-of a `role="link"` with `aria-disabled`. The showcase's `/components` page
+breakpoint; and what a screen reader says of a `role="link"` with
+`aria-disabled`. The showcase's `/components` page
 draws each of them, with the site's own router link through `render`.
 
 ### Icons
