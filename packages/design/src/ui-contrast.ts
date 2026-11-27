@@ -207,6 +207,20 @@ export const TOKEN_PAIRS: {
    * tick). The one new pair is the browser's checkmark drawn on that fill.
    */
 
+  /*
+   * The destructive button (`destructiveButtonClass`, #37): `health-overdue-fg`
+   * filled, `paper` label. No new token, and most of its pairs are held above
+   * under other names, so only the two that are new are listed:
+   * - rest, fill against the page: overdue-fg on paper is "field error line"
+   *   (a text pair, so stricter than the 3:1 this needs); on paper-tint below.
+   * - hover, label: overdue-fg on health-overdue-bg is "pill: overdue".
+   * - hover, border: overdue-fg on health-overdue-bg is "invalid field border".
+   * - focus ring: teal-deep on paper is "focus ring: teal-deep on paper".
+   * - disabled: 50% opacity, as on every button, and exempt (WCAG 1.4.3).
+   */
+  { what: "destructive button label: paper on health-overdue-fg", fg: TOKENS.paper, bg: TOKENS.healthOverdueFg, kind: "text" },
+  { what: "destructive button boundary: overdue-fg on paper-tint", fg: TOKENS.healthOverdueFg, bg: TOKENS.paperTint, kind: "nonText" },
+
   // Control boundaries and meaningful graphics — 3:1
   { what: "input border on paper", fg: TOKENS.gridStrong, bg: TOKENS.paper, kind: "nonText" },
   { what: "input border on paper-tint", fg: TOKENS.gridStrong, bg: TOKENS.paperTint, kind: "nonText" },

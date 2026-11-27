@@ -40,6 +40,7 @@ const PLACEHOLDER: Readonly<Record<string, string>> = {
   "{primaryButtonClass}": classes.primaryButtonClass,
   "{subtleButtonClass}": classes.subtleButtonClass,
   "{warnButtonClass}": classes.warnButtonClass,
+  "{destructiveButtonClass}": classes.destructiveButtonClass,
   "{iconButtonClass}": classes.iconButtonClass,
   "{warnIconButtonClass}": classes.warnIconButtonClass,
 };
@@ -58,11 +59,12 @@ const classOf = (markup: string, nth = 0) =>
   [...markup.matchAll(/class="([^"]*)"/g)].map((m) => m[1])[nth];
 
 describe("Button", () => {
-  const variants = ["primary", "subtle", "warn", "icon", "warnIcon"] as const;
+  const variants = ["primary", "subtle", "warn", "destructive", "icon", "warnIcon"] as const;
   const expected = {
     primary: classes.primaryButtonClass,
     subtle: classes.subtleButtonClass,
     warn: classes.warnButtonClass,
+    destructive: classes.destructiveButtonClass,
     icon: classes.iconButtonClass,
     warnIcon: classes.warnIconButtonClass,
   };
@@ -74,6 +76,33 @@ describe("Button", () => {
       expect(classOf(markup), variant).toBe(expected[variant]);
       expect(line(body, `Button variant=${variant}`)).toBe(expected[variant]);
     }
+  });
+
+  it("destructive renders the filled red string and works with pending and pendingLabel", () => {
+    const markup = html(createElement(Button, { variant: "destructive", children: "Reject submission" }));
+    expect(classOf(markup)).toBe(classes.destructiveButtonClass);
+    expect(markup).toContain('type="button"');
+    const pending = html(
+      createElement(Button, { variant: "destructive", pending: true, pendingLabel: "Rejecting…", children: "Reject submission" }),
+    );
+    expect(classOf(pending)).toBe(classes.destructiveButtonClass);
+    expect(pending).toMatch(/<button[^>]* disabled=""/);
+    expect(pending).toContain('aria-busy="true"');
+    expect(pending).toContain(">Rejecting…<");
+    expect(html(createElement(Button, { variant: "destructive", pending: true, children: "Reject" }))).toContain(">Reject…<");
+  });
+
+  it("destructive keeps the other text buttons' touch floor, radius and focus ring, and a border of its own", () => {
+    const tokens = classes.destructiveButtonClass.split(" ");
+    for (const shared of [...classes.touchTarget.split(" "), "rounded-md", ...classes.focusRing.split(" ")]) {
+      expect(tokens, shared).toContain(shared);
+    }
+    // The border is what keeps a filled button visible when forced-colours drops backgrounds.
+    expect(tokens).toContain("border");
+    expect(tokens).toContain("border-health-overdue-fg");
+    expect(tokens).toContain("disabled:opacity-50");
+    // Tokens only: no raw palette class, no arbitrary colour, no motion.
+    expect(classes.destructiveButtonClass).not.toMatch(/\b(?:bg|text|border)-(?:red|rose|slate|gray|zinc|neutral|stone)-|#[0-9a-f]{3,8}|\[#|transition|animate-/i);
   });
 
   it("defaults to type=button, primary, and appends className", () => {

@@ -25,6 +25,12 @@ token or class is a major.
 
 ### Added
 
+- `destructiveButtonClass` and `Button variant="destructive"` (#37), for an
+  action that cannot be undone: reject, withdraw, delete. `health-overdue-fg`
+  fill with a `paper` label (8.92:1), the overdue pill's pair on hover, and a
+  border of its own so it stays a button in forced-colours mode. `warn` stays
+  for an action that can be put back. No new token; two pairs added to
+  `TOKEN_PAIRS`. `ButtonVariant` gains a member.
 - `class-strings.test.ts`: fails when a class string sets a measured property
   twice under one variant, and holds the field weight and the row touch floor.
 
