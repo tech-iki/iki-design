@@ -1,8 +1,10 @@
 import {
   Children,
   Fragment,
+  createElement,
   isValidElement,
   useId,
+  type ComponentProps,
   type ComponentPropsWithoutRef,
   type ReactElement,
   type ReactNode,
@@ -129,7 +131,7 @@ export function RailBrand({
   mark: ReactNode;
   href?: string;
   render?: LinkRender;
-} & Omit<ComponentPropsWithoutRef<"a">, "children" | "href">) {
+} & Omit<ComponentProps<"a">, "children" | "href">) {
   return renderLink(
     {
       ...rest,
@@ -155,23 +157,29 @@ export function RailBrand({
  * screen reader hears "Admin, list, 3 items". While the rail is narrow the
  * heading is visually hidden — still the list's name — and a rule takes its
  * place, as in Work OS. Each child becomes one `<li>`; a fragment's children
- * count one by one. `...rest` reaches the group's `<div>`.
+ * count one by one. The heading is an `<h2>` unless `headingLevel` says
+ * otherwise, for an app whose outline puts the rail deeper. `...rest`
+ * reaches the group's `<div>`.
  */
 export function NavGroup({
   heading,
+  headingLevel = 2,
   className,
   children,
   ...rest
 }: {
   heading: string;
+  headingLevel?: 2 | 3 | 4 | 5 | 6;
   children: ReactNode;
 } & ComponentPropsWithoutRef<"div">) {
   const id = useId();
   return (
     <div {...rest} className={joinClasses(navGroupClass, className)}>
-      <h2 id={id} className={joinClasses(navHeadingClass, railLabelClass)}>
-        {heading}
-      </h2>
+      {createElement(
+        `h${headingLevel}`,
+        { id, className: joinClasses(navHeadingClass, railLabelClass) },
+        heading,
+      )}
       <hr aria-hidden="true" className={navDividerClass} />
       <ItemList aria-labelledby={id}>{children}</ItemList>
     </div>
@@ -215,11 +223,15 @@ type NavLinkTarget = { href: string; render?: undefined } | { href?: string; ren
  *
  * Give `href` for a plain `<a>`, or `render` for the router's link
  * (`link-render.ts`): `render={<Link href="/calls" />}` in Next,
- * `render={<Link to="/calls" />}` in React Router. The package's classes,
+ * `render={<Link to="/calls" />}` in React Router — the router's `Link`,
+ * never its `NavLink`, which overrides `aria-current` with its own matching
+ * (`link-render.ts`): `current` is the single source. The package's classes,
  * `aria-current` and the icon and label land on that element. `icon` is an
  * `IconName` or an element (an `<svg aria-hidden>` of the app's own).
- * `...rest` (`title`, `prefetch` is the router's and goes on its element)
- * reaches the link.
+ * `...rest` (`title`, `ref`, `onClick`; `prefetch` is the router's and goes
+ * on its element) reaches the link. An icon-only link's name is its hidden
+ * label; give it a `title` (or wrap it in the package's `Tooltip`) too, so a
+ * sighted mouse user on the narrow rail can read it.
  */
 export function NavLink({
   href,
@@ -234,7 +246,7 @@ export function NavLink({
   current?: boolean | "page" | "true";
   /** The label: the visible words while wide, the accessible name always. */
   children: ReactNode;
-} & Omit<ComponentPropsWithoutRef<"a">, "href" | "children" | "aria-current">) {
+} & Omit<ComponentProps<"a">, "href" | "children" | "aria-current">) {
   const state = ariaCurrent(current);
   return renderLink(
     {
@@ -263,7 +275,7 @@ export function NavButton({
 }: {
   icon: NavIcon;
   children: ReactNode;
-} & Omit<ComponentPropsWithoutRef<"button">, "children">) {
+} & Omit<ComponentProps<"button">, "children">) {
   return (
     <button
       {...rest}

@@ -71,6 +71,17 @@ describe("isActivePath", () => {
     expect(isActivePath("/tasks/summary-old", "/tasks", { exclude })).toBe(true);
   });
 
+  it("excludes only the root page when the exclusion is /, as / is exact everywhere", () => {
+    expect(isActivePath("/", "/", { exclude: ["/"] })).toBe(false);
+    expect(isActivePath("/calls", "/calls", { exclude: ["/"] })).toBe(true);
+    expect(isActivePath("/calls/42", "/calls", { exclude: ["/"] })).toBe(true);
+  });
+
+  it("matches every saved view of a page, by design: the query is the app's to compare", () => {
+    expect(isActivePath("/calls", "/calls?view=late")).toBe(true);
+    expect(isActivePath("/calls?view=open", "/calls?view=late")).toBe(true);
+  });
+
   it("lets the child itself be current where the parent is not", () => {
     expect(isActivePath("/tasks/summary", "/tasks/summary")).toBe(true);
     expect(isActivePath("/people/me", "/people", { exclude: ["/people/me"] })).toBe(false);

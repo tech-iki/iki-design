@@ -28,6 +28,11 @@ minor: everything is new, and no existing prop, class string or token changes.
   slot's link, named by its words at every width. `SkipLink` targets
   `PageMain`'s main through the new `MAIN_CONTENT_ID`, and carries
   `focusRing` on a paper shadow, so the ring holds 5.19:1 over the navy rail.
+  The rail is `h-dvh`, so iOS Safari's toolbar never covers the foot, and
+  hides its scrollbar where it is 56px wide. `NavGroup` takes `headingLevel`
+  (2 to 6); the links and `NavButton` take a `ref`. None of the shell depends
+  on Tailwind's Preflight (#33): each string resets the defaults it would
+  otherwise inherit.
 - `isActivePath(pathname, href, { exact, exclude })`: Work OS's
   segment-boundary match with child exclusion, pure and tested — `/` exact,
   `/calls` never current on `/calls-admin`, query, hash and trailing slashes
@@ -37,7 +42,10 @@ minor: everything is new, and no existing prop, class string or token changes.
   component takes `render`, an element (`<Link href>` from Next,
   `<Link to>` from React Router) that is cloned, or a function of the props;
   the package's classes, `aria-current` and children land on it, its own
-  props stay. No hooks, so it works in a Server Component. `Pagination`,
+  props stay, and an `on…` handler on both runs the element's first. Pass the
+  router's `Link`, never React Router's `NavLink`, which overrides
+  `aria-current` with its own matching: the package's `current` is the
+  single source. No hooks, so it works in a Server Component. `Pagination`,
   `PrevNextNav` and `BackLink` (#20, #22) are to reuse it. Written once in §7.
 - The shell's class strings in `ui-classes.ts` — `skipLinkClass`, `railClass`,
   `railHeaderClass`, `railNavClass`, `railGroupsClass`, `railFootClass`,

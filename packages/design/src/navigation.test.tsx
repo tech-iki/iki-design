@@ -131,18 +131,49 @@ describe("renderLink: the router-link convention", () => {
     expect(link.className).toBe("pkg");
   });
 
-  it("appends a function className's result, as React Router's NavLink takes", () => {
+  /*
+   * The limitation, held so it cannot be forgotten: a link that works out its
+   * own aria-current, as React Router's NavLink does, overrides the package
+   * whatever it is given. That is why the rule is "pass the router's Link,
+   * not its NavLink" (link-render.ts, §7).
+   */
+  it("cannot stop a NavLink-like link from overriding aria-current: use Link", () => {
+    render(
+      <>
+        {renderLink({ className: "pkg", children: "Calls", "aria-current": undefined }, <RouterLikeNavLink to="/calls" isActive />)}
+        {renderLink({ className: "pkg", children: "Library", "aria-current": "page" }, <RouterLikeNavLink to="/library" />)}
+      </>,
+    );
+    // current false, router active: a second current page appears.
+    expect(screen.getByRole("link", { name: "Calls" }).getAttribute("aria-current")).toBe("page");
+    // current true, router inactive: the attribute is lost.
+    expect(screen.getByRole("link", { name: "Library" }).hasAttribute("aria-current")).toBe(false);
+  });
+
+  it("takes only a string className from the element; a function is not supported", () => {
+    render(<>{renderLink(base, <RouterLikeNavLink to="/calls" className={() => "on"} />)}</>);
+    expect(screen.getByRole("link", { name: "Calls" }).className).toBe("pkg");
+  });
+
+  it("runs both handlers when both are given: the element's first, then the component's", () => {
+    const calls: string[] = [];
     render(
       <>
         {renderLink(
-          base,
-          <RouterLikeNavLink to="/calls" isActive className={({ isActive }) => (isActive ? "on" : "off")} />,
+          { ...base, onClick: (e) => { e.preventDefault(); calls.push("component"); } },
+          <NextLikeLink href="/calls" onClick={() => calls.push("element")} />,
         )}
       </>,
     );
-    const link = screen.getByRole("link", { name: "Calls" });
-    expect(link.className).toBe("pkg on");
-    expect(link.getAttribute("aria-current")).toBe("page");
+    screen.getByRole("link", { name: "Calls" }).click();
+    expect(calls).toEqual(["element", "component"]);
+  });
+
+  it("keeps the element's handler when the component has none", () => {
+    const calls: string[] = [];
+    render(<>{renderLink(base, <NextLikeLink href="/calls" onClick={(e) => { e.preventDefault(); calls.push("element"); }} />)}</>);
+    screen.getByRole("link", { name: "Calls" }).click();
+    expect(calls).toEqual(["element"]);
   });
 
   it("takes a function, handing it the props to spread", () => {
@@ -322,7 +353,7 @@ describe("NavButton", () => {
   });
 });
 
-describe("the 44px target, at every width (WCAG 2.5.5)", () => {
+describe("the 44px target, at every width (WCAG 2.5.5, AAA, as §10 cites it)", () => {
   const tokens = (s: string) => s.split(/\s+/);
 
   it("holds on every rail item, link and button, and is never released at a breakpoint", () => {
@@ -387,6 +418,112 @@ describe("the current page in forced colours, and no motion", () => {
     const shell = Object.entries(classes).filter(([name]) => /^(?:nav|rail|skipLink)/.test(name));
     expect(shell.length).toBeGreaterThanOrEqual(15);
     for (const [name, value] of shell) expect(value, name).not.toMatch(/\b(?:transition|duration|animate|ease)-/);
+  });
+});
+
+describe("refs reach the element, on every link and button", () => {
+  it("NavLink (plain), NavLink (router), RailBrand, SkipLink and NavButton", () => {
+    const plain = createRef<HTMLAnchorElement>();
+    const routed = createRef<HTMLAnchorElement>();
+    const brand = createRef<HTMLAnchorElement>();
+    const skip = createRef<HTMLAnchorElement>();
+    const button = createRef<HTMLButtonElement>();
+    render(
+      <>
+        <SkipLink ref={skip} />
+        <RailBrand ref={brand} name="IKI" mark={<svg />} />
+        <NavLink ref={plain} href="/a" icon="tasks">
+          A
+        </NavLink>
+        <NavLink ref={routed} render={<RouterLikeLink to="/b" />} icon="tasks">
+          B
+        </NavLink>
+        <NavButton ref={button} icon="signOut">
+          Sign out
+        </NavButton>
+      </>,
+    );
+    expect(skip.current).toBe(screen.getByRole("link", { name: "Skip to content" }));
+    expect(brand.current).toBe(screen.getByRole("link", { name: "IKI" }));
+    expect(plain.current).toBe(screen.getByRole("link", { name: "A" }));
+    expect(routed.current).toBe(screen.getByRole("link", { name: "B" }));
+    expect(button.current).toBe(screen.getByRole("button", { name: "Sign out" }));
+  });
+});
+
+/**
+ * The Digital Library runs without Tailwind's Preflight (#33), so the shell's
+ * strings reset each browser default they would otherwise inherit. Each row
+ * is an element the shell renders and the classes that undo its defaults.
+ */
+describe("no Preflight needed", () => {
+  const has = (value: string, ...expected: string[]) =>
+    expect(value.split(/\s+/)).toEqual(expect.arrayContaining(expected));
+
+  it("resets the lists' margin, padding and bullets", () => {
+    has(classes.navListClass, "m-0", "p-0", "list-none");
+  });
+
+  it("draws the <hr> as a 1px solid top rule with its own margins", () => {
+    has(classes.navDividerClass, "mt-0", "mx-2", "mb-2", "h-0", "border-x-0", "border-b-0", "border-t", "border-solid");
+  });
+
+  it("resets the heading's margin and sets its own size and weight", () => {
+    has(classes.navHeadingClass, "m-0", "text-[11px]", "font-semibold");
+  });
+
+  it("takes the underline and the link colour off every link", () => {
+    has(classes.navItemClass, "no-underline");
+    has(classes.navItemIdleClass, "text-paper/75");
+    has(classes.navItemCurrentClass, "text-paper");
+    has(classes.railBrandClass, "no-underline", "text-paper");
+    has(classes.skipLinkClass, "no-underline", "text-ink");
+  });
+
+  it("takes the native border, fill, margin and font off the button", () => {
+    has(classes.navButtonClass, "m-0", "border-0", "bg-transparent", "appearance-none", "[font-family:inherit]");
+  });
+
+  it("sizes the padded targets by their border box", () => {
+    for (const name of ["navItemClass", "railBrandClass", "skipLinkClass"] as const) has(classes[name], "box-border");
+  });
+
+  it("renders those elements with those strings", () => {
+    render(
+      <Rail foot={<NavButton icon="signOut">Sign out</NavButton>}>
+        <NavGroup heading="Work">
+          <NavLink href="/a" icon="tasks">
+            A
+          </NavLink>
+        </NavGroup>
+      </Rail>,
+    );
+    for (const ul of document.querySelectorAll("ul")) expect(ul.className).toBe(classes.navListClass);
+    expect(document.querySelector("hr")!.className).toBe(classes.navDividerClass);
+    expect(hasClasses(screen.getByRole("button"), classes.navButtonClass)).toBe(true);
+  });
+});
+
+describe("the rail's height and its scrollbar", () => {
+  it("is the dynamic viewport height, so iOS Safari's toolbar never covers the foot", () => {
+    const t = classes.railClass.split(" ");
+    expect(t).toContain("h-dvh");
+    expect(t).not.toContain("h-screen");
+  });
+
+  it("hides the scrollbar where the rail is 56px, and keeps the list scrollable", () => {
+    const t = classes.railGroupsClass.split(" ");
+    expect(t).toEqual(
+      expect.arrayContaining([
+        "overflow-y-auto",
+        "overflow-x-hidden",
+        "max-lg:[scrollbar-width:none]",
+        "max-lg:[&::-webkit-scrollbar]:hidden",
+        "group-data-collapsed/rail:[scrollbar-width:none]",
+        "group-data-collapsed/rail:[&::-webkit-scrollbar]:hidden",
+      ]),
+    );
+    expect(t.filter((c) => /^(?:lg:)?\[scrollbar-width/.test(c))).toEqual([]);
   });
 });
 
@@ -537,6 +674,27 @@ describe("Rail and NavGroup", () => {
     expect(screen.getByRole("link", { name: "IKI design" }).getAttribute("href")).toBe("/");
   });
 
+  it("takes a heading level, h2 by default", () => {
+    render(
+      <>
+        <NavGroup heading="Default">
+          <NavLink href="/a" icon="tasks">
+            A
+          </NavLink>
+        </NavGroup>
+        <NavGroup heading="Deeper" headingLevel={4}>
+          <NavLink href="/b" icon="tasks">
+            B
+          </NavLink>
+        </NavGroup>
+      </>,
+    );
+    expect(screen.getByRole("heading", { level: 2, name: "Default" })).toBeTruthy();
+    const deeper = screen.getByRole("heading", { level: 4, name: "Deeper" });
+    expect(deeper.className).toBe(`${classes.navHeadingClass} ${classes.railLabelClass}`);
+    expect(screen.getByRole("list", { name: "Deeper" })).toBeTruthy();
+  });
+
   it("gives two groups on one page distinct heading ids", () => {
     render(<Shell />);
     const ids = [...document.querySelectorAll("h2")].map((h) => h.id);
@@ -582,6 +740,10 @@ export function _typeChecks(): ReactNode[] {
     <NavLink href="/" icon="not-an-icon">x</NavLink>,
     // @ts-expect-error a NavButton has no current
     <NavButton icon="signOut" current>x</NavButton>,
+    // @ts-expect-error a heading level is 2 to 6
+    <NavGroup heading="x" headingLevel={1}>x</NavGroup>,
+    // @ts-expect-error a link's ref is an anchor's
+    <NavLink href="/" icon="tasks" ref={createRef<HTMLButtonElement>()}>x</NavLink>,
     <NavLink key="ok" render={<RouterLikeLink to="/" />} icon="tasks">x</NavLink>,
   ];
 }

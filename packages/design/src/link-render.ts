@@ -19,13 +19,25 @@
  *
  * Without `render` it is an `<a>`, so a server-rendered app passes nothing.
  *
+ * **Pass the router's `Link`, not its `NavLink`: the package's `current` is
+ * the single source of the current page.** React Router's `NavLink` (and any
+ * link that works out its own `aria-current`) decides the attribute after
+ * the props it is given, so it can always override the package: probed with
+ * react-router 7, `current={false}` on a route its matching calls active
+ * still rendered `aria-current="page"`, a second current page, and
+ * `current` where it disagreed drew the current look with no attribute. No
+ * prop can stop a component from overriding its own output, and reading its
+ * state would take a hook, so this is a rule, not a fix: `Link` and a plain
+ * `<a>` render exactly what the package says.
+ *
  * Who owns what, when the package's props meet the element's:
  *
  * | Prop | Result |
  * | --- | --- |
- * | `className` | Both: the package's classes, then the element's. A function `className` (React Router's `NavLink`) is wrapped so its result is appended too. |
- * | `aria-current` | The package's, always: it comes from the `current` the app computed, and the look follows the same value. |
+ * | `className` | Both: the package's classes, then the element's (a string; a function `className` is not supported). |
+ * | `aria-current` | The package's: it comes from the `current` the app computed, and the look follows the same value. True for `Link` and `<a>`; see above for a link that computes its own. |
  * | `children` | The package's: the icon and label it lays out. The element's own children are dropped. |
+ * | `on*` handlers | Both, when both are given: the element's runs first, then the component's. |
  * | anything else | The element's, unless the component was given the same prop with a value: an `href` on `NavLink` beats one on the element. |
  *
  * Server-safe by construction: `cloneElement`, `createElement` and
@@ -37,13 +49,13 @@ import {
   cloneElement,
   createElement,
   isValidElement,
-  type ComponentPropsWithoutRef,
+  type ComponentProps,
   type ReactElement,
   type ReactNode,
 } from "react";
 
 /** What a link-shaped component hands to the link it renders. */
-export type LinkSlotProps = Omit<ComponentPropsWithoutRef<"a">, "className" | "children"> & {
+export type LinkSlotProps = Omit<ComponentProps<"a">, "className" | "children"> & {
   className: string;
   children?: ReactNode;
 };
@@ -78,15 +90,21 @@ export function renderLink(props: LinkSlotProps, render?: LinkRender): ReactNode
   }
 
   const { className, children, "aria-current": current, ...rest } = props;
-  const theirs = (render.props as { className?: unknown }).className;
-  const merged =
-    typeof theirs === "function"
-      ? (state: unknown) => joinClasses(className, (theirs as (s: unknown) => string | undefined)(state))
-      : joinClasses(className, typeof theirs === "string" ? theirs : undefined);
+  const own = render.props as Record<string, unknown>;
+  const given = defined(rest);
+  for (const [name, handler] of Object.entries(given)) {
+    const theirs = own[name];
+    if (/^on[A-Z]/.test(name) && typeof handler === "function" && typeof theirs === "function") {
+      given[name] = (...args: unknown[]) => {
+        theirs(...args);
+        handler(...args);
+      };
+    }
+  }
 
   return cloneElement(render as ReactElement<Record<string, unknown>>, {
-    ...defined(rest),
-    className: merged,
+    ...given,
+    className: joinClasses(className, typeof own.className === "string" ? own.className : undefined),
     "aria-current": current,
     children,
   });

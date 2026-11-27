@@ -233,7 +233,8 @@ const ROUTER_USE = `// Next.js: hand NavLink the router's Link; aria-current and
 import Link from "next/link";
 <NavLink render={<Link href="/calls" />} icon="tasks" current={isActivePath(pathname, "/calls")}>Calls</NavLink>
 
-// React Router: Link takes \`to\`; the app's own matching goes through isActivePath.
+// React Router: its Link, never its NavLink, which overrides aria-current with
+// its own matching. Link takes \`to\`; the app's matching goes through isActivePath.
 import { Link, useLocation } from "react-router";
 const { pathname } = useLocation();
 <NavLink render={<Link to="/calls" />} icon="tasks" current={isActivePath(pathname, "/calls")}>Calls</NavLink>
@@ -652,7 +653,12 @@ export default function ComponentsPage() {
           the props. The package’s classes, <Mono>aria-current</Mono> and the
           icon and label land on the router’s link, and its own props (
           <Mono>href</Mono>, <Mono>to</Mono>, <Mono>prefetch</Mono>) stay.
-          Without it the link is a plain <Mono>&lt;a&gt;</Mono>.{" "}
+          Without it the link is a plain <Mono>&lt;a&gt;</Mono>. Pass the
+          router’s <Mono>Link</Mono>, not React Router’s{" "}
+          <Mono>NavLink</Mono>: that one works out{" "}
+          <Mono>aria-current</Mono> from its own matching and overrides the
+          package, so a page could have two current links or none. The
+          package’s <Mono>current</Mono> is the single source.{" "}
           <Mono>Pagination</Mono> and <Mono>BackLink</Mono> will take the same
           prop.
         </P>

@@ -1,4 +1,4 @@
-import type { ComponentPropsWithoutRef, ReactNode } from "react";
+import type { ComponentProps, ReactNode } from "react";
 
 import { skipLinkClass } from "../ui-classes.js";
 
@@ -17,8 +17,8 @@ export const MAIN_CONTENT_ID = "main-content";
  * focusable so the jump moves the caret as well as the scroll. A plain
  * `<a href="#…">` on purpose, never the router's link: a fragment is not a
  * route, and both Next and React Router leave a plain anchor to the browser.
- * `targetId` is for a page whose main landmark is not `PageMain`; `...rest`
- * reaches the anchor.
+ * `targetId` is for a page whose main landmark is not `PageMain`; `...rest`,
+ * `ref` included, reaches the anchor.
  */
 export function SkipLink({
   targetId = MAIN_CONTENT_ID,
@@ -28,7 +28,7 @@ export function SkipLink({
 }: {
   targetId?: string;
   children?: ReactNode;
-} & Omit<ComponentPropsWithoutRef<"a">, "href">) {
+} & Omit<ComponentProps<"a">, "href">) {
   return (
     <a {...rest} href={`#${targetId}`} className={className ? `${skipLinkClass} ${className}` : skipLinkClass}>
       {children}

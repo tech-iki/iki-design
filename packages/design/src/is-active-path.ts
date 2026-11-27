@@ -17,10 +17,14 @@
  *   so the parent gives up the state there and a screen reader never hears
  *   two current pages: `isActivePath("/tasks/summary", "/tasks", { exclude:
  *   ["/tasks/summary"] })` is false. Each is matched on a segment boundary
- *   too, so it takes the excluded page's descendants with it.
+ *   too, so it takes the excluded page's descendants with it — except `/`,
+ *   which is exact here as everywhere: `exclude: ["/"]` excludes the root
+ *   page alone, never the whole site.
  * - **Query and hash are ignored**, on both sides, and so are trailing
- *   slashes: `/calls/?page=2#top` is `/calls`. A link whose meaning is its
- *   query (a saved view, `?view=late`) is the app's to compare.
+ *   slashes: `/calls/?page=2#top` is `/calls`. So by design
+ *   `isActivePath("/calls", "/calls?view=late")` is true, as is every saved
+ *   view of `/calls`: a link whose meaning is its query is the app's to
+ *   compare.
  * - **An `href` that is not a path** — `https://…`, `mailto:`, a relative
  *   `calls`, an empty string — is never current.
  *
