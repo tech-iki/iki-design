@@ -8,6 +8,7 @@ import {
   TOUCH_TARGET_PX,
   cellCursor,
   cellHover,
+  destructiveButtonClass,
   fieldClass,
   focusRing,
   focusRingOnNavy,
@@ -104,6 +105,18 @@ export default function ControlsPage() {
         >
           <button type="button" className={warnButtonClass}>
             Move to Trash
+          </button>
+        </Specimen>
+        <Specimen
+          name="destructiveButtonClass"
+          note="Final and consequential: reject, withdraw, delete. Not `warn`, which is for what can be put back. Filled overdue red with a `paper` label, 2px taller than primary at `md` and up for its border (38px against 36px; both 44px below `md`); it takes the overdue pill's pair on hover. The words carry the meaning, and the confirm step stays in words."
+          classString={destructiveButtonClass}
+        >
+          <button type="button" className={destructiveButtonClass}>
+            Reject submission
+          </button>
+          <button type="button" disabled className={destructiveButtonClass}>
+            Rejecting…
           </button>
         </Specimen>
         <Specimen

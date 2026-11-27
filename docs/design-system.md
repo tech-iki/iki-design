@@ -694,6 +694,7 @@ focusRingOnNavy      focus-visible:outline-2 focus-visible:outline-offset-2 focu
 primaryButtonClass   {touchTarget} rounded-md bg-teal-deep px-3 py-2 text-sm font-semibold text-paper hover:bg-navy disabled:opacity-50 {focusRing}
 subtleButtonClass    {touchTarget} rounded-md border border-grid-strong px-2.5 py-1.5 text-xs text-ink hover:bg-teal-soft disabled:opacity-50 {focusRing}
 warnButtonClass      {touchTarget} rounded-md border border-warm-fg/70 px-2.5 py-1.5 text-xs text-warm-fg hover:bg-warm-bg disabled:opacity-50 {focusRing}
+destructiveButtonClass  {touchTarget} rounded-md border border-health-overdue-fg bg-health-overdue-fg px-3 py-2 text-sm font-semibold text-paper hover:bg-health-overdue-bg hover:text-health-overdue-fg disabled:opacity-50 {focusRing}
 iconButtonClass      {touchTarget} inline-flex items-center justify-center rounded-md p-1.5 text-ink-muted hover:bg-teal-soft hover:text-ink disabled:opacity-50 {focusRing}
 warnIconButtonClass  {touchTarget} inline-flex items-center justify-center rounded-md p-1.5 text-warm-fg hover:bg-warm-bg disabled:opacity-50 {focusRing}
 primaryLinkButtonClass  {primaryButtonClass} inline-flex items-center justify-center no-underline
@@ -705,6 +706,14 @@ linkClass            text-teal-deep underline hover:text-navy rounded-xs {focusR
 - **Warn is destructive but reversible** — warm, not alarming, because the task
   goes to Trash and can be restored. The border is `/70`, not `/40`, because
   `/40` composited to 1.92:1.
+- **Destructive is for an action that cannot be undone** — reject, withdraw,
+  delete. Pick `warn` when the action can be put back (Trash) and `destructive`
+  when it cannot. It is filled `health-overdue-fg` with a `paper` label (8.92:1)
+  in primary's type and padding, and its border is the same red so it stays a
+  visible button in forced-colours mode. The 1px border makes it 2px taller and
+  wider than primary at `md` and up (38px against 36px); below `md` both are 44px. On hover it inverts to the overdue pill's pair
+  (6.10:1). The label carries the meaning, not the colour, and the confirm step
+  stays in words.
 - **An icon button is 28px square** (`p-1.5` on a 16px glyph) and keeps the 44px
   floor below `md`. The name lives in an `sr-only` span and a `title`; the glyph
   is `aria-hidden`. **A confirm step stays in words** — a resting action can be
@@ -760,7 +769,7 @@ Field        <div>    flex flex-col gap-1
   hint       text-xs text-ink-muted
 ```
 
-`Button` is one of the five strings above with the two things every call site
+`Button` is one of the six strings above with the two things every call site
 had to remember: `type="button"` unless told otherwise, and the pending state.
 
 <!-- components:button -->
@@ -768,6 +777,7 @@ had to remember: `type="button"` unless told otherwise, and the pending state.
 Button variant=primary   {primaryButtonClass}
 Button variant=subtle    {subtleButtonClass}
 Button variant=warn      {warnButtonClass}
+Button variant=destructive  {destructiveButtonClass}
 Button variant=icon      {iconButtonClass}
 Button variant=warnIcon  {warnIconButtonClass}
   pending                disabled, aria-busy, the verb with an ellipsis: "Save" → "Save…", or pendingLabel

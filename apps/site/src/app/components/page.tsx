@@ -45,6 +45,7 @@ export const metadata: Metadata = {
 const BUTTON_USE = `<Button>Save task</Button>
 <Button variant="subtle">Download PDF</Button>
 <Button variant="warn">Move to Trash</Button>
+<Button variant="destructive">Reject submission</Button>
 
 {/* pending disables the button, sets aria-busy, and says the verb in progress */}
 <Button pending>Save</Button>
@@ -226,15 +227,16 @@ export default function ComponentsPage() {
 
       <Section title="Button">
         <P>
-          One component for the five control classes. <Mono>variant</Mono>{" "}
+          One component for the six control classes. <Mono>variant</Mono>{" "}
           defaults to <Mono>primary</Mono> and <Mono>type</Mono> to{" "}
           <Mono>button</Mono>, so a button never submits a form by accident.
           Every other prop goes to the element.
         </P>
-        <Specimen name="variant" note="The five variants, in order of weight.">
+        <Specimen name="variant" note="The six variants. `destructive` is as heavy as `primary` and `warn` is lighter; `warn` is for an action that can be put back, `destructive` for one that cannot.">
           <Button>Save task</Button>
           <Button variant="subtle">Download PDF</Button>
           <Button variant="warn">Move to Trash</Button>
+          <Button variant="destructive">Reject submission</Button>
           <Button variant="icon" title="Expand">
             <Icon name="expand" />
             <span className="sr-only">Expand</span>
@@ -251,6 +253,9 @@ export default function ComponentsPage() {
           <Button pending>Save</Button>
           <Button pending pendingLabel="Sending invitation…">
             Invite
+          </Button>
+          <Button variant="destructive" pending pendingLabel="Rejecting…">
+            Reject submission
           </Button>
           <Button disabled>Save task</Button>
         </Specimen>

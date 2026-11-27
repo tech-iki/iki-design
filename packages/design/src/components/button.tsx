@@ -1,6 +1,7 @@
 import type { ComponentPropsWithRef, ReactNode } from "react";
 
 import {
+  destructiveButtonClass,
   iconButtonClass,
   primaryButtonClass,
   subtleButtonClass,
@@ -8,13 +9,24 @@ import {
   warnIconButtonClass,
 } from "../ui-classes.js";
 
-/** The five button treatments §8 names, each the class string of the same name. */
-export type ButtonVariant = "primary" | "subtle" | "warn" | "icon" | "warnIcon";
+/**
+ * The button treatments §8 names, each the class string of the same name.
+ * `warn` is for an action that can be undone; `destructive` is for one that
+ * cannot (reject, withdraw, delete).
+ */
+export type ButtonVariant =
+  | "primary"
+  | "subtle"
+  | "warn"
+  | "destructive"
+  | "icon"
+  | "warnIcon";
 
 const VARIANT_CLASS: Readonly<Record<ButtonVariant, string>> = {
   primary: primaryButtonClass,
   subtle: subtleButtonClass,
   warn: warnButtonClass,
+  destructive: destructiveButtonClass,
   icon: iconButtonClass,
   warnIcon: warnIconButtonClass,
 };
@@ -34,7 +46,7 @@ function pendingForm(children: ReactNode): ReactNode {
 }
 
 /**
- * A button on one of the five class strings (plan of 20 October 2026, phase 0).
+ * A button on one of the six class strings (plan of 20 October 2026, phase 0).
  *
  * The strings in `ui-classes.ts` stay the library: this component chooses one
  * by `variant` and adds nothing to it, so a consumer that keeps writing

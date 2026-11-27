@@ -22,6 +22,15 @@ token or class is a major.
   below `md` applies and the label is not underlined. Colours, border, hover
   and focus ring are the button's, so no contrast pair changes. Held by §8 and
   shown on `/controls` and `/components`. A minor; no existing string changes.
+- `destructiveButtonClass` and `Button variant="destructive"` (#37), for an
+  action that cannot be undone: reject, withdraw, delete. `health-overdue-fg`
+  fill with a `paper` label (8.92:1), the overdue pill's pair on hover, and a
+  border of its own so it stays a button in forced-colours mode. It takes
+  primary's type and padding, so its border makes it 2px taller and wider at
+  `md` and up (38px against 36px); both are 44px below `md`. `warn` stays for an
+  action that can be put back. No new token; two pairs added to `TOKEN_PAIRS`.
+  `ButtonVariant` gains a member, `"destructive"`: a consumer with an exhaustive
+  `Record<ButtonVariant, …>` or `switch` must add the case.
 
 ### Changed
 
