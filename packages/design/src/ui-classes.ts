@@ -640,3 +640,78 @@ export const navItemCurrentClass =
  */
 export const navButtonClass =
   "m-0 w-full cursor-pointer appearance-none border-0 bg-transparent text-left [font-family:inherit] disabled:cursor-not-allowed disabled:opacity-50";
+
+/*
+ * Navigation by links (§8; #20, #22): `Pagination`, `PrevNextNav`, `ViewSwitch`
+ * and `BackLink`. A `<nav>` holding a list of items, each one a link, the
+ * current place, an unavailable end, or a status. Nothing here is a button,
+ * and nothing moves: no transition, no animation.
+ *
+ * Built as the rail's are (`navItemClass`, `navItemIdleClass`,
+ * `navItemCurrentClass`): a base with no text colour, and one state string for
+ * the colour, so no element ever carries two text colours and the stylesheet's
+ * order never decides which one it gets. An idle link is `linkNavLinkClass` +
+ * `linkNavIdleClass`; the current place is `linkNavItemClass` (a span) or
+ * `linkNavLinkClass` (a link) + `linkNavCurrentClass`.
+ */
+
+/** The list inside the `<nav>`: a row that wraps rather than overflows a phone, with the list resets spelled out so it needs no Preflight. */
+export const linkNavListClass = "m-0 flex list-none flex-wrap items-center gap-1 p-0";
+
+/**
+ * What every item shares, link or not, so the row has one rhythm: `touchTarget`'s
+ * 44px floor below `md` (WCAG 2.5.5), the rounded box, 14px type. `box-border`,
+ * so the floor is the whole target, padding included, without Preflight. No
+ * colour: that is the state's.
+ */
+export const linkNavItemClass =
+  `${touchTarget} relative box-border inline-flex items-center justify-center gap-1 rounded-md px-3 py-1.5 text-sm`;
+
+/**
+ * An item that is a link: the item, `no-underline` (so a consumer without
+ * Preflight gets no browser underline) and the package's focus ring. No
+ * colour: `linkNavIdleClass` or `linkNavCurrentClass` gives it.
+ */
+export const linkNavLinkClass = `${linkNavItemClass} no-underline ${focusRing}`;
+
+/** A link to somewhere else: `teal-deep`, the tint and `navy` on hover. */
+export const linkNavIdleClass = "text-teal-deep hover:bg-teal-soft hover:text-navy";
+
+/**
+ * Where you are: semibold, `ink`, and a 2px bar along the foot, so it is not
+ * marked by colour alone (§2 principle 2). The bar opts out of forced colours'
+ * repaint (`forced-color-adjust-none`) and takes `CanvasText`, as the rail's
+ * does, so Windows High Contrast still shows it; the weight needs no help.
+ * It follows `linkNavItemClass` on a `<span>` (`PrevNextNav`), or
+ * `linkNavLinkClass` on a link (`ViewSwitch`, which keeps the current view a
+ * link). Never on an element that also has `linkNavIdleClass`.
+ */
+export const linkNavCurrentClass =
+  "font-semibold text-ink after:absolute after:inset-x-3 after:bottom-0 after:h-0.5 after:rounded-full after:bg-teal-deep after:forced-color-adjust-none forced-colors:after:bg-[CanvasText]";
+
+/**
+ * An end with nowhere to go (Previous on page 1, or either end while a page
+ * loads): `ink-muted` and a not-allowed cursor, with no hover. A `<span>`, so
+ * it has no `href` and no tab stop.
+ */
+export const linkNavUnavailableClass = "cursor-not-allowed text-ink-muted";
+
+/** `Pagination`'s "Page N of M": `ink` text on the item, with no bar and no mark, since it is not where the nav's links go. */
+export const linkNavStatusClass = "text-ink";
+
+/**
+ * A label that gives way to its icon below `sm` and stays the accessible
+ * name: `sr-only`, never `hidden`.
+ */
+export const linkNavLabelClass = "max-sm:sr-only";
+
+/**
+ * The back link: `linkClass` (teal, underlined, `navy` on hover, the focus
+ * ring) as a 44px target below `md` with a leading arrow. Nothing here
+ * repeats a utility `linkClass` has, so nothing conflicts; the arrow is an
+ * `<svg>`, which the underline does not touch.
+ */
+export const backLinkClass = `${touchTarget} box-border inline-flex items-center gap-1 ${linkClass}`;
+
+/** The arrow's wrapper: it does not shrink as the label wraps. */
+export const backLinkIconClass = "flex shrink-0";

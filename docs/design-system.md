@@ -630,8 +630,8 @@ so two prefix matches both say "page" unless the app gives the parent an
 ### The router link
 
 **Every link-shaped component in the package takes `render`**: `NavLink`,
-`RailBrand`, and the `Pagination`, `PrevNextNav` and `BackLink` that follow
-(#20, #22) use the same prop, from the same helper, `renderLink` in
+`RailBrand`, and the `Pagination`, `PrevNextNav`, `ViewSwitch` and `BackLink`
+of §8 (#20, #22) use the same prop, from the same helper, `renderLink` in
 `link-render.ts`. A plain `<a href>` is right in a server-rendered app; in a
 client-routed one every click reloads the page and drops the app's state, so
 the app hands the package its router's link. Without `render` the component
@@ -879,7 +879,9 @@ overlays since 0.4.0 (phase 1, client-only); and since 0.5.0 (phase 2)
 `TableFrame`, `Checkbox`, `Radio` and `RadioGroup`, server-safe, and
 `Tooltip`, `Tabs` and `Combobox` on Base UI, client-only (§13); and,
 unreleased, the app shell — `SkipLink`, `Rail`, `RailBrand`, `NavGroup`,
-`NavLink`, `NavButton` and `isActivePath` — server-safe, in §7. Every
+`NavLink`, `NavButton` and `isActivePath` — server-safe, in §7 — and the
+navigation by links, `Pagination`, `PrevNextNav`, `ViewSwitch` and `BackLink`,
+server-safe, below. Every
 component passes `...rest` to its root element — or, where the input is the
 control (`Checkbox`, `Radio`, `Combobox`), to the input.
 
@@ -1806,7 +1808,9 @@ Tooltip      wraps one trigger element, usually Button variant=icon, its title r
 ### Tabs
 
 Since 0.5.0, `Tabs`, `TabList`, `Tab` and `TabPanel`, on Base UI's Tabs:
-Work OS's one tablist, the policy text editor's Edit and Preview.
+Work OS's one tablist, the policy text editor's Edit and Preview. Tabs hold no
+URL; for views that change the URL (Board and List), see `ViewSwitch` in "Link
+navigation" below.
 
 <!-- classes:tabs -->
 ```
@@ -1884,6 +1888,148 @@ Combobox   <input role="combobox">   {fieldClass} | {smallFieldClass} when size=
   cursor right (left with Shift); that is grid behaviour, not the
   combobox's, and the #443 port keeps it in the grid's own key handling
   around the cell rather than in this component.
+
+### Link navigation: Pagination, PrevNextNav, ViewSwitch, BackLink
+
+Unreleased (#20, #22). Four server-safe components whose every destination is
+a **link**, not a button: paging, stepping and going back are addressable,
+work without client JavaScript, and open in a new tab. The caller supplies
+every `href` (a builder, `hrefFor(page)`, for pages); nothing here reads the
+router. Each takes `render`, the router's link, by the convention in §7.
+
+```tsx
+// React Router. `to` is the destination, so Pagination and PrevNextNav need the
+// FUNCTION form: an element such as render={<Link to="/" />} would send every
+// page to "/". The element form is right where the destination is the same for
+// every link (BackLink, NavLink).
+import { Link, useSearchParams } from "react-router";
+const routerLink = ({ href, ...props }: LinkSlotProps) => <Link {...props} to={href ?? ""} />;
+
+// Keep the rest of the query: a builder that writes only `?page=` throws away the
+// filters and the sort, and the reader lands on an unfiltered first page.
+const [searchParams] = useSearchParams();
+const hrefFor = (n: number) => {
+  const next = new URLSearchParams(searchParams);
+  next.set("page", String(n));
+  return `?${next}`;
+};
+
+<BackLink render={<Link to="/submissions" />}>Back to submissions</BackLink>
+<Pagination label="Pagination, library" page={page} totalPages={totalPages} hrefFor={hrefFor} render={routerLink} pending={isLoading} />
+// Previous, "Page 2 of 10", Next. Other words: previousLabel, nextLabel, status={(page, total) => `Page ${page} sur ${total}`}
+
+// Next.js: Link takes `href`, and each page's href replaces the element's, so an element is enough.
+<Pagination label="Pagination, library" page={page} totalPages={totalPages} hrefFor={hrefFor} render={<Link href="/" />} />
+<PrevNextNav label="Fortnights" current="13–26 Nov 2026" previous={{ href: "?f=2026-11-13", label: "Previous fortnight" }}
+  next={{ href: "?f=2026-12-11", label: "Next fortnight" }} today={{ href: "?", label: "This fortnight" }} />
+<ViewSwitch label="View" current="board" views={[{ id: "board", href: "?view=board", label: "Board" }, { id: "list", href: "?view=list", label: "List" }]} />
+// PrevNextNav's and ViewSwitch's hrefs keep the rest of the query the same way.
+```
+
+The strings, shown here and held to the code by the doc test:
+
+<!-- classes:linknav -->
+```
+linkNavListClass         m-0 flex list-none flex-wrap items-center gap-1 p-0
+linkNavItemClass         {touchTarget} relative box-border inline-flex items-center justify-center gap-1 rounded-md px-3 py-1.5 text-sm
+linkNavLinkClass         {linkNavItemClass} no-underline {focusRing}
+linkNavIdleClass         text-teal-deep hover:bg-teal-soft hover:text-navy
+linkNavCurrentClass      font-semibold text-ink after:absolute after:inset-x-3 after:bottom-0 after:h-0.5 after:rounded-full after:bg-teal-deep after:forced-color-adjust-none forced-colors:after:bg-[CanvasText]
+linkNavUnavailableClass  cursor-not-allowed text-ink-muted
+linkNavStatusClass       text-ink
+linkNavLabelClass        max-sm:sr-only
+backLinkClass            {touchTarget} box-border inline-flex items-center gap-1 {linkClass}
+backLinkIconClass        flex shrink-0
+```
+
+Built as the rail's are: a base with no text colour and one string for the
+colour, so no element carries two. An idle link is `linkNavLinkClass` +
+`linkNavIdleClass`; the current place is `linkNavItemClass` (a span) or
+`linkNavLinkClass` (a link) + `linkNavCurrentClass`. A test reads every rendered
+element's class attribute and fails on two text colours under one variant,
+because the stylesheet's order, not the attribute's, would decide the winner.
+
+- **`Pagination`** is Previous, "Page N of M", Next. It takes `page`,
+  `totalPages`, `hrefFor(page)`, `label` (required: the `<nav>`'s name; give
+  each one on a page its own), `previousLabel` and `nextLabel` ("Previous",
+  "Next"), `status` (a function of the page and the total, "Page N of M" by
+  default: the words, for other copy or another language), `pending` and
+  `render`. `page` and `totalPages` are whole numbers: a fractional `page` is
+  floored, a fractional `totalPages` rounded up, so a last page is never
+  hidden. `hrefFor` is only ever called with a page that exists.
+  - **Previous and Next are links**, with `rel="prev"` and `rel="next"`. The
+    one that cannot go further is not: `<span role="link" aria-disabled="true">`,
+    muted, with no `href` and no tab stop, so it is announced as unavailable and
+    never reached by Tab (a common pattern; ARIA defines no disabled link).
+    There is no `href="#"` anywhere, and no `aria-disabled` on an element with
+    an `href`. The arrows are `aria-hidden`; the words are the names.
+  - **`pending`** renders both ends as unavailable while the next page loads,
+    as the Digital Library's pagination does today; the status stays.
+  - **The reader is never stranded.** Past the end (page 99 of 10) the status
+    says "Page 99 of 10", Previous links to the last page that exists (10) and
+    Next is unavailable. If the count says one page or none and the reader is
+    on page 5, Previous still goes to page 1. Nothing renders only when there
+    is one page or none *and* the reader is on page 1. `Infinity` is the last
+    page; `NaN` and anything below 1 are page 1.
+  - **The status is plain text,** with no `aria-current` and no
+    `role="status"`: an app's rail already marks the current page, so a second
+    `aria-current` would be heard as two current pages, and paging is a
+    navigation, so a live region would announce on every one.
+  - **No numbered page list**, no ellipsis and no page-size picker: no
+    consumer has them (#20).
+- **`PrevNextNav`** is the period stepper (Work OS's fortnight and holiday-year
+  nav): `label` (required: the `<nav>`'s name, "Fortnights"), `current` (the
+  period's words, a `<span aria-current>`), `ariaCurrent`, `previous` and
+  `next` (`{ href, label }`, left out where there is no such period) and
+  `today` (the way back to now, rendered only when the app passes it).
+  **`ariaCurrent` is `"page"` by default and `"true"` when the page that holds
+  the nav is already the current page of the app's rail or tabs**, as Work OS's
+  holiday-year nav is on its Settings tab (#451), so only one element claims the
+  page; `ViewSwitch` takes the same prop for the same reason. The arrows are
+  `Icon`s, `aria-hidden`; the label shows from `sm` and is the name always.
+- **`ViewSwitch`** is a `<nav>` of links, one per view: `label`, `views`
+  (`{ id, href, label }`), `current` (an `id`) and `render`. The current view
+  stays a link, with `aria-current` (`ariaCurrent`, "page" by default),
+  weight and a bar. **When a
+  `ViewSwitch` is right and when `Tabs` is:** tabs switch panels on one page
+  without leaving it and hold no URL; a view switch changes the URL, so each
+  view is shareable, survives a reload and is the server's to render. Work
+  OS's one-link Board/List toggle becomes this, so both views are visible and
+  the current one is announced.
+- **`BackLink`** is `backLinkClass`: a leading arrow (`icon`, `previous`
+  by default: an `IconName` or the app's own element), `aria-hidden`, 44px
+  below `md`, and the destination in the words: `children` is the whole label
+  and names the place, "Back to submissions", never "Back". It is `linkClass`
+  (teal, underlined, `navy` on hover) as a 44px target; the underline does not
+  touch the arrow, an `<svg>`. `href` or `render`; `...rest` reaches the link.
+- **Targets and focus.** Every link, and the current and unavailable items,
+  carry `touchTarget`: 44px below `md` (WCAG 2.5.5), released at `md`, and
+  `box-border`, so the 44px includes the padding in an app without Preflight.
+  Links carry `focusRing`.
+- **Contrast** needs no new token or pair: teal-deep on paper (the link
+  pair), navy on teal-soft (hover), ink on paper (current and the status), ink-muted on paper (unavailable) are all in `TOKEN_PAIRS`; the bar is teal-deep on paper, held
+  at the link pair's stricter text threshold. An unavailable end is muted but
+  held at 4.5:1 anyway.
+- **Forced colours and motion.** The current bar opts out of the repaint
+  (`forced-color-adjust-none`) and takes `CanvasText`, as the rail's does, and
+  semibold needs no help; no class here is a transition or an animation.
+- **What this changes in the Digital Library** (its #107): `Pagination` today
+  is two `Button`s and a `role="status"` "Page N of M", driven by an
+  `onPageChange` callback, with the caller writing `?page=` itself. It becomes
+  links, so a page is addressable (a URL), opens in a new tab, works before
+  any script has loaded, and is something the router can prefetch; the
+  callback becomes `hrefFor`, and the 15 call sites keep their words. Its 14
+  hand-written "Back to …" links become `BackLink`, which adds the arrow and
+  the 44px floor most of them lack.
+
+What a unit test cannot see, and is stated here instead: that Windows High
+Contrast paints the bar as the classes ask; the measured pixel sizes at each
+breakpoint; and what a screen reader says of a `role="link"` with
+`aria-disabled`. At 320px (288px of content) Previous, "Page N of M" and Next
+need about 215px: below `sm` the two words give way to their arrows, so the
+row is 44px, the status and 44px, plus two 4px gaps. It fits on one row, and the
+list still wraps if the copy is longer. The showcase's `/components` page
+draws each of them, with the site's own router link through `render`.
 
 ### Icons
 
