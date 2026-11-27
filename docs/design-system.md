@@ -69,7 +69,7 @@ disagrees with Work OS's `globals.css`.
    components; a themed library would fight the workbook look (ADR 0003, ADR 0006).
 6. **Measured, not assumed.** Print orientation, row tints, logo legibility on
    navy: each rule cites the number that settled it.
-7. **Density on the desk, room on the phone.** Controls are about 26px tall with
+7. **Density on the desk, room on the phone.** Buttons and fields measure 28–38px with
    a mouse and 44px under a thumb, through a responsive minimum rather than one
    loose size (#63).
 8. **One definition per rule.** Focus rings, button classes, status colours and
@@ -897,8 +897,8 @@ linkClass            text-teal-deep underline hover:text-navy rounded-xs {focusR
 
 <!-- classes:fields -->
 ```
-fieldClass         {touchTarget} rounded-md border border-grid-strong px-3 py-2 text-sm text-ink focus:border-teal-deep disabled:cursor-not-allowed disabled:bg-paper-tint disabled:text-ink-muted {focusRing}
-smallFieldClass    {touchTarget} rounded-md border border-grid-strong px-2 py-1.5 text-sm text-ink focus:border-teal-deep disabled:cursor-not-allowed disabled:bg-paper-tint disabled:text-ink-muted {focusRing}
+fieldClass         {touchTarget} rounded-md border border-grid-strong px-3 py-2 text-sm font-normal text-ink focus:border-teal-deep disabled:cursor-not-allowed disabled:bg-paper-tint disabled:text-ink-muted {focusRing}
+smallFieldClass    {touchTarget} rounded-md border border-grid-strong px-2 py-1.5 text-sm font-normal text-ink focus:border-teal-deep disabled:cursor-not-allowed disabled:bg-paper-tint disabled:text-ink-muted {focusRing}
 invalidFieldMark   border-health-overdue-fg bg-health-overdue-bg
 invalidFieldClass  {fieldClass} border-health-overdue-fg bg-health-overdue-bg
 labelClass         flex flex-col gap-1 text-xs font-medium text-ink
@@ -1504,8 +1504,8 @@ drawerFooterClass          border-t border-grid-strong px-4 py-3
 popoverTriggerClass        {subtleButtonClass} whitespace-nowrap
 popoverTriggerActiveClass  border-teal-deep bg-teal-soft font-semibold
 popoverBadgeClass          ml-1.5 rounded-full bg-teal-deep px-1.5 text-[11px] font-semibold text-paper
-popoverPanelClass          z-30 w-80 rounded-md border border-grid-strong bg-paper p-2 shadow-lg outline-none
-popoverOptionClass         flex items-center gap-2 rounded px-1 py-1 text-sm text-ink hover:bg-teal-soft
+popoverPanelClass          z-30 max-h-(--available-height) w-80 overflow-y-auto rounded-md border border-grid-strong bg-paper p-2 shadow-lg outline-none
+popoverOptionClass         flex min-h-11 md:min-h-0 items-center gap-2 rounded px-1 py-1 text-sm text-ink hover:bg-teal-soft
 ```
 
 The drawer is `role="dialog" aria-modal="true"`, named by its title, portalled
@@ -1574,9 +1574,9 @@ package's strings are these, held to the code:
 
 <!-- classes:menu -->
 ```
-menuTriggerClass  {subtleButtonClass} px-1.5 py-0.5 text-[11px]
-menuClass         z-50 rounded-md border border-grid-strong bg-paper p-1 shadow-lg outline-none
-menuItemClass     block w-full rounded px-2 py-1 text-left text-sm text-ink data-highlighted:bg-teal-soft aria-disabled:text-ink-muted {focusRing}
+menuTriggerClass  {touchTarget} rounded-md border border-grid-strong px-2.5 py-1.5 text-[11px] leading-4 text-ink hover:bg-teal-soft disabled:opacity-50 {focusRing}
+menuClass         z-50 max-h-(--available-height) overflow-y-auto rounded-md border border-grid-strong bg-paper p-1 shadow-lg outline-none
+menuItemClass     block w-full rounded px-2 py-3 text-left text-sm text-ink md:py-1 data-highlighted:bg-teal-soft aria-disabled:text-ink-muted {focusRing}
 ```
 
 Base UI positions it below the trigger (so `fixed` is no longer in the string;
@@ -1757,7 +1757,7 @@ beats scrolling.
 <!-- classes:combobox -->
 ```
 comboboxPopupClass   z-50 max-h-64 w-(--anchor-width) min-w-56 overflow-y-auto rounded-md border border-grid-strong bg-paper p-1 shadow-lg outline-none
-comboboxOptionClass  flex cursor-pointer items-center justify-between gap-2 rounded px-2 py-1 text-sm text-ink data-highlighted:bg-teal-soft data-disabled:cursor-not-allowed data-disabled:text-ink-muted
+comboboxOptionClass  flex min-h-11 md:min-h-0 cursor-pointer items-center justify-between gap-2 rounded px-2 py-1 text-sm text-ink data-highlighted:bg-teal-soft data-disabled:cursor-not-allowed data-disabled:text-ink-muted
 comboboxTickClass    text-teal-deep
 comboboxEmptyClass   px-2 py-1 text-xs text-ink-muted empty:hidden
 ```

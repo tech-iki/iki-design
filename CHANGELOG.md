@@ -8,12 +8,10 @@ token or class is a major.
 
 ## [Unreleased]
 
-The app shell as components (#19), which the showcase site now uses (#23),
-with the three additions the Digital Library needs (its #99 and #101). A
-minor: everything is new, and no existing prop, class string or token changes.
-
 ### Added
 
+- `class-strings.test.ts`: fails when a class string sets a measured property
+  twice under one variant, and holds the field weight and the row touch floor.
 - `SkipLink`, `Rail`, `RailBrand`, `NavGroup`, `NavLink` and `NavButton`:
   §7's navy rail, server-safe (no `"use client"`, no location read), `...rest`
   on each root. `Rail` is an `<aside>` with the brand on top and one named
@@ -73,6 +71,21 @@ minor: everything is new, and no existing prop, class string or token changes.
   skip link has its focus ring. A test renders the rail for every page and
   finds exactly one current link. `/components` shows the rail, collapsed and
   wide, and the router-link convention.
+
+### Fixed
+
+- `fieldClass` and `smallFieldClass` set `font-normal`. `Field` nests the control
+  inside `labelClass`, so typed text had been inheriting the label's 500.
+- `menuItemClass`, `popoverOptionClass` and `comboboxOptionClass` take the 44px
+  touch floor below `md`. They were 28px on a phone. Desktop is unchanged.
+- `menuClass` and `popoverPanelClass` scroll within the height available to them,
+  so a long list of taller rows cannot push its last rows off a phone's screen.
+- `menuTriggerClass` no longer appends `px-1.5 py-0.5`, which never applied
+  (computed `6px 10px`). The padding it renders is unchanged and the string now
+  says so. It sets `leading-4`, so its height moves from 28.7px to 30px, the
+  same as the subtle button.
+- The touch floor cites WCAG 2.5.5 (44px, AAA), not 2.5.8 (24px, AA). Principle 7
+  states the measured 28–38px for buttons and fields in place of "about 26px".
 
 ## [0.5.0] — 2026-10-21
 
