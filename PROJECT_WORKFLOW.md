@@ -134,7 +134,7 @@ substitute a plausible-sounding value to fill either gap.
 - Build artifact type: npm package (`@tech-iki/design` tarball) and a static Next.js site
 - Artifact registry or storage: **not yet configured.** The intended registry is npmjs.com under the
   `@tech-iki` scope; no npm account is logged in on the development machine and the scope has not been
-  claimed. Until it is, consumers install the release tarball: `"@tech-iki/design": "https://github.com/tech-iki/iki-design/releases/download/v0.5.0/tech-iki-design-0.5.0.tgz"`
+  claimed. Until it is, consumers install the release tarball: `"@tech-iki/design": "https://github.com/tech-iki/iki-design/releases/download/v0.6.0/tech-iki-design-0.6.0.tgz"`
   with the package built by its `prepare` script.
 - Artifact digest or checksum command: `npm pack --json -w packages/design` (reports `integrity` and `shasum`)
 - Software bill of materials command: none
