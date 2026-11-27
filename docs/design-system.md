@@ -522,46 +522,244 @@ required on the class itself, because the reset is a floor, not a design.
 
 ### The rail
 
-```tsx
-<aside className={`sticky top-0 flex h-screen shrink-0 flex-col bg-navy print:hidden ${rail.width}`}>
-```
+The shell is six components, imported rather than copied (#19): `SkipLink`,
+`Rail`, `RailBrand`, `NavGroup`, `NavLink` and `NavButton`, with
+`isActivePath` to say which link is current. They are drawn from Work OS's
+`app-sidebar.tsx` and are **server-safe**: nothing in them reads the location,
+so the same parts serve Next (Work OS, the members portal) and React Router
+(the Digital Library). The app computes "current" and passes it in.
 
-```ts
-// The width and visibility matrix, Work OS's src/components/app-sidebar.tsx
-function railClasses(collapsed: boolean) {
-  return {
-    width:    collapsed ? "w-14"                : "w-14 lg:w-56",
-    label:    collapsed ? "sr-only"             : "max-lg:sr-only",
-    chrome:   collapsed ? "hidden"              : "max-lg:hidden",
-    railOnly: collapsed ? ""                    : "lg:hidden",
-    row:      collapsed ? "justify-center px-0" : "justify-center px-0 lg:justify-start lg:px-3",
-    header:   collapsed ? "flex-col gap-1"      : "flex-col gap-1 lg:flex-row lg:gap-2",
-  };
-}
+```tsx
+// `pathname` is the router's: see isActivePath below.
+<body>
+  <SkipLink />
+  <Rail
+    collapsed={collapsed}                          // the cookie, read on the server
+    brand={<RailBrand name="IKI Library" mark={<img src="/iki-mark-white.png" alt="" className="size-7" />} />}
+    foot={
+      <>
+        <NavLink href="/guide" icon="guide" current={isActivePath(pathname, "/guide")}>Guide</NavLink>
+        <NavButton icon="signOut" onClick={signOut}>Sign out</NavButton>  {/* in a Next layout: a form action, type="submit" */}
+      </>
+    }
+  >
+    <NavGroup heading="Work">
+      <NavLink href="/tasks" icon="tasks" current={isActivePath(pathname, "/tasks", { exclude: ["/tasks/summary"] })}>
+        Tasks
+      </NavLink>
+    </NavGroup>
+  </Rail>
+  <PageMain>…</PageMain>
+</body>
 ```
 
 - **224px from `lg`, 56px below it or when collapsed.** Below `lg`, 224px of
-  navigation would leave a phone about 150px of content.
-- **Groups:** Work, Setup, Admin (admin only), each headed in 11px uppercase
-  `text-paper/50`. Guide sits in the footer, because it is reference rather than
-  work.
+  navigation would leave a phone about 150px of content. At 375px the 56px
+  rail leaves 319px. It is `h-dvh`, not `h-screen`: on iOS Safari `100vh` is
+  taller than the visible area and would put Sign out under the toolbar.
+- **`Rail`** is the `<aside>`: `brand` at the top, then one `<nav>` holding
+  the groups and the `foot`, so every destination, Guide and Sign out
+  included, is inside the landmark. `label` names the `<nav>`, "Main" by
+  default. `...rest` reaches the `<aside>`, on every component its root, and
+  the links and the button take a `ref`.
+- **`NavGroup`** is a heading over a list the heading names, so a screen
+  reader hears "Admin, list, 3 items". The heading is 11px uppercase
+  `text-paper/50`; while the rail is narrow it is `sr-only`, still the list's
+  name, and a `paper/15` rule stands in for it. Each child is one `<li>`, a
+  fragment's children one each, `false` none; a group whose children are all
+  `false` or `null` renders nothing, not a heading over an empty named list,
+  and a `foot` that resolves to nothing renders no foot. A child component
+  that returns `null` itself cannot be seen, so filter by role in the list
+  the group is given. The heading is an `<h2>`;
+  `headingLevel` (2 to 6) fits it to an app's outline. Work OS's groups are Work,
+  Setup and Admin (admin only); Guide sits in the foot, because it is
+  reference rather than work.
+- **`NavLink`** takes `icon` (an `IconName` at 20px, or an element of the
+  app's own) and its label as children. **`current`** is the app's answer:
+  `true` sets `aria-current="page"` and draws the current state; `"true"`
+  draws it and sets `aria-current="true"`, for an entry whose page carries
+  its own section navigation (Work OS #451), so one element claims the page.
+  An icon-only link is named by its hidden label; give it a `title` as well
+  (or the package's `Tooltip`), so a sighted mouse user on the narrow or
+  collapsed rail can read the label too.
+- **`NavButton`** is an action on the rail, not a destination: Sign out. A
+  real `<button>`, `type="button"` unless the caller says `submit` (a Next
+  form action), with a link's look and target. It is never current.
+- **`RailBrand`** is the mark and the name. The name is `sr-only` while the
+  rail is narrow, so it stays the link's accessible name at every width and
+  needs no `aria-label`; the mark is decorative. It links to `/` unless given
+  an `href` or a `render`.
 - **The collapse preference is a cookie, not localStorage,** so the server
   renders the rail at its final width on first paint and it does not jump.
+  Storing it is the app's: `Rail` takes `collapsed` and sets `data-collapsed`
+  on the `<aside>`, and every item's `group-data-collapsed/rail:` classes
+  follow, so no item needs the prop. A collapse toggle is the app's own
+  button, in `brand` beside the `RailBrand`, with `aria-expanded`.
 - **A hidden label is `sr-only`, not `hidden`** — it stays the accessible name.
   Decorative chrome is `hidden` outright.
+- **The narrow rail hides its scrollbar.** A classic scrollbar takes 8 to
+  15px of the 48px and would push the targets under 44. The list still
+  scrolls by wheel, by touch and by keyboard, since Tab scrolls each link
+  into view as it takes focus; the wide rail keeps its scrollbar.
+- **The shell does not depend on Tailwind's Preflight.** The Digital Library
+  runs without it (#33), so each string resets the browser default it would
+  otherwise inherit: the lists' bullets, margin and indent, the `<hr>`'s
+  inset border, the heading's margin, the links' underline and colour, the
+  button's border, fill, margin and font, and `box-border` where a size
+  meets padding. `navigation.test.tsx` holds each reset.
+
+**`isActivePath(pathname, href, { exact, exclude })`** is Work OS's
+segment-boundary rule (`onPath`, `isNavItemActive`) as a pure function. It
+matches the page and anything below it on a segment boundary, so `/calls` is
+current on `/calls/42` and never on `/calls-admin`; `/` is always exact;
+`exact: true` turns the prefix off for any other link; `exclude` names pages
+under the link with an entry of their own, which take the state from it
+(`/tasks/summary` from `/tasks`), and their descendants with them — except
+`/`, which is exact there too, so `exclude: ["/"]` excludes the root page
+alone. The query, the hash and trailing slashes are ignored on both sides,
+so by design `isActivePath("/calls", "/calls?view=late")` is true, as is
+every saved view of `/calls`: a link whose meaning is its query is the
+app's to compare. An `href` that is not a rooted path is never current.
+
+**Exactly one link on a page is current, and that is the app's rule to keep.**
+The package draws what each `current` says and cannot see the other links,
+so two prefix matches both say "page" unless the app gives the parent an
+`exclude` (or `exact`) for the child. The pathname is `usePathname()` in a Next client component,
+`useLocation().pathname` in React Router, or the request on a server.
+
+### The router link
+
+**Every link-shaped component in the package takes `render`**: `NavLink`,
+`RailBrand`, and the `Pagination`, `PrevNextNav` and `BackLink` that follow
+(#20, #22) use the same prop, from the same helper, `renderLink` in
+`link-render.ts`. A plain `<a href>` is right in a server-rendered app; in a
+client-routed one every click reloads the page and drops the app's state, so
+the app hands the package its router's link. Without `render` the component
+is an `<a>` and needs `href`.
 
 ```tsx
-// NavLink
-className={`relative flex min-h-11 min-w-11 items-center gap-3 rounded-md py-2 text-sm md:min-h-0 md:min-w-0 ${focusRingOnNavy} ${rail.row} ${
-  active
-    ? "bg-paper/12 font-semibold text-paper before:absolute before:inset-y-1 before:left-0 before:w-0.5 before:rounded-full before:bg-paper"
-    : "font-medium text-paper/75 hover:bg-paper/10 hover:text-paper"
-}`}
+// Next.js, in a Server or a Client Component
+import Link from "next/link";
+<NavLink render={<Link href="/calls" prefetch={false} />} icon="tasks" current={isActivePath(pathname, "/calls")}>Calls</NavLink>
+
+// React Router: its Link, never its NavLink; the app's matching goes through isActivePath
+import { Link, useLocation } from "react-router";
+<NavLink render={<Link to="/calls" />} icon="tasks" current={isActivePath(useLocation().pathname, "/calls")}>Calls</NavLink>
+
+// A function, when the link has to be built rather than cloned
+<NavLink render={(props) => <Link {...props} to={{ pathname: "/calls", search }} />} icon="tasks">Calls</NavLink>
 ```
 
-Weight and a left bar carry the active state as well as colour, so it survives a
-monochrome view. Saved views use a `•` for the same reason, as does the Summary
-page's place under Tasks.
+- **Pass the router's `Link`, not its `NavLink`: the package's `current` is
+  the single source of the current page.** React Router's `NavLink` works
+  out `aria-current` from its own matching after the props it is given, so
+  it overrides the package whatever `current` says: probed with
+  react-router 7, `current={false}` on a route it calls active still
+  rendered `aria-current="page"`, a second current page, and `current`
+  where it disagreed drew the current look with no attribute. A component
+  that computes its own attribute can always override its props, and the
+  package cannot read its state without a hook, so this is a rule, not a
+  fix. `navigation.test.tsx` holds the limitation.
+- **An element is cloned.** Its own props stay (`href`, `to`, `prefetch`,
+  `replace`, `ref`); a prop given to the component with a value wins over the
+  element's, and one left `undefined` never erases it.
+- **`className` is both:** the package's classes, then the element's (a
+  string; a function `className` is not supported).
+- **`aria-current` is the package's,** set from `current`, and the look
+  follows the same value, so with `Link` or a plain `<a>` the two cannot
+  disagree.
+- **Event handlers are both:** when the element and the component each have
+  an `onClick` (or any `on…`), the element's runs first, then the
+  component's.
+- **`children` are the package's:** the icon and label it lays out. The
+  element's own children are dropped.
+- **Server-safe:** `cloneElement`, `createElement` and `isValidElement` are
+  in React's server build and nothing in the path is a hook, so a Server
+  Component can render the link and the element can be a Client Component
+  such as Next's `Link`. A `render` function cannot cross from a Server
+  Component into a Client Component as a prop; pass an element there.
+
+### The skip link
+
+`SkipLink` goes first in `<body>`, before the rail: the first thing Tab
+reaches. It is `sr-only` until focused, then fixed at the top left at `z-50`,
+44px tall, and it jumps to `PageMain`'s `<main id="main-content"
+tabIndex={-1}>` (`MAIN_CONTENT_ID`), which takes focus so the caret moves with
+the scroll. It is a plain anchor, never the router's link: a fragment is not
+a route. Its ring is `focusRing`, the teal one, standing on a 6px `paper`
+shadow, because the link lands over the navy rail, where teal-deep alone is
+2.61:1; on the shadow it is 5.19:1 whatever is behind.
+
+It reveals itself property by property under `focus:`, not with
+`focus:not-sr-only`. `sr-only` and `not-sr-only` each set `padding: 0`, so a
+`px-3 py-2` beside them lost to the stylesheet's order: in the built site the
+focused link computed `padding: 0px`. Now each property `sr-only` sets is
+undone by a `focus:` utility of its own and the padding is `focus:` too.
+`class-strings.test.ts` counts `sr-only` and `not-sr-only` as padding, so a
+string that puts either beside a padding under one variant fails.
+
+<!-- classes:nav -->
+```
+skipLinkClass        sr-only z-50 box-border rounded-md bg-paper text-sm font-semibold text-ink no-underline focus:fixed focus:left-2 focus:top-2 focus:m-0 focus:inline-flex focus:h-auto focus:min-h-11 focus:w-auto focus:items-center focus:overflow-visible focus:px-3 focus:py-2 focus:[clip-path:none] focus:shadow-[0_0_0_6px_var(--color-paper)] {focusRing}
+railClass            group/rail sticky top-0 flex h-dvh w-14 shrink-0 flex-col bg-navy print:hidden lg:w-56 data-collapsed:w-14
+railHeaderClass      flex flex-col items-center justify-center gap-1 px-1 py-3 lg:flex-row lg:gap-2 lg:px-3 lg:group-data-collapsed/rail:flex-col lg:group-data-collapsed/rail:gap-1 lg:group-data-collapsed/rail:px-1
+railNavClass         flex min-h-0 flex-1 flex-col
+railGroupsClass      min-h-0 flex-1 overflow-x-hidden overflow-y-auto px-1 pb-2 max-lg:[scrollbar-width:none] max-lg:[&::-webkit-scrollbar]:hidden lg:px-2 lg:group-data-collapsed/rail:px-1 group-data-collapsed/rail:[scrollbar-width:none] group-data-collapsed/rail:[&::-webkit-scrollbar]:hidden
+railFootClass        flex flex-col gap-0.5 border-t border-paper/15 px-1 py-2 lg:px-2 lg:group-data-collapsed/rail:px-1
+railLabelClass       max-lg:sr-only group-data-collapsed/rail:sr-only
+railBrandClass       box-border flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-md text-paper no-underline lg:flex-1 lg:justify-start lg:group-data-collapsed/rail:flex-none lg:group-data-collapsed/rail:justify-center {focusRingOnNavy}
+railBrandNameClass   truncate text-sm font-semibold tracking-wide text-paper
+navGroupClass        mb-4
+navHeadingClass      m-0 px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-paper/50
+navDividerClass      mx-2 mt-0 mb-2 h-0 border-x-0 border-t border-b-0 border-solid border-paper/15 lg:hidden lg:group-data-collapsed/rail:block
+navListClass         m-0 flex list-none flex-col gap-0.5 p-0
+navItemClass         relative box-border flex min-h-11 min-w-11 items-center justify-center gap-3 rounded-md px-0 py-2 text-sm no-underline lg:justify-start lg:px-3 lg:group-data-collapsed/rail:justify-center lg:group-data-collapsed/rail:px-0 {focusRingOnNavy}
+navItemIdleClass     font-medium text-paper/75 hover:bg-paper/10 hover:text-paper
+navItemCurrentClass  bg-paper/12 font-semibold text-paper before:absolute before:inset-y-1 before:left-0 before:w-0.5 before:rounded-full before:bg-paper before:forced-color-adjust-none forced-colors:before:bg-[CanvasText]
+navButtonClass       m-0 w-full cursor-pointer appearance-none border-0 bg-transparent text-left [font-family:inherit] disabled:cursor-not-allowed disabled:opacity-50
+```
+
+A link is `navItemClass` and one of the two states; a button adds
+`navButtonClass` to the idle one. Weight and a left bar carry the current
+state as well as colour, so it survives a monochrome view.
+
+### Rail accessibility
+
+What the tests assert (`navigation.test.tsx`, `is-active-path.test.ts`,
+`ui-contrast.test.ts`, held to this block by `design-system-doc.test.ts`):
+
+- **Landmarks and names.** One `<nav>` with a name, "Main" by default; each
+  group's list named by its heading; an icon-only link or button named by its
+  `sr-only` label, the icon and its wrapper `aria-hidden`; the brand named by
+  its words, with no `aria-label`.
+- **Order.** In a composed shell Tab meets the skip link, the brand, the
+  groups in order, then the foot, and no positive `tabindex` reorders it.
+  The skip link's `href` is `PageMain`'s id, and `<main>` takes focus.
+- **Current.** `aria-current="page"` on exactly the link whose `current` is
+  set, never from anything else in the props; the look from the same value.
+  That holds for a plain `<a>` and the router's `Link`; React Router's
+  `NavLink` overrides it, which a test also records — pass `Link`.
+- **Focus.** `focusRingOnNavy` on every rail link, button and the brand,
+  `focusRing` on the skip link; both outlines.
+- **Targets (2.5.5).** `min-h-11 min-w-11` on every item and the brand, never
+  released at a breakpoint, and `px-1` wherever the rail is 56px, which
+  leaves 48px for a 44px icon-only target. **This is where the rail departs
+  from Work OS,** whose items release the floor at `md` like `touchTarget`:
+  from `md` to `lg` the narrow rail is still a column of bare icons, so the
+  floor stays, and the wide rail's rows are 44px rather than 36px.
+- **Contrast.** The rail's pairs are in `TOKEN_PAIRS`, flattened onto navy:
+  `paper/75` 8.29:1, the `paper/50` headings 4.59:1, hover 9.98:1, current
+  9.38:1, the bar as a graphic, the paper ring on navy.
+- **Forced colours and motion.** The current bar opts out of the repaint
+  (`forced-color-adjust-none`) and takes `CanvasText`; no class in the shell
+  is a transition or an animation.
+
+What a unit test cannot see, and is stated here instead: that Windows High
+Contrast paints the bar and the outline as the classes ask (the tint and the
+skip link's shadow are dropped there, by design, and the semibold weight
+remains); the measured pixel sizes at each breakpoint; and what a screen
+reader says. The showcase site's rail is these components, so its pages are
+where to check them by hand.
 
 ### Page container and title
 
@@ -634,7 +832,7 @@ Tailwind's defaults, unmodified. `xl` and `2xl` are never used.
 | Prefix | Min width | What changes |
 | --- | --- | --- |
 | `sm` | 640px | KPI tiles 1 → 2 columns; import chips 2 → 4; guide legend rows go horizontal; the create form goes two-column; record panel field rows become label/value pairs |
-| `md` | 768px | The touch floor is released; tables stack or become cards; the toolbar collapses into a "Filter & sort" sheet; table minimum widths begin to apply |
+| `md` | 768px | The touch floor is released, except on the rail (§7); tables stack or become cards; the toolbar collapses into a "Filter & sort" sheet; table minimum widths begin to apply |
 | `lg` | 1024px | The rail widens to 224px with labels; the record drawer becomes a 480px side panel instead of a full-screen sheet; KPI tiles reach 4 columns |
 
 The design-target viewport is 1280px: the grid budget is 988px, being 1280 less
@@ -679,7 +877,9 @@ attached: `Pill`, `KpiTile`, `PageTitle`, `PageMain` since 0.1.0; `Button`,
 2026, `docs/plans/2026-10-20-components-and-icons.md`, phase 0); the four
 overlays since 0.4.0 (phase 1, client-only); and since 0.5.0 (phase 2)
 `TableFrame`, `Checkbox`, `Radio` and `RadioGroup`, server-safe, and
-`Tooltip`, `Tabs` and `Combobox` on Base UI, client-only (§13). Every
+`Tooltip`, `Tabs` and `Combobox` on Base UI, client-only (§13); and,
+unreleased, the app shell — `SkipLink`, `Rail`, `RailBrand`, `NavGroup`,
+`NavLink`, `NavButton` and `isActivePath` — server-safe, in §7. Every
 component passes `...rest` to its root element — or, where the input is the
 control (`Checkbox`, `Radio`, `Combobox`), to the input.
 
@@ -1765,7 +1965,7 @@ Conventions:
 | 1.4.11 | Control boundaries, focus rings and meaningful graphics clear 3:1 |
 | 1.4.1 | Colour is never the only signal: labels inside pills, weight and a bar on active nav, `line-through` on Cancelled, `aria-invalid` beside a red border |
 | 2.4.7 | One focus indicator, defined once, on every control; the native outline is never reset, because `focus:outline-none` nulls the ring (Work OS #315) |
-| 2.5.5 | 44 × 44px targets below `md`, level AAA and above the 24px AA asks for in 2.5.8; desktop keeps its density |
+| 2.5.5 | 44 × 44px targets below `md`, level AAA and above the 24px AA asks for in 2.5.8; desktop keeps its density, except the rail, whose items are 44px at every width (§7) |
 | 2.4.1 | A skip link, first in the DOM, hidden until focused, targeting a focusable `<main>` |
 | 4.1.2 | Icon-only controls carry an `sr-only` name and a `title` or a `Tooltip`, never both; icons are `aria-hidden`; a name and an identical description are never both given |
 | 1.3.1 | Tables state role and name; a stacked table restates `rowgroup`/`row`/`cell`, because changing `display` drops those roles |
@@ -1981,7 +2181,7 @@ per-stack notes that follow.
 
   | Export | Client-only | Base UI part behind it |
   | --- | --- | --- |
-  | `Pill`, `KpiTile`, `PageTitle`, `PageMain`, `Button`, `Field`, `Notice`, `EmptyState`, `Icon`, `TableFrame`, `Checkbox`, `Radio`, `RadioGroup` | no | — |
+  | `Pill`, `KpiTile`, `PageTitle`, `PageMain`, `Button`, `Field`, `Notice`, `EmptyState`, `Icon`, `TableFrame`, `Checkbox`, `Radio`, `RadioGroup`, `SkipLink`, `Rail`, `RailBrand`, `NavGroup`, `NavLink`, `NavButton` | no | — |
   | `Drawer` | **yes** | Dialog |
   | `Popover` | **yes** | Popover |
   | `Menu` | **yes** | Menu |
@@ -2402,7 +2602,6 @@ button). A consumer should copy the rule, not the exception; each of these is a 
 | --- | --- | --- |
 | The login inputs and the import page's inputs hand-write their field classes, so they lack the 44px floor; the login labels are `text-sm` where every other label is `text-xs` | `login-form.tsx`, `import-manager.tsx` | Use `fieldClass`/`labelClass`, or record why the login page differs |
 | The column-resize handle is the only control with `focus-visible:outline-none` and a fill instead of a ring, with no comment saying why | `column-resizer.tsx` | Either `focusRingOnNavy` with an inset offset, or write the geometric reason down |
-| The rail's `paper/50`, `/70` and `/75` text pairs (still written `white/…` in Work OS, which `theme.css` 0.2.0 no longer compiles) render but are not in `TOKEN_PAIRS`; all pass, the 11px headings by 0.09 | `app-sidebar.tsx` | Add them; the file claims the list is complete |
 | Confirmations are plain text while refusals carry `role="alert"`, so a screen reader hears what failed and not what worked | `tasks-manager.tsx` | `role="status"` on the success notice |
 | The workstream chip is copied three times and one copy wraps a task reference, not a workstream code | dashboard, workstreams, Summary | Extract a component, and decide which identifier gets a chip |
 | The import summary chips are a third KPI-tile shape | `import-manager.tsx` | Give `KpiTile` a compact size |

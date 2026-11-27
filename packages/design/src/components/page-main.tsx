@@ -1,5 +1,7 @@
 import type { ComponentPropsWithoutRef, ReactNode } from "react";
 
+import { MAIN_CONTENT_ID } from "./skip-link.js";
+
 /**
  * The shared page container (F18). Every (app) page uses this instead of its
  * own centred, capped `<main>`, so content runs the full width of the desktop
@@ -24,11 +26,11 @@ export function PageMain({
       ? "mx-auto flex w-full max-w-4xl flex-col gap-8 px-6 py-8 lg:px-8"
       : "w-full px-6 py-8 lg:px-8";
 
-  // The skip link in the (app) layout targets this id (Work OS #57, F24.1); `tabIndex`
+  // `SkipLink` targets this id (Work OS #57, F24.1); `tabIndex`
   // makes the landmark focusable so the jump actually moves the caret.
   const className = extra ? `${base} ${extra}` : base;
   return (
-    <main {...rest} id="main-content" tabIndex={-1} className={className}>
+    <main {...rest} id={MAIN_CONTENT_ID} tabIndex={-1} className={className}>
       {children}
     </main>
   );

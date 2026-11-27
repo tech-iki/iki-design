@@ -8,11 +8,16 @@ import {
   Field,
   Icon,
   KpiTile,
+  NavButton,
+  NavGroup,
+  NavLink,
   Notice,
   PageMain,
   PageTitle,
   Radio,
   RadioGroup,
+  Rail,
+  RailBrand,
   TableFrame,
   fileFieldClass,
   primaryLinkButtonClass,
@@ -40,7 +45,7 @@ import { P, Section } from "@/components/section";
 export const metadata: Metadata = {
   title: "Components",
   description:
-    "Button, Field, Notice, EmptyState, the four overlays, TableFrame, Checkbox and Radio, Tooltip, Tabs, Combobox and KpiTile, drawn live with the usage beneath each.",
+    "Button, Field, Notice, EmptyState, the four overlays, TableFrame, Checkbox and Radio, Tooltip, Tabs, Combobox, the rail and skip link, and KpiTile, drawn live with the usage beneath each.",
 };
 
 const BUTTON_USE = `<Button>Save task</Button>
@@ -230,6 +235,112 @@ const COMBOBOX_USE = `{/* the grid's cell chooser; forms keep the native <select
   onValueChange={setStatus}
   onEscape={() => !innerLayerIsOpen}   // false keeps the list open
 />`;
+
+const RAIL_USE = `// app/layout.tsx: a Server Component. Only the links read the pathname.
+<body>
+  <SkipLink />                                     {/* first: the first Tab stop */}
+  <Rail
+    collapsed={collapsed}                          // the cookie, read on the server
+    brand={<RailBrand name="IKI Library" mark={<img src="/iki-mark-white.png" alt="" className="size-7" />} />}
+    foot={
+      <>
+        <NavLink href="/me" icon="record">Amina Rahman</NavLink>
+        <form action={signOut}>
+          <NavButton type="submit" icon="signOut">Sign out</NavButton>
+        </form>
+      </>
+    }
+  >
+    <NavGroup heading="Library">
+      <NavLink href="/library" icon="reports" current={isActivePath(pathname, "/library")}>Library</NavLink>
+      <NavLink href="/calls" icon="tasks" current={isActivePath(pathname, "/calls")}>Calls</NavLink>
+    </NavGroup>
+    {isAdmin && (
+      <NavGroup heading="Admin">
+        <NavLink href="/audit" icon="review" current={isActivePath(pathname, "/audit")}>Audit</NavLink>
+      </NavGroup>
+    )}
+  </Rail>
+  <PageMain>{children}</PageMain>
+</body>`;
+
+const ROUTER_USE = `// Next.js: hand NavLink the router's Link; aria-current and the classes land on it.
+import Link from "next/link";
+<NavLink render={<Link href="/calls" />} icon="tasks" current={isActivePath(pathname, "/calls")}>Calls</NavLink>
+
+// React Router: its Link, never its NavLink, which overrides aria-current with
+// its own matching. Link takes \`to\`; the app's matching goes through isActivePath.
+import { Link, useLocation } from "react-router";
+const { pathname } = useLocation();
+<NavLink render={<Link to="/calls" />} icon="tasks" current={isActivePath(pathname, "/calls")}>Calls</NavLink>
+
+// A function, when the link is built rather than cloned.
+<NavLink render={(props) => <Link {...props} to={{ pathname: "/calls", search }} />} icon="tasks">Calls</NavLink>`;
+
+const ACTIVE_USE = `isActivePath("/calls/42", "/calls")                     // true: below it, on a segment boundary
+isActivePath("/calls-admin", "/calls")                  // false: a sibling, not a child
+isActivePath("/calls", "/")                             // false: the root is exact
+isActivePath("/calls/?page=2#top", "/calls")            // true: query, hash and trailing slash ignored
+isActivePath("/calls/42", "/calls", { exact: true })    // false
+isActivePath("/tasks/summary", "/tasks", { exclude: ["/tasks/summary"] })  // false: it has its own entry`;
+
+/**
+ * The specimen rails sit in the page, not beside it, so they drop the rail's
+ * sticky full-height frame. Their links go nowhere but this section, and the
+ * current one says `aria-current="true"`, not `"page"`: the page's real
+ * current link is in the site's own rail, and a screen reader should hear
+ * one current page.
+ */
+const SPECIMEN_RAIL = "static! h-[30rem]!";
+
+function SpecimenRail({ label, collapsed = false }: { label: string; collapsed?: boolean }) {
+  return (
+    <Rail
+      label={label}
+      collapsed={collapsed}
+      className={SPECIMEN_RAIL}
+      brand={
+        <RailBrand
+          name="IKI Library"
+          render={<Link href="/components#the-rail" />}
+          mark={
+            <span className="grid size-7 place-items-center rounded-full bg-paper/12 font-mono text-xs font-semibold text-paper">
+              L
+            </span>
+          }
+        />
+      }
+      foot={
+        <>
+          <NavLink href="#the-rail" icon="record">
+            Amina Rahman
+          </NavLink>
+          <NavButton icon="signOut">Sign out</NavButton>
+        </>
+      }
+    >
+      <NavGroup heading="Library">
+        <NavLink render={<Link href="/components#the-rail" />} icon="reports" current="true">
+          Library
+        </NavLink>
+        <NavLink href="#the-rail" icon="tasks">
+          Calls
+        </NavLink>
+        <NavLink href="#the-rail" icon="myTasks">
+          Dashboard
+        </NavLink>
+      </NavGroup>
+      <NavGroup heading="Admin">
+        <NavLink href="#the-rail" icon="people">
+          Users
+        </NavLink>
+        <NavLink href="#the-rail" icon="review">
+          Audit logs
+        </NavLink>
+      </NavGroup>
+    </Rail>
+  );
+}
 
 const KPI_USE = `<KpiTile label="Open tasks" value={42} hint="across 6 workstreams" />
 <KpiTile label="Due soon" value={7} hint="in the next 7 days" tone="warm" />
@@ -594,6 +705,54 @@ export default function ComponentsPage() {
           <ComboboxSpecimen />
         </Specimen>
         <CodeBlock code={COMBOBOX_USE} />
+      </Section>
+
+      <Section title="The rail">
+        <P>
+          The app shell (§7): <Mono>SkipLink</Mono>, <Mono>Rail</Mono>,{" "}
+          <Mono>RailBrand</Mono>, <Mono>NavGroup</Mono>, <Mono>NavLink</Mono>{" "}
+          and <Mono>NavButton</Mono>, all server-safe. Nothing reads the
+          location: the app asks <Mono>isActivePath</Mono> and passes the
+          answer as <Mono>current</Mono>, which sets{" "}
+          <Mono>aria-current</Mono> and draws weight, the tint and a left bar.
+          The rail is 224px from <Mono>lg</Mono> and 56px below it or when
+          collapsed, where each label is <Mono>sr-only</Mono> and still the
+          name; every item is 44px tall, and 44px wide when it is only an
+          icon, at every width. Narrow the window to see the icon rail.
+        </P>
+        <P>
+          The skip link is this site’s own: press Tab at the top of any page
+          and it is the first stop, with the focus ring, and it jumps to the
+          page’s <Mono>&lt;main&gt;</Mono>. The rail on the left of this page
+          is the same components, current page and all.
+        </P>
+        <Specimen
+          name="wide (narrow below lg), and collapsed"
+          note="Sign out is a NavButton, a real button: an action, not a destination. The brand and Library are Next’s Link, through render; the rest are plain anchors."
+        >
+          <div className="flex flex-wrap items-start gap-4">
+            <SpecimenRail label="Example rail" />
+            <SpecimenRail label="Example rail, collapsed" collapsed />
+          </div>
+        </Specimen>
+        <CodeBlock code={RAIL_USE} />
+        <P>
+          <strong>The router link.</strong> Every link-shaped component takes{" "}
+          <Mono>render</Mono>: an element, which is cloned, or a function of
+          the props. The package’s classes, <Mono>aria-current</Mono> and the
+          icon and label land on the router’s link, and its own props (
+          <Mono>href</Mono>, <Mono>to</Mono>, <Mono>prefetch</Mono>) stay.
+          Without it the link is a plain <Mono>&lt;a&gt;</Mono>. Pass the
+          router’s <Mono>Link</Mono>, not React Router’s{" "}
+          <Mono>NavLink</Mono>: that one works out{" "}
+          <Mono>aria-current</Mono> from its own matching and overrides the
+          package, so a page could have two current links or none. The
+          package’s <Mono>current</Mono> is the single source.{" "}
+          <Mono>Pagination</Mono> and <Mono>BackLink</Mono> will take the same
+          prop.
+        </P>
+        <CodeBlock code={ROUTER_USE} />
+        <CodeBlock code={ACTIVE_USE} />
       </Section>
 
       <Section title="KPI tile">

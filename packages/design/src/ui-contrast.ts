@@ -209,6 +209,46 @@ export const TOKEN_PAIRS: {
    */
 
   /*
+   * The rail (#19; closes the §14 drift row that said these rendered
+   * unasserted). Every alpha is flattened onto navy, or onto the fill it sits
+   * on, before it is measured. The group heading is the tightest at 4.59:1.
+   * The `paper/15` rules are decorative separators and have no pair; the
+   * rail's focus ring is `focusRingOnNavy`, held below as "focus ring on
+   * navy". The skip link is ink
+   * on paper and its teal-deep ring stands on a paper shadow, so it renders
+   * pairs already held: ink on paper, and the focus ring on paper.
+   */
+  {
+    what: "rail item: paper/75 on navy",
+    fg: blend(TOKENS.paper, 0.75, TOKENS.navy),
+    bg: TOKENS.navy,
+    kind: "text",
+  },
+  {
+    what: "rail group heading: paper/50 on navy",
+    fg: blend(TOKENS.paper, 0.5, TOKENS.navy),
+    bg: TOKENS.navy,
+    kind: "text",
+  },
+  {
+    what: "hovered rail item: paper on paper/10 over navy",
+    fg: TOKENS.paper,
+    bg: blend(TOKENS.paper, 0.1, TOKENS.navy),
+    kind: "text",
+  },
+  {
+    what: "current rail item: paper on paper/12 over navy",
+    fg: TOKENS.paper,
+    bg: blend(TOKENS.paper, 0.12, TOKENS.navy),
+    kind: "text",
+  },
+  {
+    what: "current rail item's bar: paper on paper/12 over navy",
+    fg: TOKENS.paper,
+    bg: blend(TOKENS.paper, 0.12, TOKENS.navy),
+    kind: "nonText",
+  },
+  /**
    * The destructive button (`destructiveButtonClass`, #37): `health-overdue-fg`
    * filled, `paper` label. No new token. Each rendered role is listed below,
    * the way "primary button: white on teal-deep" is, even though the ratio is

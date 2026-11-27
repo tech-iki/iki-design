@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { SkipLink } from "@tech-iki/design";
 import { SiteNav } from "@/components/site-nav";
 
 /*
@@ -35,12 +36,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
          * `site-rules.test.ts` fails if either goes.
          */}
         <div className="iki-app flex min-h-full min-w-0 flex-1">
-          <a
-            href="#main-content"
-            className="sr-only z-50 rounded-md bg-paper px-3 py-2 text-sm font-semibold text-ink focus:not-sr-only focus:fixed focus:left-2 focus:top-2"
-          >
-            Skip to content
-          </a>
+          {/*
+           * The package's skip link (#23): first in the DOM so it is the first
+           * Tab stop, with the focus ring the hand-written one lacked, and
+           * targeting `PageMain`'s main, which every page renders.
+           */}
+          <SkipLink />
           <SiteNav />
           <div className="min-w-0 flex-1">{children}</div>
         </div>
