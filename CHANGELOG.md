@@ -8,6 +8,23 @@ token or class is a major.
 
 ## [Unreleased]
 
+### Added
+
+- `primaryLinkButtonClass` and `subtleLinkButtonClass` (#36): the two button
+  looks on an `<a>` or a router `Link`: the button's own string plus
+  `inline-flex items-center justify-center no-underline`, so the 44px floor
+  below `md` applies and the label is not underlined. Colours, border, hover
+  and focus ring are the button's, so no contrast pair changes. Held by §8 and
+  shown on `/controls` and `/components`. A minor; no existing string changes.
+
+### Fixed
+
+- `Button` (#35): a string child that already ends in an ellipsis, the
+  character or three full stops, keeps it while `pending`; "Save…" no longer
+  renders "Save……". `ref` is now in `Button`'s types (a plain prop in React
+  19), so a caller can pass one without a cast. `pendingLabel` is unchanged: it
+  is shown as given.
+
 ## [0.5.0] — 2026-10-21
 
 Phase 2 of the plan of 20 October 2026: the rest of the components the

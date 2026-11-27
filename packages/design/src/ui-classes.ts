@@ -140,6 +140,25 @@ export const warnIconButtonClass =
 export const subtleButtonClass =
   `${touchTarget} rounded-md border border-grid-strong px-2.5 py-1.5 text-xs text-ink hover:bg-teal-soft disabled:opacity-50 ${focusRing}`;
 
+/*
+ * A link drawn as a button (#36): an `<a>`, or a router `Link` that renders
+ * one. The button strings assume a `<button>`, which is `inline-block` and
+ * centres its own content and carries no underline; an anchor is `inline`, so
+ * `min-h-11` does nothing to it, and it keeps the link's underline. These add
+ * what the element lacks and change nothing else: the string is the button's
+ * own, so the colours, the border, the hover, the 44px floor below `md` and
+ * the focus ring are the same and the contrast pairs are the button's pairs.
+ * `inline-flex` is what makes the floor apply and centres the label;
+ * `no-underline` holds in every state, hover and focus included.
+ */
+const asAnchor = "inline-flex items-center justify-center no-underline";
+
+/** `primaryButtonClass` on an `<a>`. */
+export const primaryLinkButtonClass = `${primaryButtonClass} ${asAnchor}`;
+
+/** `subtleButtonClass` on an `<a>`. */
+export const subtleLinkButtonClass = `${subtleButtonClass} ${asAnchor}`;
+
 /**
  * Destructive-but-reversible confirm (move-to-trash) — warm, not alarming.
  * The border was `warm-fg/40`, which composites to 1.92:1 on the warm fill —
