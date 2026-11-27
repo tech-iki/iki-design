@@ -14,12 +14,14 @@ The control corrections of PR #32 (the field weight, the option row touch floor,
 the Move to… trigger and the WCAG citation), and the Digital Library's own form and
 base-style needs: the link-button classes and a destructive button, the `Field`
 text size, textarea minimum and `announceError` opt-out, `EmptyState`'s headline
-`title`, and the opt-in `reset.css`. A minor: it adds exports and props, and
-changes no token or class name. Some rendered sizes change, listed first below.
+`title`, and the opt-in `reset.css`. A minor: it adds exports and props and
+renames no token or class; the two incompatible changes noted below are allowed
+before 1.0 (SemVer §4). Some rendered sizes change, listed first below.
 
 > **For a consumer upgrading from 0.5.0: what you will see.** These changes reach
 > an existing app with no code change. Each is detailed under Added, Changed and Fixed.
 >
+> - Typed text in a field is weight 400, not the label's 500.
 > - Field text is 16px below `md` (14px from `md`), not 14px at every width.
 > - A `<textarea>` inside `Field` has a 112px minimum height (7rem).
 > - Menu, popover and combobox rows are 44px below `md` (they were 28px), and
@@ -27,6 +29,7 @@ changes no token or class name. Some rendered sizes change, listed first below.
 > - The Move to… trigger (`menuTriggerClass`) is 30px tall, not 28.7px.
 > - `EmptyState`'s `title` is the visible headline above the sentence, not the
 >   HTML `title` attribute. A tooltip passed that way now shows as a headline.
+> - A `Button` label that ends in an ellipsis keeps a single one while `pending`.
 > - `ButtonVariant` gains `"destructive"`. An exhaustive `Record<ButtonVariant, …>`
 >   or `switch` must add the case.
 
@@ -76,11 +79,16 @@ changes no token or class name. Some rendered sizes change, listed first below.
 
 ### Changed
 
+- **Install from the release tarball.** Each GitHub release now carries the
+  packed tarball and its checksum, and the install line is the tarball URL (#31).
+- **Docs: §8 "Task grid".** The task grid's interaction model is written up
+  (#29, #30). No code change.
 - **Docs: §13b.** The Digital Library's adoption path now follows its decision
   to converge on the package (theme, components, icons, and the rail for its
   signed-in pages); the palette-only steps are marked superseded (#42). No code
   or version change.
-- **`EmptyState` no longer passes `title` to the root as the HTML attribute.**
+- **`EmptyState` no longer passes `title` to the root as the HTML attribute
+  (#41).**
   A caller that used `title="…"` for a tooltip now gets the visible headline
   instead. No call site in Work OS or the Digital Library does this.
 - **Rendered size change for existing consumers (#38):** `fieldClass` and
@@ -95,6 +103,8 @@ changes no token or class name. Some rendered sizes change, listed first below.
   `Field` now has a minimum height of 7rem (#39). Set `rows` for more.
 
 ### Fixed
+
+The first five are the control corrections of #32.
 
 - `fieldClass` and `smallFieldClass` set `font-normal`. `Field` nests the control
   inside `labelClass`, so typed text had been inheriting the label's 500.
