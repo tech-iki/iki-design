@@ -120,15 +120,19 @@ export const fieldClass = `${touchTarget} ${fieldBody}`;
 export const smallFieldClass = `${touchTarget} ${smallFieldBody}`;
 
 /**
- * A textarea's field class (#39): a minimum of 7rem, four rows of the 16px
+ * A textarea's field class (#39): a minimum of 7rem, about four rows of the 16px
  * text a phone gets (4 × 24px of line, 16px of padding, 2px of border is
  * 114px, and from `md` four 20px rows are less than that). On `fieldClass` a
  * textarea measured 58px, and a message box that short invites a one-line
  * answer. It takes `min-h-28` where the field has `touchTarget`, not both:
  * two minimum heights under one variant are not an override (see
  * `class-strings.test.ts`). `rows` and `resize` stay the caller's. `Field`
- * gives a `<textarea>` child this string, and `smallTextareaClass` with
- * `size="small"`.
+ * gives a native `<textarea>` child this string, and `smallTextareaClass` with
+ * `size="small"`. It recognises only that element: a component that wraps a
+ * textarea gets `fieldClass`, and a caller who wants this string there must
+ * pass it on the textarea itself, not add `textareaClass` through `className`
+ * on top of `fieldClass`, where `min-h-11` and `min-h-28` would both apply
+ * under one variant.
  */
 export const textareaClass = `min-h-28 ${fieldBody}`;
 

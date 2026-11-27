@@ -39,6 +39,55 @@ export const fieldHintClass = "text-xs text-ink-muted";
  */
 export const fieldErrorClass = "text-xs text-health-overdue-fg";
 
+/** What the lines under a control take; `Field`, `Checkbox` and `RadioGroup` share it. */
+export type FieldLineProps = {
+  /** A line under the control, joined to it by `aria-describedby`. */
+  hint?: ReactNode;
+  /** The reason the control is refused: a line under it, joined by `aria-describedby`. */
+  error?: string;
+  /**
+   * Whether the error is a `role="alert"` (default `true`). `false` for a form
+   * that shows its own error summary and moves focus to it: the summary is
+   * then the announcement, and the error stays linked to its control.
+   */
+  announceError?: boolean;
+};
+
+/**
+ * The one definition of the lines under a control (design principle 8): the
+ * ids they carry, the `aria-describedby` that names them, and the two
+ * `<span>`s. `id` is the control's (or group's) id; the lines are `${id}-error`
+ * and `${id}-hint`. `describedBy` is the control's own value, kept first, then
+ * the error, then the hint. Server-safe, and not exported from the package.
+ */
+export function fieldLines({
+  id,
+  hint,
+  error,
+  announceError = true,
+  describedBy,
+}: FieldLineProps & { id: string; describedBy?: string }) {
+  const hintId = hint ? `${id}-hint` : undefined;
+  const errorId = error ? `${id}-error` : undefined;
+  return {
+    describedBy: [describedBy, errorId, hintId].filter(Boolean).join(" ") || undefined,
+    lines: (
+      <>
+        {error ? (
+          <span id={errorId} role={announceError ? "alert" : undefined} className={fieldErrorClass}>
+            {error}
+          </span>
+        ) : null}
+        {hint ? (
+          <span id={hintId} className={fieldHintClass}>
+            {hint}
+          </span>
+        ) : null}
+      </>
+    ),
+  };
+}
+
 /**
  * A label, its control, and the two lines that may sit under it (plan of
  * 20 October 2026, phase 0; 189 hand-written sites, three copies of the
@@ -78,23 +127,16 @@ export function Field({
   label,
   hint,
   error,
-  announceError = true,
+  announceError,
   size = "default",
   className,
   children,
   ...rest
 }: {
   label: ReactNode;
-  hint?: ReactNode;
-  error?: string;
-  /**
-   * Whether the error is a `role="alert"`. `false` for a form with its own
-   * error summary that takes focus; the error stays linked to the control.
-   */
-  announceError?: boolean;
   size?: "default" | "small";
   children: ReactElement<ControlProps>;
-} & Omit<ComponentPropsWithoutRef<"div">, "children">) {
+} & FieldLineProps & Omit<ComponentPropsWithoutRef<"div">, "children">) {
   const generated = useId();
   const control = Children.only(children);
   if (!isValidElement<ControlProps>(control) || control.type === Fragment) {
@@ -102,10 +144,13 @@ export function Field({
   }
   // A child that brought its own id keeps it, and the lines under it are named from it.
   const id = control.props.id ?? generated;
-  const hintId = hint ? `${id}-hint` : undefined;
-  const errorId = error ? `${id}-error` : undefined;
-  const describedBy =
-    [control.props["aria-describedby"], errorId, hintId].filter(Boolean).join(" ") || undefined;
+  const { describedBy, lines } = fieldLines({
+    id,
+    hint,
+    error,
+    announceError,
+    describedBy: control.props["aria-describedby"],
+  });
   const isTextarea = control.type === "textarea";
   const base =
     size === "small"
@@ -126,16 +171,7 @@ export function Field({
           "aria-invalid": error ? true : control.props["aria-invalid"],
         })}
       </label>
-      {error ? (
-        <span id={errorId} role={announceError ? "alert" : undefined} className={fieldErrorClass}>
-          {error}
-        </span>
-      ) : null}
-      {hint ? (
-        <span id={hintId} className={fieldHintClass}>
-          {hint}
-        </span>
-      ) : null}
+      {lines}
     </div>
   );
 }

@@ -102,7 +102,7 @@ describe("a field's text is 16px below md so iOS does not zoom on focus (#38)", 
   );
 });
 
-describe("a textarea has a minimum height of four rows (#39)", () => {
+describe("a textarea has a minimum height of about four rows (#39)", () => {
   it.each(["textareaClass", "smallTextareaClass"] as const)("%s", (name) => {
     const tokens = classes[name].split(" ");
     expect(tokens).toContain("min-h-28");

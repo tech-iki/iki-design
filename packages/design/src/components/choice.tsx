@@ -8,7 +8,7 @@ import {
 } from "react";
 
 import { choiceGroupClass, choiceInputClass, choiceLabelClass, choiceLegendClass } from "../ui-classes.js";
-import { fieldErrorClass, fieldFrameClass, fieldHintClass } from "./field.js";
+import { fieldFrameClass, fieldLines, type FieldLineProps } from "./field.js";
 
 /** What a checkbox or radio takes: the input's own props, less what the component decides. */
 type ChoiceProps = {
@@ -19,14 +19,7 @@ type ChoiceProps = {
 } & Omit<ComponentPropsWithoutRef<"input">, "type" | "className" | "children">;
 
 /** What a `Checkbox` adds to the input's own props: the lines under it, as `Field`'s. */
-type CheckboxProps = ChoiceProps & {
-  /** A line under the row, joined to the input by `aria-describedby`. */
-  hint?: ReactNode;
-  /** The reason the box is refused: marks the input `aria-invalid`, and is a `role="alert"` line under the row. */
-  error?: string;
-  /** `false` drops the error's `role="alert"`, for a form with its own error summary (see `Field`). */
-  announceError?: boolean;
-};
+type CheckboxProps = ChoiceProps & FieldLineProps;
 
 function Choice({
   type,
@@ -34,9 +27,9 @@ function Choice({
   className,
   hint,
   error,
-  announceError = true,
+  announceError,
   ...rest
-}: ChoiceProps & { type: "checkbox" | "radio" } & Pick<CheckboxProps, "hint" | "error" | "announceError">) {
+}: ChoiceProps & { type: "checkbox" | "radio" } & FieldLineProps) {
   const generated = useId();
   if (!hint && !error) {
     return (
@@ -48,9 +41,7 @@ function Choice({
   }
   // The lines sit outside the label, as `Field`'s do, so the input's name is its words alone.
   const id = rest.id ?? generated;
-  const hintId = hint ? `${id}-hint` : undefined;
-  const errorId = error ? `${id}-error` : undefined;
-  const describedBy = [rest["aria-describedby"], errorId, hintId].filter(Boolean).join(" ") || undefined;
+  const { describedBy, lines } = fieldLines({ id, hint, error, announceError, describedBy: rest["aria-describedby"] });
   return (
     <div className={className ? `${fieldFrameClass} ${className}` : fieldFrameClass}>
       <label className={choiceLabelClass}>
@@ -64,16 +55,7 @@ function Choice({
         />
         {label}
       </label>
-      {error ? (
-        <span id={errorId} role={announceError ? "alert" : undefined} className={fieldErrorClass}>
-          {error}
-        </span>
-      ) : null}
-      {hint ? (
-        <span id={hintId} className={fieldHintClass}>
-          {hint}
-        </span>
-      ) : null}
+      {lines}
     </div>
   );
 }
@@ -90,7 +72,9 @@ function Choice({
  * `teal-deep` through `accent-color`; the row keeps the 44px floor below
  * `md`; a `disabled` input mutes the row. The input is the control, so the
  * rest of the props — `name`, `value`, `checked`, `onChange`, `disabled`,
- * `aria-*` — reach the `<input>`, and `className` reaches the row.
+ * `aria-*` — reach the `<input>`, and `className` reaches the row (the
+ * outermost element: the row itself, or with a `hint` or `error` the frame
+ * around it).
  *
  * `hint` and `error` (#39) work as `Field`'s do: lines under the row, outside
  * the label so the name stays the words, joined to the input by
@@ -145,7 +129,7 @@ export function RadioGroup({
   name,
   hint,
   error,
-  announceError = true,
+  announceError,
   className,
   children,
   ...rest
@@ -154,15 +138,11 @@ export function RadioGroup({
   legend: ReactNode;
   name?: string;
   hint?: string;
-  error?: string;
-  /** `false` drops the error's `role="alert"`, for a form with its own error summary (see `Field`). */
-  announceError?: boolean;
   children: ReactNode;
-} & Omit<ComponentPropsWithoutRef<"fieldset">, "children" | "name">) {
+} & Pick<FieldLineProps, "error" | "announceError"> &
+  Omit<ComponentPropsWithoutRef<"fieldset">, "children" | "name">) {
   const id = useId();
-  const hintId = hint ? `${id}-hint` : undefined;
-  const errorId = error ? `${id}-error` : undefined;
-  const describedBy = [rest["aria-describedby"], errorId, hintId].filter(Boolean).join(" ") || undefined;
+  const { describedBy, lines } = fieldLines({ id, hint, error, announceError, describedBy: rest["aria-describedby"] });
   const radios = name ? withName(children, name) : children;
 
   return (
@@ -173,16 +153,7 @@ export function RadioGroup({
     >
       <legend className={choiceLegendClass}>{legend}</legend>
       {radios}
-      {error ? (
-        <span id={errorId} role={announceError ? "alert" : undefined} className={fieldErrorClass}>
-          {error}
-        </span>
-      ) : null}
-      {hint ? (
-        <span id={hintId} className={fieldHintClass}>
-          {hint}
-        </span>
-      ) : null}
+      {lines}
     </fieldset>
   );
 }

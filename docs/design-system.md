@@ -750,7 +750,11 @@ own search input should take `fieldClass` or the same pair of sizes.
 **A textarea has a minimum height** (#39): `textareaClass` and
 `smallTextareaClass` give it `min-h-28`, 7rem, about four rows. On `fieldClass` a
 textarea measured 58px, and a box that short invites a one-line answer. `Field`
-applies them to a `<textarea>` child; set `rows` for more. **A file input** takes
+applies them to a native `<textarea>` child and recognises nothing else: a
+component that wraps a textarea gets `fieldClass`, and a caller must not add
+`textareaClass` on top through `className`, because `min-h-11` and `min-h-28`
+would then both apply under one variant; pass it on the textarea itself. Set
+`rows` for more. **A file input** takes
 `fileFieldClass`: `fieldClass` (44px below `md`, 16px text) with the browser's
 button drawn as the subtle button is, through the `file:` variant.
 
@@ -849,8 +853,10 @@ RadioGroup   <fieldset>  {choiceGroupClass}   name given to each Radio inside it
   box; with neither, the markup is unchanged.
 - **Unlike the other components, the rest reaches the `<input>`**, because the
   input is the control: `name`, `value`, `checked`, `onChange`, `disabled`.
-  `className` reaches the row, for layout; `RadioGroup`'s rest reaches the
-  fieldset.
+  `className` reaches the outermost element, for layout: the row (the
+  `<label>`) when there is no `hint` or `error`, and the `fieldFrameClass`
+  wrapper around the row and its lines when there is one. `RadioGroup`'s rest
+  reaches the fieldset.
 - `PopoverOption` stays for a toolbar panel's hover-tinted row, around a bare
   input with `choiceInputClass`; a `Checkbox` is a label already and never
   goes inside another.
