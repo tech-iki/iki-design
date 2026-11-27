@@ -8,6 +8,64 @@ token or class is a major.
 
 ## [Unreleased]
 
+The app shell as components (#19), which the showcase site now uses (#23),
+with the three additions the Digital Library needs (its #99 and #101). A
+minor: everything is new, and no existing prop, class string or token changes.
+
+### Added
+
+- `SkipLink`, `Rail`, `RailBrand`, `NavGroup`, `NavLink` and `NavButton`:
+  §7's navy rail, server-safe (no `"use client"`, no location read), `...rest`
+  on each root. `Rail` is an `<aside>` with the brand on top and one named
+  `<nav>` (`label`, "Main" by default) holding the groups and the `foot`;
+  `collapsed` sets `data-collapsed`, which every item's classes read, so no
+  item needs the prop. `NavGroup`'s heading names its list and stays the name,
+  `sr-only`, on the narrow rail. `NavLink` takes `icon` (an `IconName` or an
+  element) and `current`, which the app computes: `true` sets
+  `aria-current="page"` and draws weight, the tint and the left bar; `"true"`
+  is for an entry whose page has its own section navigation. `NavButton` is a
+  real `<button>` with a link's look, for Sign out. `RailBrand` is the brand
+  slot's link, named by its words at every width. `SkipLink` targets
+  `PageMain`'s main through the new `MAIN_CONTENT_ID`, and carries
+  `focusRing` on a paper shadow, so the ring holds 5.19:1 over the navy rail.
+- `isActivePath(pathname, href, { exact, exclude })`: Work OS's
+  segment-boundary match with child exclusion, pure and tested — `/` exact,
+  `/calls` never current on `/calls-admin`, query, hash and trailing slashes
+  ignored.
+- `renderLink`, `joinClasses`, `LinkRender` and `LinkSlotProps`
+  (`link-render.ts`): **the router-link convention.** Every link-shaped
+  component takes `render`, an element (`<Link href>` from Next,
+  `<Link to>` from React Router) that is cloned, or a function of the props;
+  the package's classes, `aria-current` and children land on it, its own
+  props stay. No hooks, so it works in a Server Component. `Pagination`,
+  `PrevNextNav` and `BackLink` (#20, #22) are to reuse it. Written once in §7.
+- The shell's class strings in `ui-classes.ts` — `skipLinkClass`, `railClass`,
+  `railHeaderClass`, `railNavClass`, `railGroupsClass`, `railFootClass`,
+  `railLabelClass`, `railBrandClass`, `railBrandNameClass`, `navGroupClass`,
+  `navHeadingClass`, `navDividerClass`, `navListClass`, `navItemClass`,
+  `navItemIdleClass`, `navItemCurrentClass`, `navButtonClass` — shown in §7's
+  new `classes:nav` block and held to it by the doc test.
+- `TOKEN_PAIRS`: the rail's pairs, flattened onto navy — `paper/75`, the
+  `paper/50` group heading (4.59:1, the tightest), `paper/70` for Work OS's
+  child links, hover on `paper/10`, current on `paper/12` and its bar. Closes
+  the §14 drift row that said they rendered unasserted.
+
+### Changed
+
+- `PageMain` sets its id from `MAIN_CONTENT_ID`; the value is still
+  `main-content`.
+- The rail's items keep the 44px floor at every width, where Work OS's
+  release it at `md` like `touchTarget`: from `md` to `lg` the rail is still a
+  column of bare icons. A Work OS rail that adopts the components gets 44px
+  rows on the wide rail, against 36px today. The current item's bar survives
+  forced colours (`forced-color-adjust-none`, `CanvasText`); Work OS's did not.
+- The site: the rail and the skip link are the package's (#23): the current page is
+  marked with `aria-current="page"`, weight, the tint and the bar, read by a
+  small client `SiteNavLink` (the layout cannot read the pathname), and the
+  skip link has its focus ring. A test renders the rail for every page and
+  finds exactly one current link. `/components` shows the rail, collapsed and
+  wide, and the router-link convention.
+
 ## [0.5.0] — 2026-10-21
 
 Phase 2 of the plan of 20 October 2026: the rest of the components the
