@@ -8,6 +8,10 @@ token or class is a major.
 
 ## [Unreleased]
 
+### Changed
+
+- **Docs: §13b.** The Digital Library's adoption path now follows its decision to converge on the package (theme, shell, icons); the palette-only steps are marked superseded (#42). No code or version change.
+
 ## [0.5.0] — 2026-10-21
 
 Phase 2 of the plan of 20 October 2026: the rest of the components the
