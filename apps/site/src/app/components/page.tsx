@@ -14,6 +14,7 @@ import {
   Radio,
   RadioGroup,
   TableFrame,
+  fileFieldClass,
   primaryLinkButtonClass,
   subtleLinkButtonClass,
   rowClass,
@@ -83,6 +84,22 @@ const FIELD_USE = `<Field label="Task title" hint="Shown in lists and on the boa
 
 <Field label="Notes">
   <textarea name="notes" rows={3} />
+</Field>
+
+<Field label="Attachment">
+  <input type="file" name="attachment" className={fileFieldClass} />
+</Field>
+
+{/* A form that shows its own error summary, which takes focus: */}
+<Field label="Postcode" error="Enter a postcode." announceError={false}>
+  <input type="text" name="postcode" />
+</Field>
+
+<Field
+  label={<>Title <em>(required)</em></>}
+  hint={<>Up to <strong>60</strong> characters.</>}
+>
+  <input type="text" name="title" />
 </Field>`;
 
 const NOTICE_USE = `<Notice>Changes apply to the next task anybody saves.</Notice>
@@ -171,6 +188,7 @@ const TABLE_USE = `<TableFrame caption="Tasks due this week" maxHeightClass={gri
 
 const CHOICE_USE = `<Checkbox label="Share with everyone" name="share" defaultChecked />
 <Checkbox label="Archived (read-only)" disabled />
+<Checkbox label="I agree" name="agree" hint="Required." error="You must agree to continue." />
 
 <RadioGroup legend="Group by" name="group-by" hint="Applies to this view only.">
   <Radio label="None" value="none" defaultChecked />
@@ -282,7 +300,13 @@ export default function ComponentsPage() {
           the field class (<Mono>size=&quot;small&quot;</Mono> for the small one),
           the invalid border and fill when there is an error, and any class it
           brought for layout. The control can be any element. A disabled
-          control draws itself muted.
+          control draws itself muted. The text is 16px below <Mono>md</Mono>{" "}
+          so iOS does not zoom on focus. A textarea gets a four-row minimum;{" "}
+          <Mono>label</Mono> and <Mono>hint</Mono> take any node; and{" "}
+          <Mono>announceError={"{false}"}</Mono> drops the error’s{" "}
+          <Mono>role=&quot;alert&quot;</Mono> for a form that shows its own
+          error summary and moves focus to it, so each error is announced once.
+          The error stays linked to the field either way.
         </P>
         <div className="grid gap-4 sm:grid-cols-2">
           <Field
@@ -309,6 +333,28 @@ export default function ComponentsPage() {
           <div className="sm:col-span-2">
             <Field label="Notes">
               <textarea name="notes" rows={3} defaultValue="Waiting on the finance figures." />
+            </Field>
+          </div>
+          <Field label="Attachment">
+            <input type="file" name="attachment" className={fileFieldClass} />
+          </Field>
+          <Field label="Postcode" error="Enter a postcode." announceError={false}>
+            <input type="text" name="postcode" defaultValue="" />
+          </Field>
+          <div className="sm:col-span-2">
+            <Field
+              label={
+                <>
+                  Title <em>(required)</em>
+                </>
+              }
+              hint={
+                <>
+                  Up to <strong>60</strong> characters.
+                </>
+              }
+            >
+              <input type="text" name="title-node" />
             </Field>
           </div>
         </div>
@@ -477,12 +523,20 @@ export default function ComponentsPage() {
           its row. A <Mono>RadioGroup</Mono> is a fieldset whose legend asks
           the question and whose <Mono>name</Mono> reaches every radio. Space
           toggles a checkbox and the arrow keys move within a group, natively.
+          A checkbox takes a <Mono>hint</Mono> and an <Mono>error</Mono> as a
+          field does, and the same <Mono>announceError</Mono>.
         </P>
         <div className="flex flex-wrap gap-8">
           <div className="flex flex-col gap-1">
             <Checkbox label="Share with everyone" name="share" defaultChecked />
             <Checkbox label="Notify the owner" name="notify" />
             <Checkbox label="Archived (read-only)" name="archived" disabled />
+            <Checkbox
+              label="I agree"
+              name="agree"
+              hint="Required."
+              error="You must agree to continue."
+            />
           </div>
           <RadioGroup legend="Group by" name="group-by" hint="Applies to this view only.">
             <Radio label="None" value="none" defaultChecked />

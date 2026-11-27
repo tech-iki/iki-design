@@ -733,11 +733,14 @@ linkClass            text-teal-deep underline hover:text-navy rounded-xs {focusR
 
 <!-- classes:fields -->
 ```
-fieldClass         {touchTarget} rounded-md border border-grid-strong px-3 py-2 text-sm font-normal text-ink focus:border-teal-deep disabled:cursor-not-allowed disabled:bg-paper-tint disabled:text-ink-muted {focusRing}
-smallFieldClass    {touchTarget} rounded-md border border-grid-strong px-2 py-1.5 text-sm font-normal text-ink focus:border-teal-deep disabled:cursor-not-allowed disabled:bg-paper-tint disabled:text-ink-muted {focusRing}
-invalidFieldMark   border-health-overdue-fg bg-health-overdue-bg
-invalidFieldClass  {fieldClass} border-health-overdue-fg bg-health-overdue-bg
-labelClass         flex flex-col gap-1 text-xs font-medium text-ink
+fieldClass          {touchTarget} rounded-md border border-grid-strong px-3 py-2 text-base md:text-sm font-normal text-ink focus:border-teal-deep disabled:cursor-not-allowed disabled:bg-paper-tint disabled:text-ink-muted {focusRing}
+smallFieldClass     {touchTarget} rounded-md border border-grid-strong px-2 py-1.5 text-base md:text-sm font-normal text-ink focus:border-teal-deep disabled:cursor-not-allowed disabled:bg-paper-tint disabled:text-ink-muted {focusRing}
+textareaClass       min-h-28 rounded-md border border-grid-strong px-3 py-2 text-base md:text-sm font-normal text-ink focus:border-teal-deep disabled:cursor-not-allowed disabled:bg-paper-tint disabled:text-ink-muted {focusRing}
+smallTextareaClass  min-h-28 rounded-md border border-grid-strong px-2 py-1.5 text-base md:text-sm font-normal text-ink focus:border-teal-deep disabled:cursor-not-allowed disabled:bg-paper-tint disabled:text-ink-muted {focusRing}
+fileFieldClass      {fieldClass} file:mr-3 file:cursor-pointer file:rounded-md file:border file:border-grid-strong file:bg-paper file:px-2.5 file:py-1.5 file:text-xs file:text-ink hover:file:bg-teal-soft
+invalidFieldMark    border-health-overdue-fg bg-health-overdue-bg
+invalidFieldClass   {fieldClass} border-health-overdue-fg bg-health-overdue-bg
+labelClass          flex flex-col gap-1 text-xs font-medium text-ink
 ```
 
 The label wraps its control, so the click target includes the label and no
@@ -754,6 +757,26 @@ not-allowed cursor — from `fieldClass`'s own `disabled:` variants, so the stat
 follows the attribute. The audit of 20 October 2026 found the state missing: a
 control that could not be edited looked exactly like one that could.
 
+**A field's text is 16px below `md` and 14px from `md`** (`text-base md:text-sm`,
+#38). iOS Safari zooms the page when a control under 16px takes focus and does
+not always zoom back, and the package already made fields 44px tall below `md`,
+so the phone layout was considered and the text size was not. Desktop keeps its
+density. This is the documented iOS behaviour, not a measurement on a device. It
+applies to `fieldClass`, `smallFieldClass` and everything built on them, the
+`Combobox` input included. The package has no popover search field; a consumer's
+own search input should take `fieldClass` or the same pair of sizes.
+
+**A textarea has a minimum height** (#39): `textareaClass` and
+`smallTextareaClass` give it `min-h-28`, 7rem, about four rows. On `fieldClass` a
+textarea measured 58px, and a box that short invites a one-line answer. `Field`
+applies them to a native `<textarea>` child and recognises nothing else: a
+component that wraps a textarea gets `fieldClass`, and a caller must not add
+`textareaClass` on top through `className`, because `min-h-11` and `min-h-28`
+would then both apply under one variant; pass it on the textarea itself. Set
+`rows` for more. **A file input** takes
+`fileFieldClass`: `fieldClass` (44px below `md`, 16px text) with the browser's
+button drawn as the subtle button is, through the `file:` variant.
+
 `Field` is the label, the control and the two lines under it, wired. The
 hint and the error are the label's siblings, not its children: a label's
 accessible name is every word inside it, and a hint inside would be read as
@@ -765,9 +788,22 @@ Field        <div>    flex flex-col gap-1
   label      <label>  {labelClass}   wrapping the label text and the control
   control    the one child, cloned with id, aria-describedby → error and hint, aria-invalid when error
   class      {fieldClass} | {smallFieldClass} when size=small | + border-health-overdue-fg bg-health-overdue-bg when error | + the child's own className
-  error      text-xs text-health-overdue-fg   (role="alert")
+  textarea   {textareaClass} | {smallTextareaClass} when size=small   (in place of the class line's base, for a <textarea> child)
+  error      text-xs text-health-overdue-fg   (role="alert"; none when announceError={false})
   hint       text-xs text-ink-muted
 ```
+
+`label` and `hint` are `ReactNode`, so a call site can pass an expression; the
+hint still sits outside the label. **When to turn the alert off (#40):**
+`announceError={false}` is for a form that shows its own error summary and moves
+focus to it. The summary is then the announcement, and a role on each field
+would read every error twice, or five times at once for a refusal with five
+fields. The error text keeps its id, its place in `aria-describedby` and
+`aria-invalid`, so the field still names its reason when focused; only
+`role="alert"` goes. The default is `true`, and a form with no summary of its own
+leaves it alone. `Checkbox` and `RadioGroup` take the same prop. There is no
+form-level switch: a context provider would make `Field` a client component, and
+the prop is one line at the form that needs it.
 
 `Button` is one of the six strings above with the two things every call site
 had to remember: `type="button"` unless told otherwise, and the pending state.
@@ -817,6 +853,7 @@ choiceLegendClass  mb-1 p-0 text-xs font-medium text-ink
 ```
 Checkbox     <label>     {choiceLabelClass}   wrapping the input and the label text
   input      <input type="checkbox">   {choiceInputClass}   the rest of the props reach it
+  hint, error   with either: the row sits in a <div> flex flex-col gap-1 with them, as Field's lines; aria-describedby, and aria-invalid on error
 Radio        the same, type="radio"
 RadioGroup   <fieldset>  {choiceGroupClass}   name given to each Radio inside it without one; disabled disables them all
   legend     <legend>    {choiceLegendClass}
@@ -833,10 +870,19 @@ RadioGroup   <fieldset>  {choiceGroupClass}   name given to each Radio inside it
 - **A disabled input mutes its row** (`has-disabled:`), so the state follows
   the attribute as `fieldClass`'s does; a `disabled` `RadioGroup` is a
   disabled fieldset, which disables every radio in it natively.
+- **A `Checkbox` takes `hint` and `error`** (#39), as `Field` does: the lines sit
+  under the row, outside the label so the name stays the words, joined by
+  `aria-describedby` with an `id` the component gives the input (its own if it
+  has one), the error `aria-invalid` and `role="alert"` unless
+  `announceError={false}`. With either, the row is wrapped in a
+  `fieldFrameClass` `<div>` and `className` goes to that wrapper, the outermost
+  box; with neither, the markup is unchanged.
 - **Unlike the other components, the rest reaches the `<input>`**, because the
   input is the control: `name`, `value`, `checked`, `onChange`, `disabled`.
-  `className` reaches the row, for layout; `RadioGroup`'s rest reaches the
-  fieldset.
+  `className` reaches the outermost element, for layout: the row (the
+  `<label>`) when there is no `hint` or `error`, and the `fieldFrameClass`
+  wrapper around the row and its lines when there is one. `RadioGroup`'s rest
+  reaches the fieldset.
 - `PopoverOption` stays for a toolbar panel's hover-tinted row, around a bare
   input with `choiceInputClass`; a `Checkbox` is a label already and never
   goes inside another.
@@ -1723,7 +1769,7 @@ Conventions:
 | 2.4.1 | A skip link, first in the DOM, hidden until focused, targeting a focusable `<main>` |
 | 4.1.2 | Icon-only controls carry an `sr-only` name and a `title` or a `Tooltip`, never both; icons are `aria-hidden`; a name and an identical description are never both given |
 | 1.3.1 | Tables state role and name; a stacked table restates `rowgroup`/`row`/`cell`, because changing `display` drops those roles |
-| 4.1.3 | Errors are `role="alert"`, notices `role="status"`; a refused cell edit announces itself rather than silently reverting |
+| 4.1.3 | Errors are `role="alert"`, notices `role="status"`; a refused cell edit announces itself rather than silently reverting. A form with its own focus-taking error summary sets `announceError={false}` on its fields, so each error is announced once (§8) |
 | 2.1.2 | The drawer traps Tab, opens focus in its content, restores it on close; Escape belongs to the top layer |
 | 2.4.3 | The grid is one tab stop with arrow-key movement — it had 2,881 focusable elements before |
 | 2.1.1 | A cursor-less scrollable table still takes a tab stop, because Safari does not auto-focus scrollable regions |

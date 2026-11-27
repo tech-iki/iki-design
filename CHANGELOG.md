@@ -41,6 +41,16 @@ token or class is a major.
   §13d now states the Preflight assumption and §13e lists each rule against the
   Preflight rule it mirrors and the package classes that need it; the adopt page
   shows the file. `RESET_RULES`, `RESET_SCOPE` and `resetCss()` are exported.
+- `Field` `announceError` (default `true`, so nothing changes by default): `false`
+  drops the error's `role="alert"` for a form that shows its own error summary,
+  keeping the id, `aria-describedby` and `aria-invalid` (#40). `Checkbox` and
+  `RadioGroup` take it too.
+- `Field`'s `label` and `hint` accept `ReactNode`, not only `string` (#39).
+- `Checkbox` accepts `hint` and `error` and wires `aria-describedby` and
+  `aria-invalid`, as `Field` does. With neither, the markup is unchanged (#39).
+- `textareaClass`, `smallTextareaClass` (minimum height `min-h-28`, about four
+  rows) and `fileFieldClass` (the field class with the browser's file button
+  drawn as the subtle button) (#39).
 
 ### Changed
 
@@ -51,6 +61,16 @@ token or class is a major.
 - **`EmptyState` no longer passes `title` to the root as the HTML attribute.**
   A caller that used `title="…"` for a tooltip now gets the visible headline
   instead. No call site in Work OS or the Digital Library does this.
+- **Rendered size change for existing consumers (#38):** `fieldClass` and
+  `smallFieldClass` set `text-base md:text-sm`, so a field's text is 16px below
+  `md` and 14px from `md`; it was 14px at every width. iOS Safari zooms the page
+  when a control under 16px takes focus. Desktop is unchanged. Everything built
+  on the two strings follows: `invalidFieldClass`, `Field`, the `Combobox`
+  input. Heights are unchanged (the 44px floor already exceeds the taller text).
+  The package has no popover search field, so none changed.
+- `Field` gives a `<textarea>` child `textareaClass` (`smallTextareaClass` with
+  `size="small"`) in place of the field class, so an existing textarea in a
+  `Field` now has a minimum height of 7rem (#39). Set `rows` for more.
 
 ### Fixed
 
