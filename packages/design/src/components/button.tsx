@@ -1,4 +1,4 @@
-import type { ComponentPropsWithoutRef, ReactNode } from "react";
+import type { ComponentPropsWithRef, ReactNode } from "react";
 
 import {
   iconButtonClass,
@@ -23,10 +23,13 @@ const VARIANT_CLASS: Readonly<Record<ButtonVariant, string>> = {
  * The verb in progress: "Save" → "Save…", "Sign in" → "Signing in…" is the
  * caller's to spell, but the ellipsis form is the one §8 asks for, so a plain
  * verb gets it for free. A trailing full stop is dropped first so "Save."
- * does not become "Save.…".
+ * does not become "Save.…". A label that already ends in an ellipsis, the
+ * single character or three full stops, is left as it is: "Save…" does not
+ * become "Save……" (#35).
  */
 function pendingForm(children: ReactNode): ReactNode {
   if (typeof children !== "string") return children;
+  if (/(…|\.\.\.)$/.test(children)) return children;
   return `${children.replace(/\.$/, "")}…`;
 }
 
@@ -49,7 +52,13 @@ function pendingForm(children: ReactNode): ReactNode {
  * The `icon` and `warnIcon` variants are 28px square: the caller puts an
  * `<Icon>` and an `sr-only` span inside and a `title` on the button, as the
  * row actions do. `...rest` reaches the element, so `form`, `name`, `onClick`
- * and the rest of `<button>` work as they would on the element itself.
+ * and the rest of `<button>` work as they would on the element itself, and
+ * so does `ref` (a plain prop in React 19), so a caller can move focus to the
+ * button without a cast (#35). `pendingLabel` is rendered exactly as given:
+ * the component adds no ellipsis to it, so a caller that wants one writes it.
+ *
+ * A link drawn as a button is not a `Button`: it is an `<a>`, and has its own
+ * strings, `primaryLinkButtonClass` and `subtleLinkButtonClass` (#36).
  */
 export function Button({
   variant = "primary",
@@ -64,7 +73,7 @@ export function Button({
   variant?: ButtonVariant;
   pending?: boolean;
   pendingLabel?: string;
-} & ComponentPropsWithoutRef<"button">) {
+} & ComponentPropsWithRef<"button">) {
   const base = VARIANT_CLASS[variant];
   return (
     <button

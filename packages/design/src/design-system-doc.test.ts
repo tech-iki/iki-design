@@ -98,6 +98,7 @@ const PLACEHOLDER: Readonly<Record<string, string>> = {
   "{touchTarget}": classes.touchTarget,
   "{focusRing}": classes.focusRing,
   "{fieldClass}": classes.fieldClass,
+  "{primaryButtonClass}": classes.primaryButtonClass,
   "{subtleButtonClass}": classes.subtleButtonClass,
 };
 

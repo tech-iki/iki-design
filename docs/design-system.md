@@ -696,6 +696,8 @@ subtleButtonClass    {touchTarget} rounded-md border border-grid-strong px-2.5 p
 warnButtonClass      {touchTarget} rounded-md border border-warm-fg/70 px-2.5 py-1.5 text-xs text-warm-fg hover:bg-warm-bg disabled:opacity-50 {focusRing}
 iconButtonClass      {touchTarget} inline-flex items-center justify-center rounded-md p-1.5 text-ink-muted hover:bg-teal-soft hover:text-ink disabled:opacity-50 {focusRing}
 warnIconButtonClass  {touchTarget} inline-flex items-center justify-center rounded-md p-1.5 text-warm-fg hover:bg-warm-bg disabled:opacity-50 {focusRing}
+primaryLinkButtonClass  {primaryButtonClass} inline-flex items-center justify-center no-underline
+subtleLinkButtonClass   {subtleButtonClass} inline-flex items-center justify-center no-underline
 linkClass            text-teal-deep underline hover:text-navy rounded-xs {focusRing}
 ```
 
@@ -707,6 +709,14 @@ linkClass            text-teal-deep underline hover:text-navy rounded-xs {focusR
   floor below `md`. The name lives in an `sr-only` span and a `title`; the glyph
   is `aria-hidden`. **A confirm step stays in words** — a resting action can be
   recognised from its icon, but "yes, really" has to be read.
+- **A link drawn as a button** (a router `Link`, an `<a>`) takes
+  `primaryLinkButtonClass` or `subtleLinkButtonClass`: the button's own
+  string plus `inline-flex`, centred content and `no-underline`. A button is
+  already block-like and has no underline; an anchor is inline and underlined, so
+  without these `min-h-11` does nothing to it and it renders under 44px at
+  375px. The colours, border, hover and focus ring are the button's, so the
+  contrast pairs are the button's. There is no warn, icon or `Link` component
+  here; how a router renders its link is the consumer's.
 - **On navy**, the sign-out button is
   `flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-md border border-paper/50 p-1.5 text-sm text-paper/90 hover:bg-paper/10 hover:text-paper md:min-h-0 md:min-w-0 {focusRingOnNavy}`.
 
@@ -762,6 +772,12 @@ Button variant=icon      {iconButtonClass}
 Button variant=warnIcon  {warnIconButtonClass}
   pending                disabled, aria-busy, the verb with an ellipsis: "Save" → "Save…", or pendingLabel
 ```
+
+A string child that already ends in an ellipsis, the character or three full
+stops, keeps it: "Save…" stays "Save…", not "Save……" (#35). `pendingLabel` is shown
+exactly as given, with no ellipsis added. `ref` is accepted like any other prop
+of `<button>` (a plain prop in React 19), so a caller can move focus to the
+button without a cast.
 
 **A refused action costs the click, not the page.** The form stays, the reason
 appears, the values are kept (#157). Pending state is the verb in progress with

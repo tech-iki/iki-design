@@ -16,6 +16,12 @@ token or class is a major.
   `<div>` 4px above it (`emptyStateTitleClass`; the pair is in `TOKEN_PAIRS`).
   Not a heading, because the component cannot know the page's level; pass an
   `<h3>` as the title for one. Without it the markup is unchanged (#41).
+- `primaryLinkButtonClass` and `subtleLinkButtonClass` (#36): the two button
+  looks on an `<a>` or a router `Link`: the button's own string plus
+  `inline-flex items-center justify-center no-underline`, so the 44px floor
+  below `md` applies and the label is not underlined. Colours, border, hover
+  and focus ring are the button's, so no contrast pair changes. Held by §8 and
+  shown on `/controls` and `/components`. A minor; no existing string changes.
 
 ### Changed
 
@@ -41,6 +47,11 @@ token or class is a major.
   same as the subtle button.
 - The touch floor cites WCAG 2.5.5 (44px, AAA), not 2.5.8 (24px, AA). Principle 7
   states the measured 28–38px for buttons and fields in place of "about 26px".
+- `Button` (#35): a string child that already ends in an ellipsis, the
+  character or three full stops, keeps it while `pending`; "Save…" no longer
+  renders "Save……". `ref` is now in `Button`'s types (a plain prop in React
+  19), so a caller can pass one without a cast. `pendingLabel` is unchanged: it
+  is shown as given.
 
 ## [0.5.0] — 2026-10-21
 

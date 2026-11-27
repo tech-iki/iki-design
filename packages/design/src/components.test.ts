@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
-import { Fragment, createElement } from "react";
+import { Fragment, createElement, createRef, type ComponentProps } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, it } from "vitest";
+import { describe, expect, expectTypeOf, it } from "vitest";
 
 import { Button } from "./components/button.js";
 import { EmptyState, emptyStateClass, emptyStateTextClass, emptyStateTitleClass } from "./components/empty-state.js";
@@ -97,6 +97,33 @@ describe("Button", () => {
     expect(rest).not.toContain("aria-busy");
   });
 
+  // #35. The doubled ellipsis was in the child path: "Save…" became "Save……".
+  it("does not add an ellipsis to a label that already ends in one", () => {
+    const pending = (children: string) => html(createElement(Button, { pending: true, children }));
+    expect(pending("Submitting…")).toContain(">Submitting…<");
+    expect(pending("Submitting…")).not.toContain("……");
+    expect(pending("Submitting...")).toContain(">Submitting...<");
+    expect(pending("Submitting...")).not.toContain("…");
+    expect(pending("Submitting")).toContain(">Submitting…<");
+    // A pendingLabel is shown as given, ellipsis or none.
+    const labelled = (pendingLabel: string) =>
+      html(createElement(Button, { pending: true, pendingLabel, children: "Submit" }));
+    expect(labelled("Submitting…")).toContain(">Submitting…<");
+    expect(labelled("Submitting…")).not.toContain("……");
+  });
+
+  // #35. Compile-time: tsc runs over this file, so a Button that stopped
+  // accepting `ref` fails `npm run typecheck`, not only this assertion.
+  it("accepts ref in its types", () => {
+    const ref = createRef<HTMLButtonElement>();
+    const markup = html(createElement(Button, { ref, children: "Save" }));
+    expect(markup).toContain("<button");
+    expectTypeOf<ComponentProps<typeof Button>>().toHaveProperty("ref");
+    expectTypeOf<ComponentProps<typeof Button>["ref"]>().toEqualTypeOf<
+      import("react").Ref<HTMLButtonElement> | undefined
+    >();
+  });
+
   it("passes the rest through, but pending's own attributes win", () => {
     expect(html(createElement(Button, { name: "intent", value: "save", children: "x" }))).toContain('name="intent"');
     const forced = html(
@@ -104,6 +131,37 @@ describe("Button", () => {
     );
     expect(forced).toContain('aria-busy="true"');
     expect(forced).toMatch(/<button[^>]* disabled=""/);
+  });
+});
+
+// #36. There is no browser runner, so the computed style is held where it is
+// decided: the classes. `display` is inline-flex, `text-decoration` is none and
+// the 44px floor is `min-h-11` below `md`; the colours are the button's own.
+describe("link button classes", () => {
+  const pairs = [
+    ["primaryLinkButtonClass", classes.primaryLinkButtonClass, classes.primaryButtonClass],
+    ["subtleLinkButtonClass", classes.subtleLinkButtonClass, classes.subtleButtonClass],
+  ] as const;
+
+  for (const [name, linkClass, buttonClass] of pairs) {
+    it(`${name} makes an <a> inline-flex, centred, not underlined, 44px below md`, () => {
+      const markup = html(createElement("a", { href: "/x", className: linkClass, children: "Open" }));
+      const words = classOf(markup)!.split(" ");
+      expect(words).toEqual(expect.arrayContaining(["inline-flex", "items-center", "justify-center", "no-underline"]));
+      expect(words).not.toContain("underline");
+      expect(words).toEqual(expect.arrayContaining(classes.touchTarget.split(" ")));
+      expect(words).toEqual(expect.arrayContaining(classes.focusRing.split(" ")));
+    });
+
+    it(`${name} is the button's string with the anchor's three additions, so its contrast pairs are the button's`, () => {
+      expect(linkClass).toBe(`${buttonClass} inline-flex items-center justify-center no-underline`);
+    });
+  }
+
+  it("leaves the button strings as they were", () => {
+    expect(classes.primaryButtonClass).not.toContain("inline-flex");
+    expect(classes.primaryButtonClass).not.toContain("no-underline");
+    expect(classes.subtleButtonClass).not.toContain("no-underline");
   });
 });
 
