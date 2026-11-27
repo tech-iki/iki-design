@@ -25,6 +25,9 @@ export { EmptyState, emptyStateClass, emptyStateTextClass } from "./components/e
 export { Icon } from "./components/icon.js";
 export { TableFrame, ActionsHeader, rowClass } from "./components/table-frame.js";
 export { Checkbox, Radio, RadioGroup } from "./components/choice.js";
+export { isActivePath } from "./is-active-path.js";
+// How every link-shaped component renders the app's router link (§7).
+export { renderLink, joinClasses, type LinkRender, type LinkSlotProps } from "./link-render.js";
 // Client-only (ADR 0002; design system §13): each file starts with "use client".
 // Base UI is behind them and is never re-exported.
 export { Drawer, type DrawerCloseReason } from "./components/drawer.js";
