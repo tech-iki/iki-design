@@ -93,7 +93,13 @@ const EMPTY_USE = `<EmptyState action={<Button>New task</Button>}>
   No tasks yet. Create the first one.
 </EmptyState>
 
-<EmptyState>Nothing is overdue.</EmptyState>`;
+<EmptyState>Nothing is overdue.</EmptyState>
+
+{/* title: a plain div above the sentence, not a heading, because the
+    component cannot know the page's heading level. Pass an <h3> to get one. */}
+<EmptyState title="No resources found" action={<Button>Clear filters</Button>}>
+  Nothing matches these filters. Clear them to see everything.
+</EmptyState>`;
 
 const DRAWER_USE = `const [open, setOpen] = useState(false);
 
@@ -337,6 +343,9 @@ export default function ComponentsPage() {
             No tasks yet. Create the first one.
           </EmptyState>
           <EmptyState>Nothing is overdue.</EmptyState>
+          <EmptyState title="No resources found" action={<Button>Clear filters</Button>}>
+            Nothing matches these filters. Clear them to see everything.
+          </EmptyState>
         </div>
         <CodeBlock code={EMPTY_USE} />
       </Section>
