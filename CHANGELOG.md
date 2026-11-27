@@ -31,6 +31,16 @@ token or class is a major.
   action that can be put back. No new token; two pairs added to `TOKEN_PAIRS`.
   `ButtonVariant` gains a member, `"destructive"`: a consumer with an exhaustive
   `Record<ButtonVariant, …>` or `switch` must add the case.
+- `reset.css`, an opt-in export (`@tech-iki/design/reset.css`) for a Tailwind app
+  that omits Preflight (#33). Eight rules in `@layer base`, each the value
+  Preflight sets for those elements, scoped to `.iki-reset`: the Digital
+  Library's own six, word for word, and the box-sizing and control-font rules it
+  supplies elsewhere. Nothing imports it for you and no existing file changes, so
+  an app with Preflight sees nothing; it is not part of `theme.css` or
+  `base.css`. Put `iki-reset` on `<body>` so the portalled overlays are reached.
+  §13d now states the Preflight assumption and §13e lists each rule against the
+  Preflight rule it mirrors and the package classes that need it; the adopt page
+  shows the file. `RESET_RULES`, `RESET_SCOPE` and `resetCss()` are exported.
 
 ### Changed
 
