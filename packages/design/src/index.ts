@@ -21,7 +21,12 @@ export { PageMain } from "./components/page-main.js";
 export { Button, type ButtonVariant } from "./components/button.js";
 export { Field, fieldErrorClass, fieldFrameClass, fieldHintClass } from "./components/field.js";
 export { Notice, noticeClass, type NoticeTone } from "./components/notice.js";
-export { EmptyState, emptyStateClass, emptyStateTextClass } from "./components/empty-state.js";
+export {
+  EmptyState,
+  emptyStateClass,
+  emptyStateTextClass,
+  emptyStateTitleClass,
+} from "./components/empty-state.js";
 export { Icon } from "./components/icon.js";
 export { TableFrame, ActionsHeader, rowClass } from "./components/table-frame.js";
 export { Checkbox, Radio, RadioGroup } from "./components/choice.js";

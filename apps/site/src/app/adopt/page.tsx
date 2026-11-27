@@ -68,7 +68,7 @@ export default function Page() {
   );
 }`;
 
-const GIT_TAG = `"@tech-iki/design": "https://github.com/tech-iki/iki-design/releases/download/v0.5.0/tech-iki-design-0.5.0.tgz"`;
+const GIT_TAG = `"@tech-iki/design": "https://github.com/tech-iki/iki-design/releases/download/v0.6.0/tech-iki-design-0.6.0.tgz"`;
 
 export default function AdoptPage() {
   return (

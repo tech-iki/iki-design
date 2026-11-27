@@ -2196,7 +2196,7 @@ per-stack notes that follow.
   workflow:
 
   ```json
-  "@tech-iki/design": "https://github.com/tech-iki/iki-design/releases/download/v0.5.0/tech-iki-design-0.5.0.tgz"
+  "@tech-iki/design": "https://github.com/tech-iki/iki-design/releases/download/v0.6.0/tech-iki-design-0.6.0.tgz"
   ```
 
   Do not use a git URL (`github:tech-iki/iki-design#vX.Y.Z`, `git+https://…`).
@@ -2706,7 +2706,7 @@ This block is `packages/design/dist/tokens.json`, generated from
 ```json
 {
   "name": "IKI design system",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "source": "tech-iki/iki-design packages/design/src/tokens.ts",
   "colour": {
     "navy": "#12304a",

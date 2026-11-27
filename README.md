@@ -68,7 +68,7 @@ Until the package is on npm, install the tarball attached to the release
 (`vX.Y.Z` and `X.Y.Z` are the same version; its `.sha256` sits beside it):
 
 ```json
-"@tech-iki/design": "https://github.com/tech-iki/iki-design/releases/download/v0.5.0/tech-iki-design-0.5.0.tgz"
+"@tech-iki/design": "https://github.com/tech-iki/iki-design/releases/download/v0.6.0/tech-iki-design-0.6.0.tgz"
 ```
 
 A git URL (`github:tech-iki/iki-design#vX.Y.Z`) cannot work: it installs the
