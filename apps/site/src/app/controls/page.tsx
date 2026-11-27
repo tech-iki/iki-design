@@ -241,7 +241,7 @@ export default function ControlsPage() {
         </Specimen>
         <Specimen
           name="touchTarget"
-          note={`WCAG 2.5.8 wants ${TOUCH_TARGET_PX}px. This is a minimum, not a size, and it applies below \`md\` only, so the desk keeps its density and a thumb gets its room. The dashed box is ${TOUCH_TARGET_PX}px square.`}
+          note={`WCAG 2.5.5 wants ${TOUCH_TARGET_PX}px at AAA; 2.5.8 asks for 24px at AA. This is a minimum, not a size, and it applies below \`md\` only, so the desk keeps its density and a thumb gets its room. The dashed box is ${TOUCH_TARGET_PX}px square.`}
           classString={touchTarget}
         >
           <span

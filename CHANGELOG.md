@@ -10,6 +10,8 @@ token or class is a major.
 
 ### Added
 
+- `class-strings.test.ts`: fails when a class string sets a measured property
+  twice under one variant, and holds the field weight and the row touch floor.
 - `EmptyState` takes an optional `title`, rendered above the sentence in a
   `<div>` 4px above it (`emptyStateTitleClass`; the pair is in `TOKEN_PAIRS`).
   Not a heading, because the component cannot know the page's level; pass an
@@ -20,6 +22,21 @@ token or class is a major.
 - **`EmptyState` no longer passes `title` to the root as the HTML attribute.**
   A caller that used `title="…"` for a tooltip now gets the visible headline
   instead. No call site in Work OS or the Digital Library does this.
+
+### Fixed
+
+- `fieldClass` and `smallFieldClass` set `font-normal`. `Field` nests the control
+  inside `labelClass`, so typed text had been inheriting the label's 500.
+- `menuItemClass`, `popoverOptionClass` and `comboboxOptionClass` take the 44px
+  touch floor below `md`. They were 28px on a phone. Desktop is unchanged.
+- `menuClass` and `popoverPanelClass` scroll within the height available to them,
+  so a long list of taller rows cannot push its last rows off a phone's screen.
+- `menuTriggerClass` no longer appends `px-1.5 py-0.5`, which never applied
+  (computed `6px 10px`). The padding it renders is unchanged and the string now
+  says so. It sets `leading-4`, so its height moves from 28.7px to 30px, the
+  same as the subtle button.
+- The touch floor cites WCAG 2.5.5 (44px, AAA), not 2.5.8 (24px, AA). Principle 7
+  states the measured 28–38px for buttons and fields in place of "about 26px".
 
 ## [0.5.0] — 2026-10-21
 
