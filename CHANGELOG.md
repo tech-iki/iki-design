@@ -8,6 +8,15 @@ token or class is a major.
 
 ## [Unreleased]
 
+### Added
+
+- `EmptyState` takes an optional `title`, rendered above the sentence in a
+  `<div>` (`emptyStateTitleClass`: `text-sm font-semibold text-ink`; the pair is
+  in `TOKEN_PAIRS`). Not a heading, because the component cannot know the
+  page's level; pass an `<h3>` as the title for one. Without it the markup is
+  unchanged. A `title` passed before now reached the root as the HTML
+  attribute; it is now the headline.
+
 ## [0.5.0] — 2026-10-21
 
 Phase 2 of the plan of 20 October 2026: the rest of the components the
