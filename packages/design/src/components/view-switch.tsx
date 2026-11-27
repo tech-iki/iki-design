@@ -1,4 +1,4 @@
-import type { ComponentPropsWithoutRef, ReactNode } from "react";
+import type { ComponentProps, ReactNode } from "react";
 
 import { joinClasses, renderLink, type LinkRender } from "../link-render.js";
 import { linkNavCurrentClass, linkNavLinkClass, linkNavListClass } from "../ui-classes.js";
@@ -29,7 +29,7 @@ export function ViewSwitch({
   views: readonly ViewSwitchView[];
   current: string;
   render?: LinkRender;
-} & Omit<ComponentPropsWithoutRef<"nav">, "children" | "aria-label">) {
+} & Omit<ComponentProps<"nav">, "children" | "aria-label">) {
   return (
     <nav {...rest} aria-label={label}>
       <ul className={linkNavListClass}>

@@ -1916,12 +1916,12 @@ The strings, shown here and held to the code by the doc test:
 <!-- classes:linknav -->
 ```
 linkNavListClass         m-0 flex list-none flex-wrap items-center gap-1 p-0
-linkNavItemClass         {touchTarget} relative inline-flex items-center justify-center gap-1 rounded-md px-3 py-1.5 text-sm
+linkNavItemClass         {touchTarget} relative box-border inline-flex items-center justify-center gap-1 rounded-md px-3 py-1.5 text-sm
 linkNavLinkClass         {linkNavItemClass} no-underline text-teal-deep hover:bg-teal-soft hover:text-navy {focusRing}
 linkNavCurrentClass      font-semibold text-ink after:absolute after:inset-x-3 after:bottom-0 after:h-0.5 after:rounded-full after:bg-teal-deep after:forced-color-adjust-none forced-colors:after:bg-[CanvasText]
 linkNavUnavailableClass  cursor-not-allowed text-ink-muted
 linkNavLabelClass        max-sm:sr-only
-backLinkClass            {touchTarget} inline-flex items-center gap-1 rounded-md text-sm no-underline text-teal-deep hover:text-navy {focusRing}
+backLinkClass            {touchTarget} box-border inline-flex items-center gap-1 rounded-md text-sm no-underline text-teal-deep hover:text-navy {focusRing}
 ```
 
 - **`Pagination`** is Previous, "Page N of M", Next. It takes `page`,
@@ -1965,8 +1965,9 @@ backLinkClass            {touchTarget} inline-flex items-center gap-1 rounded-md
   "Back to submissions", never "Back". The label is underlined and the arrow is
   not. `href` or `render`; `...rest` reaches the link.
 - **Targets and focus.** Every link, and the current and unavailable items,
-  carry `touchTarget`: 44px below `md`, released at `md`. Links carry
-  `focusRing`.
+  carry `touchTarget`: 44px below `md` (WCAG 2.5.5), released at `md`, and
+  `box-border`, so the 44px includes the padding in an app without Preflight.
+  Links carry `focusRing`.
 - **Contrast** needs no new token or pair: teal-deep on paper (the link
   pair), navy on teal-soft (hover), ink and ink-muted on paper (current and
   unavailable) are all in `TOKEN_PAIRS`; the bar is teal-deep on paper, held
@@ -1987,7 +1988,10 @@ backLinkClass            {touchTarget} inline-flex items-center gap-1 rounded-md
 What a unit test cannot see, and is stated here instead: that Windows High
 Contrast paints the bar as the classes ask; the measured pixel sizes at each
 breakpoint; and what a screen reader says of a `role="link"` with
-`aria-disabled`. The showcase's `/components` page
+`aria-disabled`. At 320px (288px of content) Previous, "Page N of M" and Next
+need about 215px: below `sm` the two words give way to their arrows, so the
+row is 44px, the status and 44px, plus two 4px gaps. It fits on one row, and the
+list still wraps if the copy is longer. The showcase's `/components` page
 draws each of them, with the site's own router link through `render`.
 
 ### Icons

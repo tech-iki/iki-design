@@ -653,10 +653,11 @@ export const linkNavListClass = "m-0 flex list-none flex-wrap items-center gap-1
 
 /**
  * What every item shares, link or not, so the row has one rhythm: `touchTarget`'s
- * 44px floor below `md`, the rounded box, 14px type.
+ * 44px floor below `md` (WCAG 2.5.5), the rounded box, 14px type. `box-border`,
+ * so the floor is the whole target, padding included, without Preflight.
  */
 export const linkNavItemClass =
-  `${touchTarget} relative inline-flex items-center justify-center gap-1 rounded-md px-3 py-1.5 text-sm`;
+  `${touchTarget} relative box-border inline-flex items-center justify-center gap-1 rounded-md px-3 py-1.5 text-sm`;
 
 /** A link to somewhere else (`no-underline`, so a consumer without Preflight gets no browser underline): `teal-deep`, the tint and `navy` on hover, the package's focus ring. */
 export const linkNavLinkClass =
@@ -692,4 +693,4 @@ export const linkNavLabelClass = "max-sm:sr-only";
  * underlines the label alone, so the line does not run under the arrow.
  */
 export const backLinkClass =
-  `${touchTarget} inline-flex items-center gap-1 rounded-md text-sm no-underline text-teal-deep hover:text-navy ${focusRing}`;
+  `${touchTarget} box-border inline-flex items-center gap-1 rounded-md text-sm no-underline text-teal-deep hover:text-navy ${focusRing}`;

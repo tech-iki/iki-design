@@ -1,4 +1,4 @@
-import type { ComponentPropsWithoutRef, ReactElement, ReactNode } from "react";
+import type { ComponentProps, ReactElement, ReactNode } from "react";
 
 import type { IconName } from "../icons.generated.js";
 import { joinClasses, renderLink, type LinkRender } from "../link-render.js";
@@ -32,7 +32,7 @@ export function BackLink({
   icon?: IconName | ReactElement;
   /** The label, naming the destination. */
   children: ReactNode;
-} & Omit<ComponentPropsWithoutRef<"a">, "href" | "children">) {
+} & Omit<ComponentProps<"a">, "href" | "children">) {
   return renderLink(
     {
       ...rest,

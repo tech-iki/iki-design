@@ -8,7 +8,7 @@
  * far as the classes go and stated in §8.
  */
 import { cleanup, render, screen, within } from "@testing-library/react";
-import type { ComponentProps, ComponentPropsWithoutRef } from "react";
+import { createRef, type ComponentProps, type ComponentPropsWithoutRef } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, describe, expect, it } from "vitest";
 
@@ -376,6 +376,36 @@ describe("ViewSwitch", () => {
   });
 });
 
+describe("refs", () => {
+  it("reach the link of a BackLink and the nav of the others", () => {
+    const link = createRef<HTMLAnchorElement>();
+    const pager = createRef<HTMLElement>();
+    const stepper = createRef<HTMLElement>();
+    const views = createRef<HTMLElement>();
+    render(
+      <>
+        <BackLink ref={link} href="/x">
+          Back to x
+        </BackLink>
+        <Pagination ref={pager} page={2} totalPages={3} hrefFor={hrefFor} />
+        <PrevNextNav ref={stepper} label="Steps" current="Now" />
+        <ViewSwitch ref={views} label="View" current="a" views={[{ id: "a", href: "/a", label: "A" }]} />
+      </>,
+    );
+    expect(link.current).toBe(screen.getByRole("link", { name: "Back to x" }));
+    expect(pager.current).toBe(screen.getByRole("navigation", { name: "Pagination" }));
+    expect(stepper.current).toBe(screen.getByRole("navigation", { name: "Steps" }));
+    expect(views.current).toBe(screen.getByRole("navigation", { name: "View" }));
+  });
+
+  it("let an onClick on the router's element compose with the package's props", () => {
+    let clicked = 0;
+    render(<BackLink render={<RouterLikeLink to="/x" onClick={() => clicked++} />}>Back to x</BackLink>);
+    screen.getByRole("link", { name: "Back to x" }).click();
+    expect(clicked).toBe(1);
+  });
+});
+
 describe("the navigation classes", () => {
   const all = [
     classes.linkNavListClass,
@@ -396,6 +426,10 @@ describe("the navigation classes", () => {
       expect(value).toContain(classes.touchTarget);
     }
     for (const value of [classes.linkNavLinkClass, classes.backLinkClass]) expect(value).toContain(classes.focusRing);
+  });
+
+  it("keep the whole 44px target, padding included, without Preflight (box-border)", () => {
+    for (const value of [classes.linkNavItemClass, classes.backLinkClass]) expect(value.split(" ")).toContain("box-border");
   });
 
   it("spell out the resets a consumer without Preflight needs: the list and the link underline", () => {

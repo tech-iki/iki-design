@@ -1,4 +1,4 @@
-import type { ComponentPropsWithoutRef, ReactNode } from "react";
+import type { ComponentProps, ReactNode } from "react";
 
 import { joinClasses, renderLink, type LinkRender } from "../link-render.js";
 import {
@@ -83,7 +83,7 @@ export function Pagination({
   nextLabel?: string;
   status?: (page: number, totalPages: number) => ReactNode;
   render?: LinkRender;
-} & Omit<ComponentPropsWithoutRef<"nav">, "children" | "aria-label">) {
+} & Omit<ComponentProps<"nav">, "children" | "aria-label">) {
   const total = Number.isFinite(totalPages) ? Math.trunc(totalPages) : 0;
   if (total <= 1) return null;
   const current = clampPage(page, total);
@@ -155,7 +155,7 @@ export function PrevNextNav({
   next?: PrevNextTarget;
   today?: PrevNextTarget;
   render?: LinkRender;
-} & Omit<ComponentPropsWithoutRef<"nav">, "children" | "aria-label">) {
+} & Omit<ComponentProps<"nav">, "children" | "aria-label">) {
   const link = (target: PrevNextTarget, rel: string | undefined, children: ReactNode) => (
     <li>{renderLink({ href: target.href, rel, className: linkNavLinkClass, children }, render)}</li>
   );
