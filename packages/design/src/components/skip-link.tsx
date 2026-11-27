@@ -1,5 +1,6 @@
 import type { ComponentProps, ReactNode } from "react";
 
+import { joinClasses } from "../link-render.js";
 import { skipLinkClass } from "../ui-classes.js";
 
 /**
@@ -30,7 +31,7 @@ export function SkipLink({
   children?: ReactNode;
 } & Omit<ComponentProps<"a">, "href">) {
   return (
-    <a {...rest} href={`#${targetId}`} className={className ? `${skipLinkClass} ${className}` : skipLinkClass}>
+    <a {...rest} href={`#${targetId}`} className={joinClasses(skipLinkClass, className)}>
       {children}
     </a>
   );

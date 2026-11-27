@@ -223,13 +223,6 @@ export const TOKEN_PAIRS: {
     bg: TOKENS.navy,
     kind: "text",
   },
-  // Not drawn by a package component yet: Work OS's saved views and child links.
-  {
-    what: "rail child link: paper/70 on navy",
-    fg: blend(TOKENS.paper, 0.7, TOKENS.navy),
-    bg: TOKENS.navy,
-    kind: "text",
-  },
   {
     what: "rail group heading: paper/50 on navy",
     fg: blend(TOKENS.paper, 0.5, TOKENS.navy),

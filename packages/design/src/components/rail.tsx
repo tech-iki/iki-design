@@ -91,7 +91,7 @@ export function Rail({
   collapsed?: boolean;
   /** The top of the rail: a `RailBrand`, and a collapse toggle if the app has one. */
   brand?: ReactNode;
-  /** Items below the groups, after a rule: Guide, the person, Sign out (`NavButton`). */
+  /** Items below the groups, after a rule: Guide, the person, Sign out (`NavButton`). Nothing, and there is no foot. */
   foot?: ReactNode;
   /** The `NavGroup`s. */
   children: ReactNode;
@@ -101,7 +101,7 @@ export function Rail({
       {brand ? <div className={railHeaderClass}>{brand}</div> : null}
       <nav aria-label={label} className={railNavClass}>
         <div className={railGroupsClass}>{children}</div>
-        {foot ? (
+        {items(foot).length > 0 ? (
           <div className={railFootClass}>
             <ItemList>{foot}</ItemList>
           </div>
@@ -157,7 +157,11 @@ export function RailBrand({
  * screen reader hears "Admin, list, 3 items". While the rail is narrow the
  * heading is visually hidden — still the list's name — and a rule takes its
  * place, as in Work OS. Each child becomes one `<li>`; a fragment's children
- * count one by one. The heading is an `<h2>` unless `headingLevel` says
+ * count one by one; a group whose children are all `false` or `null` renders
+ * nothing, rather than a heading over an empty named list (a role that sees
+ * none of the group's links). A child component that itself returns `null`
+ * cannot be seen from here, so filter by role in the array the group gets.
+ * The heading is an `<h2>` unless `headingLevel` says
  * otherwise, for an app whose outline puts the rail deeper. `...rest`
  * reaches the group's `<div>`.
  */
@@ -173,6 +177,7 @@ export function NavGroup({
   children: ReactNode;
 } & ComponentPropsWithoutRef<"div">) {
   const id = useId();
+  if (items(children).length === 0) return null;
   return (
     <div {...rest} className={joinClasses(navGroupClass, className)}>
       {createElement(
@@ -225,7 +230,9 @@ type NavLinkTarget = { href: string; render?: undefined } | { href?: string; ren
  * (`link-render.ts`): `render={<Link href="/calls" />}` in Next,
  * `render={<Link to="/calls" />}` in React Router — the router's `Link`,
  * never its `NavLink`, which overrides `aria-current` with its own matching
- * (`link-render.ts`): `current` is the single source. The package's classes,
+ * (`link-render.ts`): `current` is the single source. Exactly one link on
+ * the page should be current, and that is the app's to ensure, with
+ * `isActivePath` and its `exclude`: the package cannot see the other links. The package's classes,
  * `aria-current` and the icon and label land on that element. `icon` is an
  * `IconName` or an element (an `<svg aria-hidden>` of the app's own).
  * `...rest` (`title`, `ref`, `onClick`; `prefetch` is the router's and goes

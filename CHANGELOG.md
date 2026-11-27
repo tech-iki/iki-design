@@ -30,7 +30,13 @@ token or class is a major.
   hides its scrollbar where it is 56px wide. `NavGroup` takes `headingLevel`
   (2 to 6); the links and `NavButton` take a `ref`. None of the shell depends
   on Tailwind's Preflight (#33): each string resets the defaults it would
-  otherwise inherit.
+  otherwise inherit. A group, or a foot, with nothing in it renders nothing.
+  Every item keeps the 44px floor at every width, where Work OS's rail
+  releases it at `md` like `touchTarget`: from `md` to `lg` the rail is still
+  a column of bare icons, so a Work OS rail that adopts the components gets
+  44px rows on the wide rail, against 36px today. The current item's bar
+  survives forced colours (`forced-color-adjust-none`, `CanvasText`); Work
+  OS's did not.
 - `isActivePath(pathname, href, { exact, exclude })`: Work OS's
   segment-boundary match with child exclusion, pure and tested — `/` exact,
   `/calls` never current on `/calls-admin`, query, hash and trailing slashes
@@ -44,7 +50,7 @@ token or class is a major.
   router's `Link`, never React Router's `NavLink`, which overrides
   `aria-current` with its own matching: the package's `current` is the
   single source. No hooks, so it works in a Server Component. `Pagination`,
-  `PrevNextNav` and `BackLink` (#20, #22) are to reuse it. Written once in §7.
+  `PrevNextNav` and `BackLink` (#20, #22) build on it. Written once in §7.
 - The shell's class strings in `ui-classes.ts` — `skipLinkClass`, `railClass`,
   `railHeaderClass`, `railNavClass`, `railGroupsClass`, `railFootClass`,
   `railLabelClass`, `railBrandClass`, `railBrandNameClass`, `navGroupClass`,
@@ -52,25 +58,24 @@ token or class is a major.
   `navItemIdleClass`, `navItemCurrentClass`, `navButtonClass` — shown in §7's
   new `classes:nav` block and held to it by the doc test.
 - `TOKEN_PAIRS`: the rail's pairs, flattened onto navy — `paper/75`, the
-  `paper/50` group heading (4.59:1, the tightest), `paper/70` for Work OS's
-  child links, hover on `paper/10`, current on `paper/12` and its bar. Closes
-  the §14 drift row that said they rendered unasserted.
+  `paper/50` group heading (4.59:1, the tightest), hover on `paper/10`,
+  current on `paper/12` and its bar. Closes the §14 drift row that said they
+  rendered unasserted; the `paper/70` of Work OS's child links joins with a
+  child-link component when there is one.
 
 ### Changed
 
 - `PageMain` sets its id from `MAIN_CONTENT_ID`; the value is still
   `main-content`.
-- The rail's items keep the 44px floor at every width, where Work OS's
-  release it at `md` like `touchTarget`: from `md` to `lg` the rail is still a
-  column of bare icons. A Work OS rail that adopts the components gets 44px
-  rows on the wide rail, against 36px today. The current item's bar survives
-  forced colours (`forced-color-adjust-none`, `CanvasText`); Work OS's did not.
 - The site: the rail and the skip link are the package's (#23): the current page is
   marked with `aria-current="page"`, weight, the tint and the bar, read by a
   small client `SiteNavLink` (the layout cannot read the pathname), and the
   skip link has its focus ring. A test renders the rail for every page and
   finds exactly one current link. `/components` shows the rail, collapsed and
   wide, and the router-link convention.
+- The site's navigation is now named "Main", not "Sections", and the
+  `@tech-iki/design` line at the foot of its rail is gone. The site only; the
+  package is unaffected.
 
 ### Fixed
 

@@ -1,8 +1,8 @@
 /**
  * How a link-shaped component renders the app's router link (#19, from the
- * Digital Library's #99 and #101): the one convention every link in the
- * package uses — `NavLink` and `RailBrand` today, `Pagination`, `PrevNextNav`
- * and `BackLink` next (#20, #22).
+ * Digital Library's #99 and #101): the one convention every link-shaped
+ * component in the package uses, starting with `NavLink` and `RailBrand`;
+ * `Pagination`, `PrevNextNav` and `BackLink` (#20, #22) are built on it too.
  *
  * A plain `<a href>` is right in a server-rendered app and wrong in a
  * client-routed one, where every click reloads the page and drops the app's

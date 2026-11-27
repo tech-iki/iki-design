@@ -566,7 +566,11 @@ so the same parts serve Next (Work OS, the members portal) and React Router
   reader hears "Admin, list, 3 items". The heading is 11px uppercase
   `text-paper/50`; while the rail is narrow it is `sr-only`, still the list's
   name, and a `paper/15` rule stands in for it. Each child is one `<li>`, a
-  fragment's children one each, `false` none. The heading is an `<h2>`;
+  fragment's children one each, `false` none; a group whose children are all
+  `false` or `null` renders nothing, not a heading over an empty named list,
+  and a `foot` that resolves to nothing renders no foot. A child component
+  that returns `null` itself cannot be seen, so filter by role in the list
+  the group is given. The heading is an `<h2>`;
   `headingLevel` (2 to 6) fits it to an app's outline. Work OS's groups are Work,
   Setup and Admin (admin only); Guide sits in the foot, because it is
   reference rather than work.
@@ -615,7 +619,12 @@ under the link with an entry of their own, which take the state from it
 alone. The query, the hash and trailing slashes are ignored on both sides,
 so by design `isActivePath("/calls", "/calls?view=late")` is true, as is
 every saved view of `/calls`: a link whose meaning is its query is the
-app's to compare. An `href` that is not a rooted path is never current. The pathname is `usePathname()` in a Next client component,
+app's to compare. An `href` that is not a rooted path is never current.
+
+**Exactly one link on a page is current, and that is the app's rule to keep.**
+The package draws what each `current` says and cannot see the other links,
+so two prefix matches both say "page" unless the app gives the parent an
+`exclude` (or `exact`) for the child. The pathname is `usePathname()` in a Next client component,
 `useLocation().pathname` in React Router, or the request on a server.
 
 ### The router link
@@ -681,9 +690,17 @@ a route. Its ring is `focusRing`, the teal one, standing on a 6px `paper`
 shadow, because the link lands over the navy rail, where teal-deep alone is
 2.61:1; on the shadow it is 5.19:1 whatever is behind.
 
+It reveals itself property by property under `focus:`, not with
+`focus:not-sr-only`. `sr-only` and `not-sr-only` each set `padding: 0`, so a
+`px-3 py-2` beside them lost to the stylesheet's order: in the built site the
+focused link computed `padding: 0px`. Now each property `sr-only` sets is
+undone by a `focus:` utility of its own and the padding is `focus:` too.
+`class-strings.test.ts` counts `sr-only` and `not-sr-only` as padding, so a
+string that puts either beside a padding under one variant fails.
+
 <!-- classes:nav -->
 ```
-skipLinkClass        sr-only z-50 box-border rounded-md bg-paper px-3 py-2 text-sm font-semibold text-ink no-underline focus:not-sr-only focus:fixed focus:left-2 focus:top-2 focus:inline-flex focus:min-h-11 focus:items-center focus:shadow-[0_0_0_6px_var(--color-paper)] {focusRing}
+skipLinkClass        sr-only z-50 box-border rounded-md bg-paper text-sm font-semibold text-ink no-underline focus:fixed focus:left-2 focus:top-2 focus:m-0 focus:inline-flex focus:h-auto focus:min-h-11 focus:w-auto focus:items-center focus:overflow-visible focus:px-3 focus:py-2 focus:[clip-path:none] focus:shadow-[0_0_0_6px_var(--color-paper)] {focusRing}
 railClass            group/rail sticky top-0 flex h-dvh w-14 shrink-0 flex-col bg-navy print:hidden lg:w-56 data-collapsed:w-14
 railHeaderClass      flex flex-col items-center justify-center gap-1 px-1 py-3 lg:flex-row lg:gap-2 lg:px-3 lg:group-data-collapsed/rail:flex-col lg:group-data-collapsed/rail:gap-1 lg:group-data-collapsed/rail:px-1
 railNavClass         flex min-h-0 flex-1 flex-col

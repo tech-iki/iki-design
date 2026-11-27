@@ -10,6 +10,12 @@ import * as classes from "./ui-classes.js";
  * decides. `menuTriggerClass` appended `px-1.5 py-0.5` to a string already
  * holding `px-2.5 py-1.5`, and the compact padding it asked for never applied;
  * the browser computed `6px 10px`. Reading the string gave no hint of that.
+ *
+ * A composite utility hides the same clash: `sr-only` and `not-sr-only` each
+ * set `padding: 0` among their properties. The skip link held `sr-only px-3
+ * py-2 … focus:not-sr-only`, and the focused link computed `padding: 0px` in
+ * the built site, because `focus:not-sr-only` outranks `px-3`. So each is
+ * counted here as setting every padding.
  */
 
 /** The properties whose conflicts have changed what a control measures. */
@@ -23,6 +29,12 @@ const MEASURED_PROPERTIES: readonly (readonly [string, RegExp])[] = [
   ["minimum width", /^min-w-/],
 ];
 
+/** Utilities that set several properties at once, and which of the measured ones. */
+const COMPOSITES: Readonly<Record<string, readonly string[]>> = {
+  "sr-only": ["padding", "inline padding", "block padding"],
+  "not-sr-only": ["padding", "inline padding", "block padding"],
+};
+
 /** The conflicts in a string: each is `property under variant: a, b`. */
 function conflicts(classString: string): string[] {
   const seen = new Map<string, string[]>();
@@ -31,7 +43,7 @@ function conflicts(classString: string): string[] {
     const variant = token.slice(0, split + 1);
     const utility = token.slice(split + 1);
     for (const [property, pattern] of MEASURED_PROPERTIES) {
-      if (!pattern.test(utility)) continue;
+      if (!pattern.test(utility) && !COMPOSITES[utility]?.includes(property)) continue;
       const key = `${property} under "${variant}"`;
       seen.set(key, [...(seen.get(key) ?? []), token]);
     }
@@ -59,6 +71,15 @@ describe("no class string sets a measured property twice", () => {
       'block padding under "": py-1.5, py-0.5',
       'font size under "": text-xs, text-[11px]',
     ]);
+  });
+
+  it("catches sr-only beside a padding, and not-sr-only beside a focused one", () => {
+    expect(conflicts("sr-only px-3 py-2 focus:not-sr-only")).toEqual([
+      'inline padding under "": sr-only, px-3',
+      'block padding under "": sr-only, py-2',
+    ]);
+    expect(conflicts("sr-only focus:not-sr-only focus:px-3")).toEqual(['inline padding under "focus:": focus:not-sr-only, focus:px-3']);
+    expect(conflicts("sr-only focus:px-3 focus:py-2")).toEqual([]);
   });
 
   it("does not count the same property under another variant", () => {

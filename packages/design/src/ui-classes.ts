@@ -444,9 +444,21 @@ export const comboboxEmptyClass = "px-2 py-1 text-xs text-ink-muted empty:hidden
  * link: it lands over the navy rail, where teal-deep alone is 2.61:1 and
  * would fail 1.4.11. Forced colours drop the shadow and keep the outline,
  * which the browser repaints in a system colour.
+ *
+ * **The reveal is spelled out under `focus:`, not `focus:not-sr-only`.**
+ * `sr-only` and `not-sr-only` each set `padding: 0` among their eight
+ * properties, so beside a `px-3 py-2` the stylesheet's order decided the
+ * padding, and it decided against it: measured in the built site, the
+ * focused link computed `padding: 0px`. Every property `sr-only` sets is
+ * now undone by a `focus:` utility of its own (`clip-path`, width, height,
+ * margin, overflow, position) and the padding is `focus:` too, so each
+ * property has one utility per variant and the order cannot matter. The
+ * text stays `nowrap`, which `sr-only` sets and the link wants anyway.
+ * `class-strings.test.ts` now counts `sr-only` as padding, so the clash
+ * cannot come back unseen.
  */
 export const skipLinkClass =
-  `sr-only z-50 box-border rounded-md bg-paper px-3 py-2 text-sm font-semibold text-ink no-underline focus:not-sr-only focus:fixed focus:left-2 focus:top-2 focus:inline-flex focus:min-h-11 focus:items-center focus:shadow-[0_0_0_6px_var(--color-paper)] ${focusRing}`;
+  `sr-only z-50 box-border rounded-md bg-paper text-sm font-semibold text-ink no-underline focus:fixed focus:left-2 focus:top-2 focus:m-0 focus:inline-flex focus:h-auto focus:min-h-11 focus:w-auto focus:items-center focus:overflow-visible focus:px-3 focus:py-2 focus:[clip-path:none] focus:shadow-[0_0_0_6px_var(--color-paper)] ${focusRing}`;
 
 /**
  * The rail: navy, sticky, the full height of the viewport, gone in print.

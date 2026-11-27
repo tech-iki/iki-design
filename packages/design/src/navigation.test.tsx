@@ -545,7 +545,34 @@ describe("SkipLink", () => {
 
   it("is hidden until focused, then fixed above everything", () => {
     const t = classes.skipLinkClass.split(" ");
-    expect(t).toEqual(expect.arrayContaining(["sr-only", "focus:not-sr-only", "focus:fixed", "z-50"]));
+    expect(t).toEqual(expect.arrayContaining(["sr-only", "focus:fixed", "z-50"]));
+  });
+
+  /*
+   * The focused link used to compute `padding: 0px` in the built site:
+   * `focus:not-sr-only` sets padding 0 and outranked the unprefixed `px-3
+   * py-2`. Every property `sr-only` sets must be undone by a `focus:`
+   * utility of its own, and nothing else may set padding or position.
+   */
+  it("reveals itself property by property, so its padding does not depend on stylesheet order", () => {
+    const t = classes.skipLinkClass.split(" ");
+    expect(t).not.toContain("not-sr-only");
+    expect(t).not.toContain("focus:not-sr-only");
+    // sr-only's properties (clip-path, width, height, margin, overflow, position, padding), each undone on focus.
+    expect(t).toEqual(
+      expect.arrayContaining([
+        "focus:[clip-path:none]",
+        "focus:w-auto",
+        "focus:h-auto",
+        "focus:m-0",
+        "focus:overflow-visible",
+        "focus:fixed",
+        "focus:px-3",
+        "focus:py-2",
+      ]),
+    );
+    // No padding outside focus: it would meet sr-only's padding 0 under the same variant.
+    expect(t.filter((c) => /^p[xytrbl]?-/.test(c))).toEqual([]);
   });
 
   it("takes another target, other words, and the rest", () => {
@@ -674,6 +701,39 @@ describe("Rail and NavGroup", () => {
     expect(screen.getByRole("link", { name: "IKI design" }).getAttribute("href")).toBe("/");
   });
 
+  it("renders nothing for a group whose children are all false or null", () => {
+    const isAdmin = false;
+    const { container } = render(
+      <NavGroup heading="Admin">
+        {isAdmin && (
+          <NavLink href="/audit" icon="review">
+            Audit
+          </NavLink>
+        )}
+        {null}
+        <>{false}</>
+      </NavGroup>,
+    );
+    expect(container.innerHTML).toBe("");
+  });
+
+  it("renders no foot when the foot resolves to nothing", () => {
+    const signedIn = false;
+    render(
+      <Rail foot={<>{signedIn && <NavButton icon="signOut">Sign out</NavButton>}</>}>
+        <NavGroup heading="Work">
+          <NavLink href="/a" icon="tasks">
+            A
+          </NavLink>
+        </NavGroup>
+      </Rail>,
+    );
+    const nav = screen.getByRole("navigation");
+    expect(nav.querySelector(`.${CSS.escape(classes.railFootClass.split(" ")[0])}.border-t`)).toBeNull();
+    expect(nav.children).toHaveLength(1);
+    expect(screen.getAllByRole("list")).toHaveLength(1);
+  });
+
   it("takes a heading level, h2 by default", () => {
     render(
       <>
@@ -719,6 +779,12 @@ describe("server-safe", () => {
     );
     expect(markup.startsWith('<a href="#main-content"')).toBe(true);
     expect(markup.match(/aria-current="page"/g)).toHaveLength(1);
+  });
+
+  it("puts no client directive on the helpers outside components/, which client-directive.test.ts does not read", () => {
+    for (const file of ["link-render.ts", "is-active-path.ts"]) {
+      expect(readFileSync(join(HERE, file), "utf8"), file).not.toMatch(/^\s*["']use client["']/m);
+    }
   });
 
   it("uses no hook in the link path, and none but useId anywhere in the shell", () => {
