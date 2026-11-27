@@ -100,7 +100,7 @@ export const COLOURS: readonly Colour[] = [
 
   // Status fills: a light fill and dark same-hue text
   { name: "health-overdue-bg", hex: "#f4cccc", group: "status", role: "Overdue; High priority; import error. Its text is 6.10:1." },
-  { name: "health-overdue-fg", hex: "#990000", group: "status", role: "Text on health-overdue-bg; field errors." },
+  { name: "health-overdue-fg", hex: "#990000", group: "status", role: "Text on health-overdue-bg; field errors; the destructive button's fill, with a paper label (8.92:1)." },
   { name: "health-ontrack-bg", hex: "#d9ead3", group: "status", role: "On Track; Completed status; import create. Its text is 7.62:1." },
   { name: "health-ontrack-fg", hex: "#274e13", group: "status", role: "Text on health-ontrack-bg." },
   { name: "health-stale-bg", hex: "#e7b34b", group: "status", role: "Stale — amber, per the workbook. Its text is 4.85:1." },

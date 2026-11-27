@@ -188,6 +188,7 @@ export const TOKEN_PAIRS: {
   { what: "active popover trigger border: teal-deep on teal-soft", fg: TOKENS.tealDeep, bg: TOKENS.tealSoft, kind: "nonText" },
   { what: "popover badge: paper on teal-deep", fg: TOKENS.paper, bg: TOKENS.tealDeep, kind: "text" },
   { what: "drawer refusal band: overdue-fg on health-overdue-bg", fg: TOKENS.healthOverdueFg, bg: TOKENS.healthOverdueBg, kind: "text" },
+  { what: "empty state title: ink on paper", fg: TOKENS.ink, bg: TOKENS.paper, kind: "text" },
   { what: "disclosure count: ink-muted on paper", fg: TOKENS.inkMuted, bg: TOKENS.paper, kind: "text" },
 
   // Phase 2 (0.5.0). The table frame renders pairs already held above — paper
@@ -206,6 +207,27 @@ export const TOKEN_PAIRS: {
    * on teal-soft as a graphic (the checked fill, the selected tab's bar, the
    * tick). The one new pair is the browser's checkmark drawn on that fill.
    */
+
+  /*
+   * The destructive button (`destructiveButtonClass`, #37): `health-overdue-fg`
+   * filled, `paper` label. No new token. Each rendered role is listed below,
+   * the way "primary button: white on teal-deep" is, even though the ratio is
+   * the same as a pair held elsewhere:
+   * - rest, label: paper on overdue-fg. The same ratio as the already-held
+   *   "field error line: overdue-fg on paper", reversed.
+   * - rest, boundary (WCAG 1.4.11, against the surroundings): the fill and
+   *   border are overdue-fg, on paper 8.92:1 (that same "field error line"
+   *   pair, a text pair and so stricter than the 3:1 needed) and on paper-tint
+   *   8.34:1 (listed below).
+   * - hover, label: overdue-fg on health-overdue-bg is "pill: overdue".
+   * - hover, boundary: the border stays overdue-fg, so against the
+   *   surroundings it is the same two pairs as at rest, not its own pale fill.
+   * - focus ring: teal-deep on paper is "focus ring: teal-deep on paper"; on
+   *   paper-tint it is the "link: teal-deep on paper-tint" pair.
+   * - disabled: 50% opacity, as on every button, and exempt (WCAG 1.4.3).
+   */
+  { what: "destructive button label: paper on health-overdue-fg", fg: TOKENS.paper, bg: TOKENS.healthOverdueFg, kind: "text" },
+  { what: "destructive button boundary: overdue-fg on paper-tint", fg: TOKENS.healthOverdueFg, bg: TOKENS.paperTint, kind: "nonText" },
 
   // Control boundaries and meaningful graphics — 3:1
   { what: "input border on paper", fg: TOKENS.gridStrong, bg: TOKENS.paper, kind: "nonText" },

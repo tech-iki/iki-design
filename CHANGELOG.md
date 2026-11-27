@@ -12,6 +12,25 @@ token or class is a major.
 
 - `class-strings.test.ts`: fails when a class string sets a measured property
   twice under one variant, and holds the field weight and the row touch floor.
+- `EmptyState` takes an optional `title`, rendered above the sentence in a
+  `<div>` 4px above it (`emptyStateTitleClass`; the pair is in `TOKEN_PAIRS`).
+  Not a heading, because the component cannot know the page's level; pass an
+  `<h3>` as the title for one. Without it the markup is unchanged (#41).
+- `primaryLinkButtonClass` and `subtleLinkButtonClass` (#36): the two button
+  looks on an `<a>` or a router `Link`: the button's own string plus
+  `inline-flex items-center justify-center no-underline`, so the 44px floor
+  below `md` applies and the label is not underlined. Colours, border, hover
+  and focus ring are the button's, so no contrast pair changes. Held by §8 and
+  shown on `/controls` and `/components`. A minor; no existing string changes.
+- `destructiveButtonClass` and `Button variant="destructive"` (#37), for an
+  action that cannot be undone: reject, withdraw, delete. `health-overdue-fg`
+  fill with a `paper` label (8.92:1), the overdue pill's pair on hover, and a
+  border of its own so it stays a button in forced-colours mode. It takes
+  primary's type and padding, so its border makes it 2px taller and wider at
+  `md` and up (38px against 36px); both are 44px below `md`. `warn` stays for an
+  action that can be put back. No new token; two pairs added to `TOKEN_PAIRS`.
+  `ButtonVariant` gains a member, `"destructive"`: a consumer with an exhaustive
+  `Record<ButtonVariant, …>` or `switch` must add the case.
 - `reset.css`, an opt-in export (`@tech-iki/design/reset.css`) for a Tailwind app
   that omits Preflight (#33). Eight rules in `@layer base`, each the value
   Preflight sets for those elements, scoped to `.iki-reset`: the Digital
@@ -22,6 +41,16 @@ token or class is a major.
   §13d now states the Preflight assumption and §13e lists each rule against the
   Preflight rule it mirrors and the package classes that need it; the adopt page
   shows the file. `RESET_RULES`, `RESET_SCOPE` and `resetCss()` are exported.
+
+### Changed
+
+- **Docs: §13b.** The Digital Library's adoption path now follows its decision
+  to converge on the package (theme, components, icons, and the rail for its
+  signed-in pages); the palette-only steps are marked superseded (#42). No code
+  or version change.
+- **`EmptyState` no longer passes `title` to the root as the HTML attribute.**
+  A caller that used `title="…"` for a tooltip now gets the visible headline
+  instead. No call site in Work OS or the Digital Library does this.
 
 ### Fixed
 
@@ -37,6 +66,11 @@ token or class is a major.
   same as the subtle button.
 - The touch floor cites WCAG 2.5.5 (44px, AAA), not 2.5.8 (24px, AA). Principle 7
   states the measured 28–38px for buttons and fields in place of "about 26px".
+- `Button` (#35): a string child that already ends in an ellipsis, the
+  character or three full stops, keeps it while `pending`; "Save…" no longer
+  renders "Save……". `ref` is now in `Button`'s types (a plain prop in React
+  19), so a caller can pass one without a cast. `pendingLabel` is unchanged: it
+  is shown as given.
 
 ## [0.5.0] — 2026-10-21
 

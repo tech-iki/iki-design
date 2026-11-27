@@ -8,6 +8,7 @@ import {
   TOUCH_TARGET_PX,
   cellCursor,
   cellHover,
+  destructiveButtonClass,
   fieldClass,
   focusRing,
   focusRingOnNavy,
@@ -16,8 +17,10 @@ import {
   labelClass,
   linkClass,
   primaryButtonClass,
+  primaryLinkButtonClass,
   smallFieldClass,
   subtleButtonClass,
+  subtleLinkButtonClass,
   touchTarget,
   warnButtonClass,
   warnIconButtonClass,
@@ -105,6 +108,18 @@ export default function ControlsPage() {
           </button>
         </Specimen>
         <Specimen
+          name="destructiveButtonClass"
+          note="Final and consequential: reject, withdraw, delete. Not `warn`, which is for what can be put back. Filled overdue red with a `paper` label, 2px taller than primary at `md` and up for its border (38px against 36px; both 44px below `md`); it takes the overdue pill's pair on hover. The words carry the meaning, and the confirm step stays in words."
+          classString={destructiveButtonClass}
+        >
+          <button type="button" className={destructiveButtonClass}>
+            Reject submission
+          </button>
+          <button type="button" disabled className={destructiveButtonClass}>
+            Rejecting…
+          </button>
+        </Specimen>
+        <Specimen
           name="iconButtonClass"
           note="A row action reduced to its icon: 28px square on a desk, 44px below `md`. The glyph is `aria-hidden`; the name lives in an `sr-only` span and a `title`."
           classString={iconButtonClass}
@@ -131,6 +146,24 @@ export default function ControlsPage() {
             </Glyph>
             <span className="sr-only">Move to Trash</span>
           </button>
+        </Specimen>
+        <Specimen
+          name="primaryLinkButtonClass"
+          note="`primaryButtonClass` on an anchor: a router `Link` or an `<a>`. The button strings assume a `<button>`; an anchor is inline and underlined, so the 44px floor did nothing and the label was underlined. This adds `inline-flex`, centred content and `no-underline`, and nothing else, so the colours and the contrast pairs are the button’s."
+          classString={primaryLinkButtonClass}
+        >
+          <Link href="/components" className={primaryLinkButtonClass}>
+            Open components
+          </Link>
+        </Specimen>
+        <Specimen
+          name="subtleLinkButtonClass"
+          note="`subtleButtonClass` on an anchor, the same three additions."
+          classString={subtleLinkButtonClass}
+        >
+          <Link href="/components" className={subtleLinkButtonClass}>
+            Open components
+          </Link>
         </Specimen>
       </Section>
 

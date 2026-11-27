@@ -147,14 +147,55 @@ export const warnIconButtonClass =
 export const subtleButtonClass =
   `${touchTarget} rounded-md border border-grid-strong px-2.5 py-1.5 text-xs text-ink hover:bg-teal-soft disabled:opacity-50 ${focusRing}`;
 
+/*
+ * A link drawn as a button (#36): an `<a>`, or a router `Link` that renders
+ * one. The button strings assume a `<button>`, which is `inline-block` and
+ * centres its own content and carries no underline; an anchor is `inline`, so
+ * `min-h-11` does nothing to it, and it keeps the link's underline. These add
+ * what the element lacks and change nothing else: the string is the button's
+ * own, so the colours, the border, the hover, the 44px floor below `md` and
+ * the focus ring are the same and the contrast pairs are the button's pairs.
+ * `inline-flex` is what makes the floor apply and centres the label;
+ * `no-underline` holds in every state, hover and focus included.
+ */
+const asAnchor = "inline-flex items-center justify-center no-underline";
+
+/** `primaryButtonClass` on an `<a>`. */
+export const primaryLinkButtonClass = `${primaryButtonClass} ${asAnchor}`;
+
+/** `subtleButtonClass` on an `<a>`. */
+export const subtleLinkButtonClass = `${subtleButtonClass} ${asAnchor}`;
+
 /**
  * Destructive-but-reversible confirm (move-to-trash) — warm, not alarming.
+ * Choose `warn` when the action can be undone; for one that cannot, see
+ * `destructiveButtonClass`.
  * The border was `warm-fg/40`, which composites to 1.92:1 on the warm fill —
  * a control boundary under the 3:1 bar just like `grid` was. `/70` clears it
  * at 3.49:1 while staying lighter than the label (Work OS #57).
  */
 export const warnButtonClass =
   `${touchTarget} rounded-md border border-warm-fg/70 px-2.5 py-1.5 text-xs text-warm-fg hover:bg-warm-bg disabled:opacity-50 ${focusRing}`;
+
+/**
+ * An action that cannot be undone and should not look like a routine one —
+ * reject, withdraw, delete (#37). Choose `destructive` when the action is final
+ * or consequential, and `warn` when it can be undone: the red is the pair
+ * `Overdue` and the invalid field already use, so it says "stop and read", and
+ * `warn`'s warm pair says "this can be put back".
+ *
+ * Filled `health-overdue-fg` with `paper` text, 8.92:1, in primary's type and
+ * padding (14px, semibold) because it is the decisive action on its surface.
+ * Its 1px border makes it 2px taller and wider than primary at `md` and up
+ * (38px against 36px); below `md` both are 44px. The border is the same red, so a filled button keeps its boundary in forced-colours
+ * mode, where backgrounds are dropped, and on hover it is the whole of the
+ * button's edge: the fill goes to `health-overdue-bg` and the label to
+ * `health-overdue-fg`, the pair the overdue pill holds at 6.10:1. The words carry
+ * the meaning, not the colour, and a confirm step stays in words (§8).
+ * No new token: every pair is in `TOKEN_PAIRS`.
+ */
+export const destructiveButtonClass =
+  `${touchTarget} rounded-md border border-health-overdue-fg bg-health-overdue-fg px-3 py-2 text-sm font-semibold text-paper hover:bg-health-overdue-bg hover:text-health-overdue-fg disabled:opacity-50 ${focusRing}`;
 
 /** An inline text link inside body copy or a cell. */
 export const linkClass =
