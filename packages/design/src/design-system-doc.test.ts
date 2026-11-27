@@ -86,7 +86,7 @@ describe("docs/design-system.md carries the generated files verbatim", () => {
 });
 
 /**
- * §8 shows the class strings as `name  value` lines, with `{touchTarget}`,
+ * §8 (and §7, for the shell) shows the class strings as `name  value` lines, with `{touchTarget}`,
  * `{focusRing}` and `{fieldClass}` standing for the strings they are built
  * from. Until the 20 October 2026 audit (#6) nothing compared those lines to
  * `ui-classes.ts`, and three had drifted: the fields still showed a
@@ -99,6 +99,7 @@ const PLACEHOLDER: Readonly<Record<string, string>> = {
   "{focusRing}": classes.focusRing,
   "{fieldClass}": classes.fieldClass,
   "{subtleButtonClass}": classes.subtleButtonClass,
+  "{focusRingOnNavy}": classes.focusRingOnNavy,
 };
 
 /** `name  classes` lines → name → classes, placeholders expanded. */
@@ -128,6 +129,8 @@ const CLASS_BLOCKS = [
   "classes:tooltip",
   "classes:tabs",
   "classes:combobox",
+  // The app shell (#19): §7's rail and skip link, held as §8's are.
+  "classes:nav",
 ] as const;
 
 /**

@@ -207,6 +207,54 @@ export const TOKEN_PAIRS: {
    * tick). The one new pair is the browser's checkmark drawn on that fill.
    */
 
+  /*
+   * The rail (#19; closes the §14 drift row that said these rendered
+   * unasserted). Every alpha is flattened onto navy, or onto the fill it sits
+   * on, before it is measured. The group heading is the tightest at 4.59:1.
+   * The `paper/15` rules are decorative separators and have no pair; the
+   * rail's focus ring is `focusRingOnNavy`, held below as "focus ring on
+   * navy". The skip link is ink
+   * on paper and its teal-deep ring stands on a paper shadow, so it renders
+   * pairs already held: ink on paper, and the focus ring on paper.
+   */
+  {
+    what: "rail item: paper/75 on navy",
+    fg: blend(TOKENS.paper, 0.75, TOKENS.navy),
+    bg: TOKENS.navy,
+    kind: "text",
+  },
+  // Not drawn by a package component yet: Work OS's saved views and child links.
+  {
+    what: "rail child link: paper/70 on navy",
+    fg: blend(TOKENS.paper, 0.7, TOKENS.navy),
+    bg: TOKENS.navy,
+    kind: "text",
+  },
+  {
+    what: "rail group heading: paper/50 on navy",
+    fg: blend(TOKENS.paper, 0.5, TOKENS.navy),
+    bg: TOKENS.navy,
+    kind: "text",
+  },
+  {
+    what: "hovered rail item: paper on paper/10 over navy",
+    fg: TOKENS.paper,
+    bg: blend(TOKENS.paper, 0.1, TOKENS.navy),
+    kind: "text",
+  },
+  {
+    what: "current rail item: paper on paper/12 over navy",
+    fg: TOKENS.paper,
+    bg: blend(TOKENS.paper, 0.12, TOKENS.navy),
+    kind: "text",
+  },
+  {
+    what: "current rail item's bar: paper on paper/12 over navy",
+    fg: TOKENS.paper,
+    bg: blend(TOKENS.paper, 0.12, TOKENS.navy),
+    kind: "nonText",
+  },
+
   // Control boundaries and meaningful graphics — 3:1
   { what: "input border on paper", fg: TOKENS.gridStrong, bg: TOKENS.paper, kind: "nonText" },
   { what: "input border on paper-tint", fg: TOKENS.gridStrong, bg: TOKENS.paperTint, kind: "nonText" },

@@ -25,6 +25,9 @@ export { EmptyState, emptyStateClass, emptyStateTextClass } from "./components/e
 export { Icon } from "./components/icon.js";
 export { TableFrame, ActionsHeader, rowClass } from "./components/table-frame.js";
 export { Checkbox, Radio, RadioGroup } from "./components/choice.js";
+// The app shell (#19), server-safe: the app computes which link is current.
+export { SkipLink, MAIN_CONTENT_ID } from "./components/skip-link.js";
+export { Rail, RailBrand, NavGroup, NavLink, NavButton, type NavIcon } from "./components/rail.js";
 export { isActivePath } from "./is-active-path.js";
 // How every link-shaped component renders the app's router link (§7).
 export { renderLink, joinClasses, type LinkRender, type LinkSlotProps } from "./link-render.js";

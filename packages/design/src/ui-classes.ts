@@ -387,3 +387,115 @@ export const comboboxTickClass = "text-teal-deep";
 
 /** The "No matches." line; Base UI keeps the element mounted, so it hides itself when empty. */
 export const comboboxEmptyClass = "px-2 py-1 text-xs text-ink-muted empty:hidden";
+
+/*
+ * The app shell (§7; #19, #23): the skip link and the navy rail, drawn from
+ * Work OS's `app-sidebar.tsx` and rendered by the package's `SkipLink`,
+ * `Rail`, `RailBrand`, `NavGroup`, `NavLink` and `NavButton`. §7's
+ * "classes:nav" block shows these strings under these names, held by the doc
+ * test.
+ *
+ * Collapse is CSS, not a prop on every item: `Rail` sets `data-collapsed` on
+ * the `<aside>`, which is the named group `group/rail`, and each item's
+ * `group-data-collapsed/rail:` classes read it. A `group-*` variant wraps its
+ * selector in `:is()`, which is one attribute more specific than a bare
+ * breakpoint, so the collapsed form beats the `lg:` one it overrides without
+ * an `!important`. That keeps every part server-safe: nothing needs a context
+ * or a hook to know how wide the rail is.
+ */
+
+/**
+ * The skip link (§10, 2.4.1): first in the DOM, `sr-only` until focused, then
+ * fixed at the top left above everything (`z-50`, §6), 44px tall.
+ *
+ * It carries `focusRing`, the teal one, and stands on a 6px `paper` box-shadow
+ * so the ring is always teal-deep on paper (5.19:1) whatever is behind the
+ * link: it lands over the navy rail, where teal-deep alone is 2.61:1 and
+ * would fail 1.4.11. Forced colours drop the shadow and keep the outline,
+ * which the browser repaints in a system colour.
+ */
+export const skipLinkClass =
+  `sr-only z-50 rounded-md bg-paper px-3 py-2 text-sm font-semibold text-ink focus:not-sr-only focus:fixed focus:left-2 focus:top-2 focus:inline-flex focus:min-h-11 focus:items-center focus:shadow-[0_0_0_6px_var(--color-paper)] ${focusRing}`;
+
+/**
+ * The rail: navy, sticky, the full height of the viewport, gone in print.
+ * 224px from `lg`, 56px below it or when collapsed (`data-collapsed` on this
+ * element; the attribute selector outranks the breakpoint).
+ */
+export const railClass =
+  "group/rail sticky top-0 flex h-screen w-14 shrink-0 flex-col bg-navy print:hidden lg:w-56 data-collapsed:w-14";
+
+/** The brand row: stacked while the rail is narrow, a row when it is wide (Work OS #143). */
+export const railHeaderClass =
+  "flex flex-col items-center justify-center gap-1 px-1 py-3 lg:flex-row lg:gap-2 lg:px-3 lg:group-data-collapsed/rail:flex-col lg:group-data-collapsed/rail:gap-1 lg:group-data-collapsed/rail:px-1";
+
+/** The `<nav>`: the groups scroll, the foot stays at the bottom. */
+export const railNavClass = "flex min-h-0 flex-1 flex-col";
+
+/**
+ * The scrolling list of groups. `px-1` while narrow, so a 44px target fits
+ * the 56px rail (Work OS #63) at every width below `lg` and when collapsed.
+ */
+export const railGroupsClass =
+  "min-h-0 flex-1 overflow-y-auto px-1 pb-2 lg:px-2 lg:group-data-collapsed/rail:px-1";
+
+/** The foot: Guide, the person, Sign out. A `paper/15` rule above it, decorative. */
+export const railFootClass =
+  "flex flex-col gap-0.5 border-t border-paper/15 px-1 py-2 lg:px-2 lg:group-data-collapsed/rail:px-1";
+
+/**
+ * A label hidden while the rail is narrow: `sr-only`, never `hidden`, so it
+ * stays the accessible name of an icon-only item (§7).
+ */
+export const railLabelClass = "max-lg:sr-only group-data-collapsed/rail:sr-only";
+
+/** The brand link: the mark, and the name beside it while the rail is wide. 44px at every width. */
+export const railBrandClass =
+  `flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-md lg:flex-1 lg:justify-start lg:group-data-collapsed/rail:flex-none lg:group-data-collapsed/rail:justify-center ${focusRingOnNavy}`;
+
+/** The brand's name: white, semibold, truncated rather than wrapped. */
+export const railBrandNameClass = "truncate text-sm font-semibold tracking-wide text-paper";
+
+/** One group: a heading over a list, 16px under it. */
+export const navGroupClass = "mb-4";
+
+/**
+ * A group's heading: 11px uppercase `paper/50` (4.59:1, the tightest pair the
+ * rail has). Visually hidden while the rail is narrow, and still the list's
+ * name, so a screen reader hears the group at every width.
+ */
+export const navHeadingClass =
+  "px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-paper/50";
+
+/** The rule that stands in for a heading on the narrow rail. Decorative. */
+export const navDividerClass =
+  "mx-2 mb-2 border-paper/15 lg:hidden lg:group-data-collapsed/rail:block";
+
+export const navListClass = "flex flex-col gap-0.5";
+
+/**
+ * Every rail item, link or button: 44px tall at every width, and 44px wide
+ * when it is only an icon, which the 56px rail's `px-1` leaves room for. This
+ * is the one place the rail departs from Work OS, whose items release the
+ * floor at `md` like `touchTarget` does: the narrow rail is still a column
+ * of bare icons from `md` to `lg`, so the floor stays. Centred while narrow,
+ * a row with its label from `lg`.
+ */
+export const navItemClass =
+  `relative flex min-h-11 min-w-11 items-center justify-center gap-3 rounded-md px-0 py-2 text-sm lg:justify-start lg:px-3 lg:group-data-collapsed/rail:justify-center lg:group-data-collapsed/rail:px-0 ${focusRingOnNavy}`;
+
+/** An item that is not the current page: `paper/75`, lifted on hover. */
+export const navItemIdleClass = "font-medium text-paper/75 hover:bg-paper/10 hover:text-paper";
+
+/**
+ * The current page: weight and a 2px left bar as well as the tint, so it
+ * survives a monochrome view (§2 principle 2). Forced colours paint over
+ * backgrounds, the tint and the bar's included, so the bar opts out
+ * (`forced-color-adjust-none`) and takes the system's text colour; the
+ * semibold weight needs no help.
+ */
+export const navItemCurrentClass =
+  "bg-paper/12 font-semibold text-paper before:absolute before:inset-y-1 before:left-0 before:w-0.5 before:rounded-full before:bg-paper before:forced-color-adjust-none forced-colors:before:bg-[CanvasText]";
+
+/** What a `<button>` needs to look like a rail link: the full width, a pointer, left-aligned text. */
+export const navButtonClass = "w-full cursor-pointer text-left disabled:cursor-not-allowed disabled:opacity-50";
