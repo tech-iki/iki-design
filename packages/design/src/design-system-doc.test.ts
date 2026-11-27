@@ -5,7 +5,8 @@ import { describe, expect, it } from "vitest";
 
 import { KpiTile } from "./components/kpi-tile.js";
 import { Pill } from "./components/pill.js";
-import { baseCss, themeCss, tokensCss, tokensJson } from "./generate.js";
+import * as pkg from "./index.js";
+import { RESET_RULES, baseCss, resetCss, themeCss, tokensCss, tokensJson } from "./generate.js";
 import { COLOUR } from "./tokens.js";
 import { tones } from "./tones.js";
 import * as classes from "./ui-classes.js";
@@ -60,6 +61,10 @@ describe("docs/design-system.md carries the generated files verbatim", () => {
     expect(block("tokens:base", "css")).toBe(baseCss().trimEnd());
   });
 
+  it("§13e: the opt-in reset is reset.css", () => {
+    expect(block("tokens:reset", "css")).toBe(resetCss().trimEnd());
+  });
+
   it("Appendix A is tokens.json, stamped with this package's version", () => {
     const shown = block("tokens:json", "json");
     expect(JSON.parse(shown)).toEqual(tokensJson(version));
@@ -86,6 +91,70 @@ describe("docs/design-system.md carries the generated files verbatim", () => {
 });
 
 /**
+ * §13e lists the reset's rules next to the Library's six and names, for each,
+ * what in the package leans on it. The table is held to the code two ways: its
+ * rows are `RESET_RULES`, in order and declaration for declaration, and every
+ * name in its fourth column is something the package really exports, so a
+ * renamed class or a dropped component fails here and not in a consumer.
+ */
+describe("docs/design-system.md §13e lists the reset's rules", () => {
+  /** The table's body rows: cells split on ` | `, first and last pipe removed. */
+  function resetRows(source: string): string[][] {
+    const lines = source.split("\n");
+    const head = lines.findIndex((line) => line.startsWith("| Rule | Mirrors in Preflight"));
+    if (head === -1) throw new Error("§13e has no reset table");
+    const body: string[][] = [];
+    for (const line of lines.slice(head + 2)) {
+      if (!line.startsWith("| ")) break;
+      body.push(line.slice(2, -2).split(" | "));
+    }
+    return body;
+  }
+
+  const rows = resetRows(doc);
+
+  /** The backticked names in the fourth column that the package does not export. */
+  function notExported(table: string[][]): string[] {
+    const exported = pkg as Record<string, unknown>;
+    const named = table.flatMap((row) => [...row[3].matchAll(/`(\w+)`/g)].map((m) => m[1]));
+    expect(named.length).toBeGreaterThan(15);
+    return named.filter((name) => !(name in exported));
+  }
+
+  it("has one row for each rule, with the rule's own declarations", () => {
+    expect(rows).toHaveLength(RESET_RULES.length);
+    RESET_RULES.forEach(({ declarations }, i) => {
+      expect(rows[i][0], `row ${i + 1}`).toContain(`\`${declarations.join("; ")}\``);
+    });
+  });
+
+  it("names the Library's six copies, one to six, and the two it supplies itself", () => {
+    expect(rows.map((row) => row[4])).toEqual([
+      "rule 1",
+      "rule 2",
+      "rule 3",
+      "rule 4",
+      "rule 5",
+      "rule 6",
+      "the app's own `* { box-sizing }`",
+      "the app's own `button, input… { font: inherit }`",
+    ]);
+  });
+
+  it("names only exports of the package in the fourth column", () => {
+    expect(notExported(rows)).toEqual([]);
+  });
+
+  // The control: a class the package does not export, in the document, and the
+  // same comparison has to name it.
+  it("notices a class the package does not export", () => {
+    const tampered = doc.replace("`tabClass`, `disclosureButtonClass`", "`tabClass`, `noSuchClass`");
+    expect(tampered).not.toBe(doc);
+    expect(notExported(resetRows(tampered))).toEqual(["noSuchClass"]);
+  });
+});
+
+/**
  * §8 (and §7, for the shell) shows the class strings as `name  value` lines, with `{touchTarget}`,
  * `{focusRing}` and `{fieldClass}` standing for the strings they are built
  * from. Until the 20 October 2026 audit (#6) nothing compared those lines to
@@ -98,6 +167,7 @@ const PLACEHOLDER: Readonly<Record<string, string>> = {
   "{touchTarget}": classes.touchTarget,
   "{focusRing}": classes.focusRing,
   "{fieldClass}": classes.fieldClass,
+  "{primaryButtonClass}": classes.primaryButtonClass,
   "{subtleButtonClass}": classes.subtleButtonClass,
   "{focusRingOnNavy}": classes.focusRingOnNavy,
 };

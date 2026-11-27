@@ -1,6 +1,6 @@
 /**
- * Writes the four generated files into `dist/`: `theme.css`, `tokens.css`,
- * `base.css` and `tokens.json`. Run by `npm run build` after `tsc`.
+ * Writes the five generated files into `dist/`: `theme.css`, `tokens.css`,
+ * `base.css`, `reset.css` and `tokens.json`. Run by `npm run build` after `tsc`.
  *
  * Node 24 runs this file as it stands, by stripping the types. Stripping does
  * not rewrite import specifiers, so `../src/generate.ts` would fail at run time:
@@ -19,7 +19,7 @@ import type * as Generate from "../src/generate.ts";
 const root = join(import.meta.dirname, "..");
 const dist = join(root, "dist");
 
-const { baseCss, themeCss, tokensCss, tokensJson }: typeof Generate = await import(
+const { baseCss, resetCss, themeCss, tokensCss, tokensJson }: typeof Generate = await import(
   new URL("../dist/generate.js", import.meta.url).href
 );
 
@@ -31,6 +31,7 @@ mkdirSync(dist, { recursive: true });
 writeFileSync(join(dist, "theme.css"), themeCss());
 writeFileSync(join(dist, "tokens.css"), tokensCss());
 writeFileSync(join(dist, "base.css"), baseCss());
+writeFileSync(join(dist, "reset.css"), resetCss());
 writeFileSync(join(dist, "tokens.json"), `${JSON.stringify(tokensJson(version), null, 2)}\n`);
 
-console.log(`@tech-iki/design ${version}: wrote theme.css, tokens.css, base.css, tokens.json to dist/`);
+console.log(`@tech-iki/design ${version}: wrote theme.css, tokens.css, base.css, reset.css, tokens.json to dist/`);

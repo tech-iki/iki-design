@@ -8,7 +8,7 @@ import {
 } from "react";
 
 import { choiceGroupClass, choiceInputClass, choiceLabelClass, choiceLegendClass } from "../ui-classes.js";
-import { fieldErrorClass, fieldHintClass } from "./field.js";
+import { fieldFrameClass, fieldLines, type FieldLineProps } from "./field.js";
 
 /** What a checkbox or radio takes: the input's own props, less what the component decides. */
 type ChoiceProps = {
@@ -18,12 +18,45 @@ type ChoiceProps = {
   className?: string;
 } & Omit<ComponentPropsWithoutRef<"input">, "type" | "className" | "children">;
 
-function Choice({ type, label, className, ...rest }: ChoiceProps & { type: "checkbox" | "radio" }) {
+/** What a `Checkbox` adds to the input's own props: the lines under it, as `Field`'s. */
+type CheckboxProps = ChoiceProps & FieldLineProps;
+
+function Choice({
+  type,
+  label,
+  className,
+  hint,
+  error,
+  announceError,
+  ...rest
+}: ChoiceProps & { type: "checkbox" | "radio" } & FieldLineProps) {
+  const generated = useId();
+  if (!hint && !error) {
+    return (
+      <label className={className ? `${choiceLabelClass} ${className}` : choiceLabelClass}>
+        <input {...rest} type={type} className={choiceInputClass} />
+        {label}
+      </label>
+    );
+  }
+  // The lines sit outside the label, as `Field`'s do, so the input's name is its words alone.
+  const id = rest.id ?? generated;
+  const { describedBy, lines } = fieldLines({ id, hint, error, announceError, describedBy: rest["aria-describedby"] });
   return (
-    <label className={className ? `${choiceLabelClass} ${className}` : choiceLabelClass}>
-      <input {...rest} type={type} className={choiceInputClass} />
-      {label}
-    </label>
+    <div className={className ? `${fieldFrameClass} ${className}` : fieldFrameClass}>
+      <label className={choiceLabelClass}>
+        <input
+          {...rest}
+          id={id}
+          type={type}
+          className={choiceInputClass}
+          aria-describedby={describedBy}
+          aria-invalid={error ? true : rest["aria-invalid"]}
+        />
+        {label}
+      </label>
+      {lines}
+    </div>
   );
 }
 
@@ -39,9 +72,20 @@ function Choice({ type, label, className, ...rest }: ChoiceProps & { type: "chec
  * `teal-deep` through `accent-color`; the row keeps the 44px floor below
  * `md`; a `disabled` input mutes the row. The input is the control, so the
  * rest of the props — `name`, `value`, `checked`, `onChange`, `disabled`,
- * `aria-*` — reach the `<input>`, and `className` reaches the row.
+ * `aria-*` — reach the `<input>`, and `className` reaches the row (the
+ * outermost element: the row itself, or with a `hint` or `error` the frame
+ * around it).
+ *
+ * `hint` and `error` (#39) work as `Field`'s do: lines under the row, outside
+ * the label so the name stays the words, joined to the input by
+ * `aria-describedby`, an error also `aria-invalid` and a `role="alert"`
+ * unless `announceError={false}` (#40). The input gets an `id` for them, its
+ * own if it has one. With either present the row sits in a frame
+ * (`fieldFrameClass`) with the lines, and `className` goes to that frame, the
+ * outermost box, so a grid placement still lands on what the grid holds.
+ * With neither, the markup is exactly what it was.
  */
-export function Checkbox(props: ChoiceProps) {
+export function Checkbox(props: CheckboxProps) {
   return <Choice {...props} type="checkbox" />;
 }
 
@@ -77,7 +121,7 @@ function withName(children: ReactNode, name: string): ReactNode {
  * elements (not through another component's own render); `disabled` on the
  * fieldset disables every radio in it, natively. A `hint` and an `error` sit
  * under the radios as `Field`'s do, joined to the fieldset by
- * `aria-describedby`, the error `role="alert"`. `...rest` reaches the
+ * `aria-describedby`, the error `role="alert"` unless `announceError={false}`. `...rest` reaches the
  * fieldset.
  */
 export function RadioGroup({
@@ -85,6 +129,7 @@ export function RadioGroup({
   name,
   hint,
   error,
+  announceError,
   className,
   children,
   ...rest
@@ -93,13 +138,11 @@ export function RadioGroup({
   legend: ReactNode;
   name?: string;
   hint?: string;
-  error?: string;
   children: ReactNode;
-} & Omit<ComponentPropsWithoutRef<"fieldset">, "children" | "name">) {
+} & Pick<FieldLineProps, "error" | "announceError"> &
+  Omit<ComponentPropsWithoutRef<"fieldset">, "children" | "name">) {
   const id = useId();
-  const hintId = hint ? `${id}-hint` : undefined;
-  const errorId = error ? `${id}-error` : undefined;
-  const describedBy = [rest["aria-describedby"], errorId, hintId].filter(Boolean).join(" ") || undefined;
+  const { describedBy, lines } = fieldLines({ id, hint, error, announceError, describedBy: rest["aria-describedby"] });
   const radios = name ? withName(children, name) : children;
 
   return (
@@ -110,16 +153,7 @@ export function RadioGroup({
     >
       <legend className={choiceLegendClass}>{legend}</legend>
       {radios}
-      {error ? (
-        <span id={errorId} role="alert" className={fieldErrorClass}>
-          {error}
-        </span>
-      ) : null}
-      {hint ? (
-        <span id={hintId} className={fieldHintClass}>
-          {hint}
-        </span>
-      ) : null}
+      {lines}
     </fieldset>
   );
 }

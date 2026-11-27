@@ -30,7 +30,7 @@ the file it lives in and the reason it is that value.
 | Table chrome | `src/components/data-table.tsx` | Work OS only; stays in tech-iki/iki-work-os. Header, zebra, hover, frozen columns, stacked rows. |
 | Email chrome | `src/lib/email-chrome.ts` | Work OS only; stays in tech-iki/iki-work-os. Inline styles; mail clients strip stylesheets. |
 | Print | `src/app/globals.css` (`@media print`) | Work OS only; stays in tech-iki/iki-work-os. Page boxes and the Safari caveat. |
-| Generated stylesheets | `packages/design/dist/` | `theme.css`, `tokens.css`, `base.css` and `tokens.json`, built from `tokens.ts` by `scripts/build-css.ts`. Edit the source, not these. |
+| Generated stylesheets | `packages/design/dist/` | `theme.css`, `tokens.css`, `base.css`, `reset.css` and `tokens.json`, built from `tokens.ts` by `scripts/build-css.ts`. Edit the source, not these. |
 
 ### Decided, and open
 
@@ -894,8 +894,11 @@ focusRingOnNavy      focus-visible:outline-2 focus-visible:outline-offset-2 focu
 primaryButtonClass   {touchTarget} rounded-md bg-teal-deep px-3 py-2 text-sm font-semibold text-paper hover:bg-navy disabled:opacity-50 {focusRing}
 subtleButtonClass    {touchTarget} rounded-md border border-grid-strong px-2.5 py-1.5 text-xs text-ink hover:bg-teal-soft disabled:opacity-50 {focusRing}
 warnButtonClass      {touchTarget} rounded-md border border-warm-fg/70 px-2.5 py-1.5 text-xs text-warm-fg hover:bg-warm-bg disabled:opacity-50 {focusRing}
+destructiveButtonClass  {touchTarget} rounded-md border border-health-overdue-fg bg-health-overdue-fg px-3 py-2 text-sm font-semibold text-paper hover:bg-health-overdue-bg hover:text-health-overdue-fg disabled:opacity-50 {focusRing}
 iconButtonClass      {touchTarget} inline-flex items-center justify-center rounded-md p-1.5 text-ink-muted hover:bg-teal-soft hover:text-ink disabled:opacity-50 {focusRing}
 warnIconButtonClass  {touchTarget} inline-flex items-center justify-center rounded-md p-1.5 text-warm-fg hover:bg-warm-bg disabled:opacity-50 {focusRing}
+primaryLinkButtonClass  {primaryButtonClass} inline-flex items-center justify-center no-underline
+subtleLinkButtonClass   {subtleButtonClass} inline-flex items-center justify-center no-underline
 linkClass            text-teal-deep underline hover:text-navy rounded-xs {focusRing}
 ```
 
@@ -903,10 +906,26 @@ linkClass            text-teal-deep underline hover:text-navy rounded-xs {focusR
 - **Warn is destructive but reversible** — warm, not alarming, because the task
   goes to Trash and can be restored. The border is `/70`, not `/40`, because
   `/40` composited to 1.92:1.
+- **Destructive is for an action that cannot be undone** — reject, withdraw,
+  delete. Pick `warn` when the action can be put back (Trash) and `destructive`
+  when it cannot. It is filled `health-overdue-fg` with a `paper` label (8.92:1)
+  in primary's type and padding, and its border is the same red so it stays a
+  visible button in forced-colours mode. The 1px border makes it 2px taller and
+  wider than primary at `md` and up (38px against 36px); below `md` both are 44px. On hover it inverts to the overdue pill's pair
+  (6.10:1). The label carries the meaning, not the colour, and the confirm step
+  stays in words.
 - **An icon button is 28px square** (`p-1.5` on a 16px glyph) and keeps the 44px
   floor below `md`. The name lives in an `sr-only` span and a `title`; the glyph
   is `aria-hidden`. **A confirm step stays in words** — a resting action can be
   recognised from its icon, but "yes, really" has to be read.
+- **A link drawn as a button** (a router `Link`, an `<a>`) takes
+  `primaryLinkButtonClass` or `subtleLinkButtonClass`: the button's own
+  string plus `inline-flex`, centred content and `no-underline`. A button is
+  already block-like and has no underline; an anchor is inline and underlined, so
+  without these `min-h-11` does nothing to it and it renders under 44px at
+  375px. The colours, border, hover and focus ring are the button's, so the
+  contrast pairs are the button's. There is no warn, icon or `Link` component
+  here; how a router renders its link is the consumer's.
 - **On navy**, the sign-out button is
   `flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-md border border-paper/50 p-1.5 text-sm text-paper/90 hover:bg-paper/10 hover:text-paper md:min-h-0 md:min-w-0 {focusRingOnNavy}`.
 
@@ -914,11 +933,14 @@ linkClass            text-teal-deep underline hover:text-navy rounded-xs {focusR
 
 <!-- classes:fields -->
 ```
-fieldClass         {touchTarget} rounded-md border border-grid-strong px-3 py-2 text-sm font-normal text-ink focus:border-teal-deep disabled:cursor-not-allowed disabled:bg-paper-tint disabled:text-ink-muted {focusRing}
-smallFieldClass    {touchTarget} rounded-md border border-grid-strong px-2 py-1.5 text-sm font-normal text-ink focus:border-teal-deep disabled:cursor-not-allowed disabled:bg-paper-tint disabled:text-ink-muted {focusRing}
-invalidFieldMark   border-health-overdue-fg bg-health-overdue-bg
-invalidFieldClass  {fieldClass} border-health-overdue-fg bg-health-overdue-bg
-labelClass         flex flex-col gap-1 text-xs font-medium text-ink
+fieldClass          {touchTarget} rounded-md border border-grid-strong px-3 py-2 text-base md:text-sm font-normal text-ink focus:border-teal-deep disabled:cursor-not-allowed disabled:bg-paper-tint disabled:text-ink-muted {focusRing}
+smallFieldClass     {touchTarget} rounded-md border border-grid-strong px-2 py-1.5 text-base md:text-sm font-normal text-ink focus:border-teal-deep disabled:cursor-not-allowed disabled:bg-paper-tint disabled:text-ink-muted {focusRing}
+textareaClass       min-h-28 rounded-md border border-grid-strong px-3 py-2 text-base md:text-sm font-normal text-ink focus:border-teal-deep disabled:cursor-not-allowed disabled:bg-paper-tint disabled:text-ink-muted {focusRing}
+smallTextareaClass  min-h-28 rounded-md border border-grid-strong px-2 py-1.5 text-base md:text-sm font-normal text-ink focus:border-teal-deep disabled:cursor-not-allowed disabled:bg-paper-tint disabled:text-ink-muted {focusRing}
+fileFieldClass      {fieldClass} file:mr-3 file:cursor-pointer file:rounded-md file:border file:border-grid-strong file:bg-paper file:px-2.5 file:py-1.5 file:text-xs file:text-ink hover:file:bg-teal-soft
+invalidFieldMark    border-health-overdue-fg bg-health-overdue-bg
+invalidFieldClass   {fieldClass} border-health-overdue-fg bg-health-overdue-bg
+labelClass          flex flex-col gap-1 text-xs font-medium text-ink
 ```
 
 The label wraps its control, so the click target includes the label and no
@@ -935,6 +957,26 @@ not-allowed cursor — from `fieldClass`'s own `disabled:` variants, so the stat
 follows the attribute. The audit of 20 October 2026 found the state missing: a
 control that could not be edited looked exactly like one that could.
 
+**A field's text is 16px below `md` and 14px from `md`** (`text-base md:text-sm`,
+#38). iOS Safari zooms the page when a control under 16px takes focus and does
+not always zoom back, and the package already made fields 44px tall below `md`,
+so the phone layout was considered and the text size was not. Desktop keeps its
+density. This is the documented iOS behaviour, not a measurement on a device. It
+applies to `fieldClass`, `smallFieldClass` and everything built on them, the
+`Combobox` input included. The package has no popover search field; a consumer's
+own search input should take `fieldClass` or the same pair of sizes.
+
+**A textarea has a minimum height** (#39): `textareaClass` and
+`smallTextareaClass` give it `min-h-28`, 7rem, about four rows. On `fieldClass` a
+textarea measured 58px, and a box that short invites a one-line answer. `Field`
+applies them to a native `<textarea>` child and recognises nothing else: a
+component that wraps a textarea gets `fieldClass`, and a caller must not add
+`textareaClass` on top through `className`, because `min-h-11` and `min-h-28`
+would then both apply under one variant; pass it on the textarea itself. Set
+`rows` for more. **A file input** takes
+`fileFieldClass`: `fieldClass` (44px below `md`, 16px text) with the browser's
+button drawn as the subtle button is, through the `file:` variant.
+
 `Field` is the label, the control and the two lines under it, wired. The
 hint and the error are the label's siblings, not its children: a label's
 accessible name is every word inside it, and a hint inside would be read as
@@ -946,11 +988,24 @@ Field        <div>    flex flex-col gap-1
   label      <label>  {labelClass}   wrapping the label text and the control
   control    the one child, cloned with id, aria-describedby → error and hint, aria-invalid when error
   class      {fieldClass} | {smallFieldClass} when size=small | + border-health-overdue-fg bg-health-overdue-bg when error | + the child's own className
-  error      text-xs text-health-overdue-fg   (role="alert")
+  textarea   {textareaClass} | {smallTextareaClass} when size=small   (in place of the class line's base, for a <textarea> child)
+  error      text-xs text-health-overdue-fg   (role="alert"; none when announceError={false})
   hint       text-xs text-ink-muted
 ```
 
-`Button` is one of the five strings above with the two things every call site
+`label` and `hint` are `ReactNode`, so a call site can pass an expression; the
+hint still sits outside the label. **When to turn the alert off (#40):**
+`announceError={false}` is for a form that shows its own error summary and moves
+focus to it. The summary is then the announcement, and a role on each field
+would read every error twice, or five times at once for a refusal with five
+fields. The error text keeps its id, its place in `aria-describedby` and
+`aria-invalid`, so the field still names its reason when focused; only
+`role="alert"` goes. The default is `true`, and a form with no summary of its own
+leaves it alone. `Checkbox` and `RadioGroup` take the same prop. There is no
+form-level switch: a context provider would make `Field` a client component, and
+the prop is one line at the form that needs it.
+
+`Button` is one of the six strings above with the two things every call site
 had to remember: `type="button"` unless told otherwise, and the pending state.
 
 <!-- components:button -->
@@ -958,10 +1013,17 @@ had to remember: `type="button"` unless told otherwise, and the pending state.
 Button variant=primary   {primaryButtonClass}
 Button variant=subtle    {subtleButtonClass}
 Button variant=warn      {warnButtonClass}
+Button variant=destructive  {destructiveButtonClass}
 Button variant=icon      {iconButtonClass}
 Button variant=warnIcon  {warnIconButtonClass}
   pending                disabled, aria-busy, the verb with an ellipsis: "Save" → "Save…", or pendingLabel
 ```
+
+A string child that already ends in an ellipsis, the character or three full
+stops, keeps it: "Save…" stays "Save…", not "Save……" (#35). `pendingLabel` is shown
+exactly as given, with no ellipsis added. `ref` is accepted like any other prop
+of `<button>` (a plain prop in React 19), so a caller can move focus to the
+button without a cast.
 
 **A refused action costs the click, not the page.** The form stays, the reason
 appears, the values are kept (#157). Pending state is the verb in progress with
@@ -991,6 +1053,7 @@ choiceLegendClass  mb-1 p-0 text-xs font-medium text-ink
 ```
 Checkbox     <label>     {choiceLabelClass}   wrapping the input and the label text
   input      <input type="checkbox">   {choiceInputClass}   the rest of the props reach it
+  hint, error   with either: the row sits in a <div> flex flex-col gap-1 with them, as Field's lines; aria-describedby, and aria-invalid on error
 Radio        the same, type="radio"
 RadioGroup   <fieldset>  {choiceGroupClass}   name given to each Radio inside it without one; disabled disables them all
   legend     <legend>    {choiceLegendClass}
@@ -1007,10 +1070,19 @@ RadioGroup   <fieldset>  {choiceGroupClass}   name given to each Radio inside it
 - **A disabled input mutes its row** (`has-disabled:`), so the state follows
   the attribute as `fieldClass`'s does; a `disabled` `RadioGroup` is a
   disabled fieldset, which disables every radio in it natively.
+- **A `Checkbox` takes `hint` and `error`** (#39), as `Field` does: the lines sit
+  under the row, outside the label so the name stays the words, joined by
+  `aria-describedby` with an `id` the component gives the input (its own if it
+  has one), the error `aria-invalid` and `role="alert"` unless
+  `announceError={false}`. With either, the row is wrapped in a
+  `fieldFrameClass` `<div>` and `className` goes to that wrapper, the outermost
+  box; with neither, the markup is unchanged.
 - **Unlike the other components, the rest reaches the `<input>`**, because the
   input is the control: `name`, `value`, `checked`, `onChange`, `disabled`.
-  `className` reaches the row, for layout; `RadioGroup`'s rest reaches the
-  fieldset.
+  `className` reaches the outermost element, for layout: the row (the
+  `<label>`) when there is no `hint` or `error`, and the `fieldFrameClass`
+  wrapper around the row and its lines when there is one. `RadioGroup`'s rest
+  reaches the fieldset.
 - `PopoverOption` stays for a toolbar panel's hover-tinted row, around a bare
   input with `choiceInputClass`; a `Checkbox` is a label already and never
   goes inside another.
@@ -1482,7 +1554,11 @@ Since 0.3.0 the two are components, and the `notice` line above is what Work
 OS still draws by hand until it adopts `Notice`. `Notice` takes a tone and derives its
 role from it, so a confirmation can no longer be plain text while the refusal
 beside it alerts (the drift row in §14); `EmptyState` is the boxed sentence
-with an optional action beneath it.
+with an optional action beneath it and an optional `title` above it. The title
+is a `<div>`, not a heading: the component cannot know the page's heading
+level, and a hard-coded `<h2>` would break the outline. A caller who wants a
+heading passes one as the `title` (`<h3>`), which the `<div>` holds validly.
+`title` is the prop's name, not the HTML attribute, so it is not a tooltip.
 
 <!-- components:notice -->
 ```
@@ -1492,6 +1568,7 @@ Notice           rounded-md px-3 py-2 text-sm {tone}
   tone=warm      bg-warm-bg text-warm-fg                        (role="alert")
   tone=overdue   bg-health-overdue-bg text-health-overdue-fg    (role="alert")
 EmptyState       flex flex-col items-start gap-3 rounded-md border border-grid bg-paper p-5
+  title          -mb-2 text-sm font-semibold text-ink
   sentence       text-sm text-ink-muted
   action         an optional slot beneath the sentence, usually a Button
 ```
@@ -1892,7 +1969,7 @@ Conventions:
 | 2.4.1 | A skip link, first in the DOM, hidden until focused, targeting a focusable `<main>` |
 | 4.1.2 | Icon-only controls carry an `sr-only` name and a `title` or a `Tooltip`, never both; icons are `aria-hidden`; a name and an identical description are never both given |
 | 1.3.1 | Tables state role and name; a stacked table restates `rowgroup`/`row`/`cell`, because changing `display` drops those roles |
-| 4.1.3 | Errors are `role="alert"`, notices `role="status"`; a refused cell edit announces itself rather than silently reverting |
+| 4.1.3 | Errors are `role="alert"`, notices `role="status"`; a refused cell edit announces itself rather than silently reverting. A form with its own focus-taking error summary sets `announceError={false}` on its fields, so each error is announced once (§8) |
 | 2.1.2 | The drawer traps Tab, opens focus in its content, restores it on close; Escape belongs to the top layer |
 | 2.4.3 | The grid is one tab stop with arrow-key movement — it had 2,881 focusable elements before |
 | 2.1.1 | A cursor-less scrollable table still takes a tab stop, because Safari does not auto-focus scrollable regions |
@@ -2060,6 +2137,14 @@ per-stack notes that follow.
   @import "@tech-iki/design/theme.css";
   ```
 
+- **A Tailwind v4 app without Preflight** also imports the opt-in reset and puts
+  `iki-reset` on `<body>`; an app with Preflight does nothing
+  ([§13e](#13e-without-preflight--the-opt-in-reset)):
+
+  ```css
+  @import "@tech-iki/design/reset.css";
+  ```
+
 - **Plain CSS** imports the custom properties, and optionally
   `@import "@tech-iki/design/base.css";` for the body, link and focus rules:
 
@@ -2210,9 +2295,43 @@ body {
 
 ### 13b. Tailwind v4 projects — the IKI Digital Library
 
-The library is Vite + React 19 + Tailwind v4 with source-owned shadcn/ui
-primitives (`components.json`, New York style, lucide icons). Its tokens are
-oklch in `apps/web/src/styles.css`.
+The library is Vite + React 19 + Tailwind v4. It began with source-owned
+shadcn/ui primitives, lucide icons and oklch tokens in
+`apps/web/src/styles.css`. On 25 November 2026 it decided to converge on this
+package (tech-iki/iki-digital-library#96): it takes the package's theme,
+components and icons, and the rail for its signed-in pages. Its public header,
+which serves signed-out visitors only, stays local. The steps below follow that
+decision.
+
+The adoption path:
+
+1. **Import the package theme after Tailwind**, as
+   [§13-0](#13-0-install-the-package) shows, and remove the library's own
+   `:root` palette. The import must come before any `@theme` of the library's,
+   because its first declaration is `--color-*: initial`.
+2. **Add the `iki-app` root class** from [§13-0](#13-0-install-the-package),
+   with the base-style reset that #33 covers. Until that issue is settled, the
+   library carries those rules locally (tech-iki/iki-digital-library#111).
+3. **Use the package's components and icons**: `Button`, `Field`, `Notice`,
+   `EmptyState` and the rest from the package root, and `Icon` for icons, which
+   are lucide drawings at the version recorded in `LUCIDE_VERSION`. The library
+   may keep a thin local wrapper where a spike found one is needed, as it does
+   for forms. Six icon names with no counterpart await #34.
+4. **Use the package's contrast helper** (`contrast`, `TOKEN_PAIRS` and
+   `THRESHOLD`) rather than a copy of `ui-contrast.ts`, and list the pairs the
+   library actually renders.
+5. **The shell comes last, and waits on the package.** The rail, skip link and
+   navigation components are being built in #19 and are not in the package
+   yet. `AppShell.tsx` keeps its current form until they ship
+   (tech-iki/iki-digital-library#106). No step here changes the routing or the
+   query layer.
+
+**Superseded: the palette-only path.** The library first adopted only the
+palette, by the steps below. The converge decision replaces that path. The
+steps, the alias table, the conflicts and the notes after them are kept as the
+record of it, as the register keeps history, and are not the path for new
+work. Where they say to leave `AppShell.tsx` alone, or that the change is not
+a restructure, the path above now says otherwise.
 
 Steps:
 
@@ -2264,7 +2383,7 @@ Steps:
 | Radius | `--radius: 8px`, panels 12px | `rounded-md` 6px | **Take 6px.** The library derives `--radius-sm/md/lg` from one value, so this is a one-line change. |
 | Typeface | Inter, declared in `:root` with no `@font-face` and no `<link>` — so it silently falls back to `ui-sans-serif` today | Geist via `next/font`, self-hosted | **Take Geist and actually load it.** The library's Inter is a declaration without a file; whichever face wins, it should be served, not hoped for. |
 | Focus | `3px solid var(--primary)`, offset 3px (and `-3px` inset on `main`) | 2px / 2px, `focus-visible` only | **Take 2px/2px** for consistency; keep the library's inset ring on `main`, which the app has no equivalent for. |
-| Icons | lucide-react | Hand-drawn, no package | **Keep lucide in the library.** The no-package rule exists because Work OS needs seventeen glyphs; a library that already depends on lucide gains nothing by hand-drawing. Match the weight: 20px nav, 16px inline, `currentColor`. |
+| Icons | lucide-react | Hand-drawn, no package | **Superseded: the package's icons.** This was the palette-only recommendation to keep lucide in the library; the converge decision takes the package's `Icon`, which is lucide underneath. Match the weight: 20px nav, 16px inline, `currentColor`. |
 
 Two things the library already does better, and should keep: 44px minimum
 targets on every nav item, and a `skip-link` that is `position: fixed` rather
@@ -2308,6 +2427,14 @@ the furniture.
 
 ### 13d. Constraints a shared package must respect
 
+- **Tailwind's Preflight is assumed.** The control classes and the components
+  were written on Tailwind v4 with Preflight (Work OS and the members portal
+  import it), and nothing in them says so at run time: without it a `Button`
+  gets the browser's border and grey fill, and a `p` inside a `Notice` keeps
+  its margin. A consumer imports Preflight, as Tailwind's own
+  `@import "tailwindcss"` does, or opts in to the package's `reset.css`
+  ([§13e](#13e-without-preflight--the-opt-in-reset)). Making the package work
+  under another reset (normalize.css and the like) is not offered.
 - **No CDN, for anything.** The policy is `default-src 'self'`, `script-src`
   nonce-only with `strict-dynamic`, `style-src` nonce-only, `img-src 'self'
   blob: data:`, `font-src 'self'`. A hosted stylesheet, an icon font, a CDN
@@ -2333,6 +2460,137 @@ the furniture.
   colour the system lacks proposes a token, not a local `--color-*`.
 - **Light only.** Do not add a dark palette on the consumer side; propose it as
   an ADR.
+
+### 13e. Without Preflight — the opt-in reset
+
+Tailwind v4's `@import "tailwindcss"` brings Preflight, the base layer that
+zeroes margins, strips the browser's button chrome and sets `box-sizing`. The
+package's class strings and components assume it. A Tailwind app that leaves it
+out on purpose (the IKI Digital Library does, to keep its existing pages as
+they are until its own type scale lands) has two choices:
+
+- **Import Preflight.** Nothing else is needed, and nothing in this section
+  applies.
+- **Import `reset.css`.** It is eight rules, each the value Preflight itself
+  sets for those elements, scoped to `.iki-reset` so it reaches nothing that
+  has not asked for it. `apps/site/src/lib/reset-parity.test.ts` holds every
+  declaration against `tailwindcss/preflight.css`.
+
+`reset.css` is a separate file on purpose. It is not in `theme.css`, so a
+consumer that has Preflight never receives a second copy of it, and it is not
+in `base.css`, which is for the plain-CSS hosts and would be wrong for them.
+Importing it adds a rule set and removes nothing, and a consumer that never
+imports it sees no change.
+
+<!-- tokens:reset -->
+```css
+/* Generated by @tech-iki/design from RESET_RULES in generate.ts — do not edit; change generate.ts */
+
+/*
+ * Optional. For a Tailwind v4 app that does NOT import Preflight, and only
+ * for it: an app that has Preflight needs nothing from this file. The
+ * package's components assume these rules (design system §13e).
+ * Put the class iki-reset on <body>, not only on the page shell: Base UI portals
+ * Drawer, Menu, Popover, Combobox and Tooltip to <body>, and a reset scoped
+ * to the shell would not reach them. The .iki-app stacking root is a
+ * different element, and stays a child of <body>.
+ *
+ * Declare the layer order first: @layer theme, base, components, utilities;
+ * Without it, an app that imports only Tailwind's theme and utilities ranks
+ * base above utilities, and this file then beats every button's padding and
+ * border. Specificity is one class: an app's own rule for these elements must
+ * sit in a later layer or carry a class.
+ */
+@layer base {
+  .iki-reset :where(button) { border: 0 solid; padding: 0; background-color: transparent; color: inherit; }
+  .iki-reset :where(button, input, select, textarea) { margin: 0; }
+  .iki-reset :where(textarea) { resize: vertical; }
+  .iki-reset :where(h1,h2,h3,h4,h5,h6,p) { margin: 0; }
+  .iki-reset :where(h1,h2,h3,h4,h5,h6) { font-size: inherit; font-weight: inherit; }
+  .iki-reset :where(svg) { vertical-align: middle; }
+  .iki-reset :where(*) { box-sizing: border-box; }
+  .iki-reset :where(button, input, select, textarea) { font: inherit; letter-spacing: inherit; }
+}
+```
+
+**Where the class goes.** On `<body>`. Base UI portals `Drawer`, `Menu`,
+`Popover`, `Combobox` and `Tooltip` to `<body>`, so a reset scoped to the page
+shell would leave the popups drawn in the browser's chrome. This is a different
+element from the stacking root of [§13-0](#13-0-install-the-package): `iki-app`
+stays a child of `<body>`, because a stacking context on `<body>` would hold
+the portals too.
+
+```tsx
+<body className="iki-reset">
+  <div className="iki-app">{children}</div>
+</body>
+```
+
+**Order. Declare the layer order first, or the reset breaks every button.**
+`reset.css` sits in `@layer base`, and it wins over utilities unless `base`
+comes before `utilities`. `@import "tailwindcss"` declares the order for you.
+An app that imports only Tailwind's theme and utilities, as the Library does,
+gets `theme, utilities, base` (layers rank by first appearance) unless it
+states `@layer theme, base, components, utilities;` on the first line, and then
+`.iki-reset :where(button)` beats `px-3` and `border`, and every control loses
+its padding and border. The first line below is not optional.
+
+Specificity is a second matter. Every selector is `.iki-reset :where(…)`, which
+is one class, (0,1,0). That beats a bare element rule such as `button {}`
+(0,0,1) in the same layer, so an app's own rule for an element the reset
+covers must sit in a later layer (`components` or `utilities`) or carry a
+class of its own.
+
+<!-- snippet:reset-import -->
+```css
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+@import "@tech-iki/design/theme.css";
+@import "@tech-iki/design/reset.css";
+```
+
+**What each rule is for.** The table is held to the code: every name in the
+fourth column is an export of the package, checked by `design-system-doc.test.ts`. The last column is the
+Library's local copy, from its issue 111 (`apps/web/src/styles.css`), which it
+can delete once it imports this file.
+
+| Rule | Mirrors in Preflight | Without it | Package classes that lean on it | The Library's copy |
+| --- | --- | --- | --- | --- |
+| `button`: `border: 0 solid; padding: 0; background-color: transparent; color: inherit` | `*` border and padding; the `button, input…` list | a 2px outset border, a grey `buttonface` fill and the browser's text colour | `primaryButtonClass`, `subtleButtonClass`, `warnButtonClass`, `iconButtonClass`, `warnIconButtonClass`, `tabClass`, `disclosureButtonClass`, `popoverTriggerClass`, `menuTriggerClass` | rule 1 |
+| `button, input, select, textarea`: `margin: 0` | `*` margin | the browser's 2 to 4px margin; a `Checkbox` or `Radio` sits 3 to 4px off its label | `fieldClass`, `smallFieldClass`, `choiceInputClass`, `primaryButtonClass` | rule 2 |
+| `textarea`: `resize: vertical` | `textarea` | a textarea that resizes both ways and breaks its column | `fieldClass`, `smallFieldClass` | rule 3 |
+| `h1…h6, p`: `margin: 0` | `*` margin | the browser's block margins inside `Notice`, `EmptyState`, `KpiTile`, `Drawer`, `Disclosure` and `PageTitle` | `Notice`, `EmptyState`, `KpiTile`, `Drawer`, `Disclosure`, `PageTitle` | rule 4 |
+| `h1…h6`: `font-size: inherit; font-weight: inherit` | `h1…h6` | a `Disclosure` header button inheriting its heading's browser size and weight, not the row's | `Disclosure` | rule 5 |
+| `svg`: `vertical-align: middle` | `img, svg, …` | an `Icon` set in a line of text sitting on the baseline, not the middle; no string depends on it today | `Icon` | rule 6 |
+| `*`: `box-sizing: border-box` | `*, ::after, ::before`. This rule covers the elements inside `<body>`, not `<body>` itself and not pseudo-elements. That is enough today: no package string sizes `<body>`, and the one pseudo-element it draws, the `Tab` underline, has no padding or border | `w-full`, `w-80` and the 44px floor grow by their padding and border | `touchTarget`, `drawerPanelClass`, `popoverPanelClass`, `menuItemClass`, `comboboxPopupClass` | the app's own `* { box-sizing }` |
+| `button, input, select, textarea`: `font: inherit; letter-spacing: inherit` | `button, input, select, optgroup, textarea` | controls drawn in the browser's family and letter-spacing, `text-sm` notwithstanding | `fieldClass`, `smallFieldClass`, `primaryButtonClass`, `tabClass` | the app's own `button, input… { font: inherit }` |
+
+**Where this departs from issue #33.** The issue proposed `base.css` scoped to
+`.iki-app`. Two things differ, on purpose. The file is `reset.css`, because
+`base.css` is already exported for the plain-CSS hosts and a reset there would
+reach Ghost, WordPress and Docmost. The scope is `.iki-reset` on `<body>`, not
+`.iki-app`, because [§13-0](#13-0-install-the-package) keeps `iki-app` off
+`<body>` so its stacking context cannot hold the portals, and the reset must
+reach the portals. And two of the eight rules (`box-sizing`, and `font` and
+`letter-spacing` on controls) go beyond the Library's six; it supplies both
+itself today.
+
+**What it does not do.** It is not Preflight. It leaves links, lists, tables,
+`hr`, placeholders, `[hidden]` and the root `line-height` and font to the app,
+because no package class needs them to render: `linkClass` and `tableClass` set
+what they need, and the browser's own `[hidden] { display: none }` hides an
+element, where Preflight only adds `!important` (the print note on `Tabs` and
+`Disclosure` in [§8](#8-components) is about that, not about a missing rule). The reset
+also reaches the host's own `h1…h6` and `p`, as Preflight would, so an app
+whose pages rely on the browser's margins on them must give those a local rule
+first.
+
+**Not covered by a browser test.** This repository has no browser runner, and
+jsdom draws no native button border, so a computed-style test would pass with
+or without the file. The rules' effect is held by being the six the Library
+measured pixel-identical to Preflight in Chromium, Firefox and WebKit, and by
+the parity test against Preflight above.
 
 ## 14. Known drift inside Work OS
 
@@ -2396,6 +2654,7 @@ button). A consumer should copy the rule, not the exception; each of these is a 
 | 2026-10-21 | plan 2026-10-20 §7-3, PR #10 | Phase 1 merges before the Work OS port has run the `Drawer`; #443 validates it against `main` instead | Brian: merge so the next phase can start. Nothing is published by the merge; a wrong API is a follow-up before 0.4.0 is tagged — **reverses decision 3 of the same day** |
 | 2026-10-21 | plan 2026-10-20 phase 2 | `TableFrame`, `Checkbox`/`Radio`/`RadioGroup` (server-safe, styled natives) and `Tooltip`, `Tabs`, `Combobox` (on Base UI) join the package in one PR for 0.5.0, without waiting for a consumer issue | Brian, 21 October 2026: proceed with phase 2 anyway — **sets aside the plan's "each ships only when a consumer issue asks for it"**. The demand is the plan's own count: 8 table frames, 19 native checkboxes and radios, 29 `title=` hints, one tablist, one cell combobox |
 | 2026-10-21 | plan 2026-10-20 §4.3 | A transition is allowed only with a `motion-reduce:` counterpart; `base.css` and `theme.css` ship the global reduced-motion reset | Nothing animated and nothing needed a guard, so the rule had to be written before a consumer added one — formerly open question §16-4 |
+| 2026-11-27 | #33 | Preflight is a stated assumption of the package, and `reset.css` is its opt-in answer: a separate export scoped to `.iki-reset` on `<body>`, not part of `theme.css` or `base.css`; departs from the issue's `base.css` and `.iki-app`, and carries two rules beyond the Library's six (§13e) | The Digital Library omits Preflight and carries six rules of its own; Work OS and the members portal have Preflight and must not receive a second copy |
 
 ### Reversed — do not re-adopt
 

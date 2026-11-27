@@ -101,12 +101,52 @@ const disabledField =
  *
  * `font-normal` because `Field` nests the control inside `labelClass`: without
  * it the typed value inherits the label's 500, and label and value read alike.
+ *
+ * `text-base md:text-sm` (#38): 16px below `md`, 14px from `md`. iOS Safari
+ * zooms the page when a control under 16px takes focus and does not always
+ * zoom back, so a phone gets 16px and desktop keeps its density. This is the
+ * documented iOS behaviour, not a measurement on a device. The two sizes sit
+ * under different variants, so `class-strings.test.ts` does not read them as a
+ * conflict.
  */
-export const fieldClass =
-  `${touchTarget} rounded-md border border-grid-strong px-3 py-2 text-sm font-normal text-ink focus:border-teal-deep ${disabledField} ${focusRing}`;
+const fieldBody =
+  `rounded-md border border-grid-strong px-3 py-2 text-base md:text-sm font-normal text-ink focus:border-teal-deep ${disabledField} ${focusRing}`;
 
-export const smallFieldClass =
-  `${touchTarget} rounded-md border border-grid-strong px-2 py-1.5 text-sm font-normal text-ink focus:border-teal-deep ${disabledField} ${focusRing}`;
+const smallFieldBody =
+  `rounded-md border border-grid-strong px-2 py-1.5 text-base md:text-sm font-normal text-ink focus:border-teal-deep ${disabledField} ${focusRing}`;
+
+export const fieldClass = `${touchTarget} ${fieldBody}`;
+
+export const smallFieldClass = `${touchTarget} ${smallFieldBody}`;
+
+/**
+ * A textarea's field class (#39): a minimum of 7rem, about four rows of the 16px
+ * text a phone gets (4 × 24px of line, 16px of padding, 2px of border is
+ * 114px, and from `md` four 20px rows are less than that). On `fieldClass` a
+ * textarea measured 58px, and a message box that short invites a one-line
+ * answer. It takes `min-h-28` where the field has `touchTarget`, not both:
+ * two minimum heights under one variant are not an override (see
+ * `class-strings.test.ts`). `rows` and `resize` stay the caller's. `Field`
+ * gives a native `<textarea>` child this string, and `smallTextareaClass` with
+ * `size="small"`. It recognises only that element: a component that wraps a
+ * textarea gets `fieldClass`, and a caller who wants this string there must
+ * pass it on the textarea itself, not add `textareaClass` through `className`
+ * on top of `fieldClass`, where `min-h-11` and `min-h-28` would both apply
+ * under one variant.
+ */
+export const textareaClass = `min-h-28 ${fieldBody}`;
+
+export const smallTextareaClass = `min-h-28 ${smallFieldBody}`;
+
+/**
+ * A file input (#39): `fieldClass`, so the 44px floor and the 16px text below
+ * `md` come with it, and the browser's button (`::file-selector-button`,
+ * Tailwind's `file:` variant) drawn as `subtleButtonClass` is: the same border,
+ * padding, 12px text and teal-soft hover. Pairs are `ink` on `paper` and on
+ * `teal-soft`, both held in `TOKEN_PAIRS`.
+ */
+export const fileFieldClass =
+  `${fieldClass} file:mr-3 file:cursor-pointer file:rounded-md file:border file:border-grid-strong file:bg-paper file:px-2.5 file:py-1.5 file:text-xs file:text-ink hover:file:bg-teal-soft`;
 
 export const labelClass = "flex flex-col gap-1 text-xs font-medium text-ink";
 
@@ -147,14 +187,55 @@ export const warnIconButtonClass =
 export const subtleButtonClass =
   `${touchTarget} rounded-md border border-grid-strong px-2.5 py-1.5 text-xs text-ink hover:bg-teal-soft disabled:opacity-50 ${focusRing}`;
 
+/*
+ * A link drawn as a button (#36): an `<a>`, or a router `Link` that renders
+ * one. The button strings assume a `<button>`, which is `inline-block` and
+ * centres its own content and carries no underline; an anchor is `inline`, so
+ * `min-h-11` does nothing to it, and it keeps the link's underline. These add
+ * what the element lacks and change nothing else: the string is the button's
+ * own, so the colours, the border, the hover, the 44px floor below `md` and
+ * the focus ring are the same and the contrast pairs are the button's pairs.
+ * `inline-flex` is what makes the floor apply and centres the label;
+ * `no-underline` holds in every state, hover and focus included.
+ */
+const asAnchor = "inline-flex items-center justify-center no-underline";
+
+/** `primaryButtonClass` on an `<a>`. */
+export const primaryLinkButtonClass = `${primaryButtonClass} ${asAnchor}`;
+
+/** `subtleButtonClass` on an `<a>`. */
+export const subtleLinkButtonClass = `${subtleButtonClass} ${asAnchor}`;
+
 /**
  * Destructive-but-reversible confirm (move-to-trash) — warm, not alarming.
+ * Choose `warn` when the action can be undone; for one that cannot, see
+ * `destructiveButtonClass`.
  * The border was `warm-fg/40`, which composites to 1.92:1 on the warm fill —
  * a control boundary under the 3:1 bar just like `grid` was. `/70` clears it
  * at 3.49:1 while staying lighter than the label (Work OS #57).
  */
 export const warnButtonClass =
   `${touchTarget} rounded-md border border-warm-fg/70 px-2.5 py-1.5 text-xs text-warm-fg hover:bg-warm-bg disabled:opacity-50 ${focusRing}`;
+
+/**
+ * An action that cannot be undone and should not look like a routine one —
+ * reject, withdraw, delete (#37). Choose `destructive` when the action is final
+ * or consequential, and `warn` when it can be undone: the red is the pair
+ * `Overdue` and the invalid field already use, so it says "stop and read", and
+ * `warn`'s warm pair says "this can be put back".
+ *
+ * Filled `health-overdue-fg` with `paper` text, 8.92:1, in primary's type and
+ * padding (14px, semibold) because it is the decisive action on its surface.
+ * Its 1px border makes it 2px taller and wider than primary at `md` and up
+ * (38px against 36px); below `md` both are 44px. The border is the same red, so a filled button keeps its boundary in forced-colours
+ * mode, where backgrounds are dropped, and on hover it is the whole of the
+ * button's edge: the fill goes to `health-overdue-bg` and the label to
+ * `health-overdue-fg`, the pair the overdue pill holds at 6.10:1. The words carry
+ * the meaning, not the colour, and a confirm step stays in words (§8).
+ * No new token: every pair is in `TOKEN_PAIRS`.
+ */
+export const destructiveButtonClass =
+  `${touchTarget} rounded-md border border-health-overdue-fg bg-health-overdue-fg px-3 py-2 text-sm font-semibold text-paper hover:bg-health-overdue-bg hover:text-health-overdue-fg disabled:opacity-50 ${focusRing}`;
 
 /** An inline text link inside body copy or a cell. */
 export const linkClass =

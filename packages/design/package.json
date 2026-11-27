@@ -20,6 +20,7 @@
     "./theme.css": "./dist/theme.css",
     "./tokens.css": "./dist/tokens.css",
     "./base.css": "./dist/base.css",
+    "./reset.css": "./dist/reset.css",
     "./tokens.json": "./dist/tokens.json",
     "./package.json": "./package.json"
   },

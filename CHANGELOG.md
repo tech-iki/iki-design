@@ -12,6 +12,45 @@ token or class is a major.
 
 - `class-strings.test.ts`: fails when a class string sets a measured property
   twice under one variant, and holds the field weight and the row touch floor.
+- `EmptyState` takes an optional `title`, rendered above the sentence in a
+  `<div>` 4px above it (`emptyStateTitleClass`; the pair is in `TOKEN_PAIRS`).
+  Not a heading, because the component cannot know the page's level; pass an
+  `<h3>` as the title for one. Without it the markup is unchanged (#41).
+- `primaryLinkButtonClass` and `subtleLinkButtonClass` (#36): the two button
+  looks on an `<a>` or a router `Link`: the button's own string plus
+  `inline-flex items-center justify-center no-underline`, so the 44px floor
+  below `md` applies and the label is not underlined. Colours, border, hover
+  and focus ring are the button's, so no contrast pair changes. Held by §8 and
+  shown on `/controls` and `/components`. A minor; no existing string changes.
+- `destructiveButtonClass` and `Button variant="destructive"` (#37), for an
+  action that cannot be undone: reject, withdraw, delete. `health-overdue-fg`
+  fill with a `paper` label (8.92:1), the overdue pill's pair on hover, and a
+  border of its own so it stays a button in forced-colours mode. It takes
+  primary's type and padding, so its border makes it 2px taller and wider at
+  `md` and up (38px against 36px); both are 44px below `md`. `warn` stays for an
+  action that can be put back. No new token; two pairs added to `TOKEN_PAIRS`.
+  `ButtonVariant` gains a member, `"destructive"`: a consumer with an exhaustive
+  `Record<ButtonVariant, …>` or `switch` must add the case.
+- `reset.css`, an opt-in export (`@tech-iki/design/reset.css`) for a Tailwind app
+  that omits Preflight (#33). Eight rules in `@layer base`, each the value
+  Preflight sets for those elements, scoped to `.iki-reset`: the Digital
+  Library's own six, word for word, and the box-sizing and control-font rules it
+  supplies elsewhere. Nothing imports it for you and no existing file changes, so
+  an app with Preflight sees nothing; it is not part of `theme.css` or
+  `base.css`. Put `iki-reset` on `<body>` so the portalled overlays are reached.
+  §13d now states the Preflight assumption and §13e lists each rule against the
+  Preflight rule it mirrors and the package classes that need it; the adopt page
+  shows the file. `RESET_RULES`, `RESET_SCOPE` and `resetCss()` are exported.
+- `Field` `announceError` (default `true`, so nothing changes by default): `false`
+  drops the error's `role="alert"` for a form that shows its own error summary,
+  keeping the id, `aria-describedby` and `aria-invalid` (#40). `Checkbox` and
+  `RadioGroup` take it too.
+- `Field`'s `label` and `hint` accept `ReactNode`, not only `string` (#39).
+- `Checkbox` accepts `hint` and `error` and wires `aria-describedby` and
+  `aria-invalid`, as `Field` does. With neither, the markup is unchanged (#39).
+- `textareaClass`, `smallTextareaClass` (minimum height `min-h-28`, about four
+  rows) and `fileFieldClass` (the field class with the browser's file button
+  drawn as the subtle button) (#39).
 - `SkipLink`, `Rail`, `RailBrand`, `NavGroup`, `NavLink` and `NavButton`:
   §7's navy rail, server-safe (no `"use client"`, no location read), `...rest`
   on each root. `Rail` is an `<aside>` with the brand on top and one named
@@ -65,6 +104,23 @@ token or class is a major.
 
 ### Changed
 
+- **Docs: §13b.** The Digital Library's adoption path now follows its decision
+  to converge on the package (theme, components, icons, and the rail for its
+  signed-in pages); the palette-only steps are marked superseded (#42). No code
+  or version change.
+- **`EmptyState` no longer passes `title` to the root as the HTML attribute.**
+  A caller that used `title="…"` for a tooltip now gets the visible headline
+  instead. No call site in Work OS or the Digital Library does this.
+- **Rendered size change for existing consumers (#38):** `fieldClass` and
+  `smallFieldClass` set `text-base md:text-sm`, so a field's text is 16px below
+  `md` and 14px from `md`; it was 14px at every width. iOS Safari zooms the page
+  when a control under 16px takes focus. Desktop is unchanged. Everything built
+  on the two strings follows: `invalidFieldClass`, `Field`, the `Combobox`
+  input. Heights are unchanged (the 44px floor already exceeds the taller text).
+  The package has no popover search field, so none changed.
+- `Field` gives a `<textarea>` child `textareaClass` (`smallTextareaClass` with
+  `size="small"`) in place of the field class, so an existing textarea in a
+  `Field` now has a minimum height of 7rem (#39). Set `rows` for more.
 - `PageMain` sets its id from `MAIN_CONTENT_ID`; the value is still
   `main-content`.
 - The site: the rail and the skip link are the package's (#23): the current page is
@@ -91,6 +147,11 @@ token or class is a major.
   same as the subtle button.
 - The touch floor cites WCAG 2.5.5 (44px, AAA), not 2.5.8 (24px, AA). Principle 7
   states the measured 28–38px for buttons and fields in place of "about 26px".
+- `Button` (#35): a string child that already ends in an ellipsis, the
+  character or three full stops, keeps it while `pending`; "Save…" no longer
+  renders "Save……". `ref` is now in `Button`'s types (a plain prop in React
+  19), so a caller can pass one without a cast. `pendingLabel` is unchanged: it
+  is shown as given.
 
 ## [0.5.0] — 2026-10-21
 

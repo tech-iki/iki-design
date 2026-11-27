@@ -111,6 +111,48 @@ describe("a field's value is not its label", () => {
   });
 });
 
+describe("a field's text is 16px below md so iOS does not zoom on focus (#38)", () => {
+  it.each(["fieldClass", "smallFieldClass", "invalidFieldClass", "textareaClass", "smallTextareaClass", "fileFieldClass"] as const)(
+    "%s",
+    (name) => {
+      const tokens = classes[name].split(" ");
+      expect(tokens).toContain("text-base");
+      expect(tokens).toContain("md:text-sm");
+      expect(tokens).not.toContain("text-sm");
+    },
+  );
+});
+
+describe("a textarea has a minimum height of about four rows (#39)", () => {
+  it.each(["textareaClass", "smallTextareaClass"] as const)("%s", (name) => {
+    const tokens = classes[name].split(" ");
+    expect(tokens).toContain("min-h-28");
+    // Not alongside the touch floor's own minimum, which the guard above would read as a conflict.
+    expect(tokens).not.toContain("min-h-11");
+    expect(tokens).not.toContain("md:min-h-0");
+  });
+
+  it("is otherwise the field", () => {
+    expect(classes.textareaClass.replace("min-h-28 ", `${classes.touchTarget} `)).toBe(classes.fieldClass);
+    expect(classes.smallTextareaClass.replace("min-h-28 ", `${classes.touchTarget} `)).toBe(classes.smallFieldClass);
+  });
+});
+
+describe("a file input is the field with the subtle button's button (#39)", () => {
+  it("starts with fieldClass, so it has the 44px floor below md", () => {
+    expect(classes.fileFieldClass.startsWith(`${classes.fieldClass} `)).toBe(true);
+    expect(classes.fileFieldClass.split(" ")).toContain("min-h-11");
+  });
+
+  it("draws the browser's button with the subtle button's border, padding, size and hover", () => {
+    const file = classes.fileFieldClass.split(" ");
+    for (const token of classes.subtleButtonClass.split(" ")) {
+      if (["min-h-11", "min-w-11", "md:min-h-0", "md:min-w-0"].includes(token) || token.startsWith("focus-visible:") || token.startsWith("disabled:")) continue;
+      expect(file, token).toContain(token.startsWith("hover:") ? `hover:file:${token.slice(6)}` : `file:${token}`);
+    }
+  });
+});
+
 describe("a row chosen with a thumb has the touch floor below md", () => {
   it.each(["popoverOptionClass", "comboboxOptionClass"] as const)("%s", (name) => {
     const tokens = classes[name].split(" ");
@@ -139,5 +181,26 @@ describe("a panel of 44px rows can still reach its last row", () => {
     const tokens = classes[name].split(" ");
     expect(tokens).toContain("max-h-(--available-height)");
     expect(tokens).toContain("overflow-y-auto");
+  });
+});
+
+/**
+ * The five button strings that shipped in 0.5.0, written out. A consumer
+ * pinned to a minor renders the same pixels from every one of these, so a change
+ * to one is a visible change here, not a quiet one (a new variant, #37, was added
+ * beside them and moved none).
+ */
+describe("the existing button strings are held literally", () => {
+  const touch = "min-h-11 min-w-11 md:min-h-0 md:min-w-0";
+  const ring = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-deep";
+
+  it.each([
+    ["primaryButtonClass", `${touch} rounded-md bg-teal-deep px-3 py-2 text-sm font-semibold text-paper hover:bg-navy disabled:opacity-50 ${ring}`],
+    ["subtleButtonClass", `${touch} rounded-md border border-grid-strong px-2.5 py-1.5 text-xs text-ink hover:bg-teal-soft disabled:opacity-50 ${ring}`],
+    ["warnButtonClass", `${touch} rounded-md border border-warm-fg/70 px-2.5 py-1.5 text-xs text-warm-fg hover:bg-warm-bg disabled:opacity-50 ${ring}`],
+    ["iconButtonClass", `${touch} inline-flex items-center justify-center rounded-md p-1.5 text-ink-muted hover:bg-teal-soft hover:text-ink disabled:opacity-50 ${ring}`],
+    ["warnIconButtonClass", `${touch} inline-flex items-center justify-center rounded-md p-1.5 text-warm-fg hover:bg-warm-bg disabled:opacity-50 ${ring}`],
+  ])("%s", (name, expected) => {
+    expect((classes as Record<string, string>)[name]).toBe(expected);
   });
 });

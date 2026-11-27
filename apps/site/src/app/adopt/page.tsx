@@ -7,6 +7,7 @@ import {
   PageTitle,
   baseCss,
   linkClass,
+  resetCss,
   themeCss,
   tokensCss,
   tokensJson,
@@ -19,11 +20,23 @@ import { DOC } from "@/lib/design-doc";
 export const metadata: Metadata = {
   title: "Adopt",
   description:
-    "How to install the design system with Tailwind v4, plain CSS or the components, what a consumer must respect, and the generated stylesheets verbatim.",
+    "How to install the design system with Tailwind v4, plain CSS or the components, the opt-in reset for an app without Preflight, what a consumer must respect, and the generated stylesheets verbatim.",
 };
 
 const TAILWIND = `@import "tailwindcss";
 @import "@tech-iki/design/theme.css";`;
+
+/** An app that omits Preflight: the layer order first, so base sits under utilities, then the imports. */
+const RESET_IMPORT = `@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+@import "@tech-iki/design/theme.css";
+@import "@tech-iki/design/reset.css";`;
+
+/** `iki-reset` goes on <body> so the portalled overlays are reached; `iki-app` stays a child of it. */
+const RESET_BODY = `<body className="iki-reset">
+  <div className="iki-app">{children}</div>
+</body>`;
 
 /** The same lines this site's own layout uses, with the property names read from the package. */
 const NEXT_FONTS = `import { Geist, Geist_Mono } from "next/font/google";
@@ -95,6 +108,46 @@ export default function AdoptPage() {
         </div>
       </Section>
 
+      <Section title="Without Preflight">
+        <P>
+          The components assume Tailwind’s Preflight, which{" "}
+          <Mono>@import &quot;tailwindcss&quot;</Mono> brings with it. An app
+          that leaves it out gets the browser’s border and grey fill on every
+          button and its margins on every paragraph in a{" "}
+          <Mono>Notice</Mono>. Import Preflight, or opt in to{" "}
+          <Mono>reset.css</Mono>: eight rules, each the value Preflight sets
+          for those elements, scoped to <Mono>.iki-reset</Mono>. An app that
+          has Preflight imports nothing and sees no change. The selectors are
+          one class of specificity, so an app’s own rule for these elements
+          must sit in a later layer or carry a class.
+        </P>
+        <P>
+          <strong>Declare the layer order on the first line, or the reset
+          breaks every button.</strong> Without{" "}
+          <Mono>@layer theme, base, components, utilities;</Mono> an app that
+          imports only Tailwind’s theme and utilities ranks <Mono>base</Mono>{" "}
+          above <Mono>utilities</Mono>, and the reset then beats every
+          button’s padding and border. <Mono>@import &quot;tailwindcss&quot;</Mono>{" "}
+          declares it for you.
+        </P>
+        <CodeBlock code={RESET_IMPORT} file="globals.css" />
+        <P>
+          Put <Mono>iki-reset</Mono> on <Mono>&lt;body&gt;</Mono>, not on the
+          page shell: <Mono>Drawer</Mono>, <Mono>Menu</Mono>,{" "}
+          <Mono>Popover</Mono>, <Mono>Combobox</Mono> and{" "}
+          <Mono>Tooltip</Mono> are portalled to <Mono>&lt;body&gt;</Mono>, and a
+          reset on the shell would not reach them. It is a different element
+          from the <Mono>iki-app</Mono> stacking root, which stays a child of{" "}
+          <Mono>&lt;body&gt;</Mono>.
+        </P>
+        <CodeBlock code={RESET_BODY} file="app/layout.tsx" />
+        <P>
+          The table in design system §13e sets each rule against the Preflight
+          rule it mirrors, the package classes that lean on it, and the copy
+          the Digital Library carries today.
+        </P>
+      </Section>
+
       <Section title="Plain CSS">
         <P>
           For a Ghost theme, WordPress or Docmost: custom properties on{" "}
@@ -149,6 +202,7 @@ export default function AdoptPage() {
         <CodeBlock code={themeCss()} file="theme.css" generated />
         <CodeBlock code={tokensCss()} file="tokens.css" generated />
         <CodeBlock code={baseCss()} file="base.css" generated />
+        <CodeBlock code={resetCss()} file="reset.css" generated />
         <CodeBlock
           code={JSON.stringify(tokensJson(pkg.version), null, 2)}
           file="tokens.json"
