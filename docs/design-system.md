@@ -2010,9 +2010,43 @@ body {
 
 ### 13b. Tailwind v4 projects — the IKI Digital Library
 
-The library is Vite + React 19 + Tailwind v4 with source-owned shadcn/ui
-primitives (`components.json`, New York style, lucide icons). Its tokens are
-oklch in `apps/web/src/styles.css`.
+The library is Vite + React 19 + Tailwind v4. It began with source-owned
+shadcn/ui primitives, lucide icons and oklch tokens in
+`apps/web/src/styles.css`. On 25 November 2026 it decided to converge on this
+package (tech-iki/iki-digital-library#96): it takes the package's theme,
+components and icons, and the rail for its signed-in pages. Its public header,
+which serves signed-out visitors only, stays local. The steps below follow that
+decision.
+
+The adoption path:
+
+1. **Import the package theme after Tailwind**, as
+   [§13-0](#13-0-install-the-package) shows, and remove the library's own
+   `:root` palette. The import must come before any `@theme` of the library's,
+   because its first declaration is `--color-*: initial`.
+2. **Add the `iki-app` root class** from [§13-0](#13-0-install-the-package),
+   with the base-style reset that #33 covers. Until that issue is settled, the
+   library carries those rules locally (tech-iki/iki-digital-library#111).
+3. **Use the package's components and icons**: `Button`, `Field`, `Notice`,
+   `EmptyState` and the rest from the package root, and `Icon` for icons, which
+   are lucide drawings at the version recorded in `LUCIDE_VERSION`. The library
+   may keep a thin local wrapper where a spike found one is needed, as it does
+   for forms. Six icon names with no counterpart await #34.
+4. **Use the package's contrast helper** (`contrast`, `TOKEN_PAIRS` and
+   `THRESHOLD`) rather than a copy of `ui-contrast.ts`, and list the pairs the
+   library actually renders.
+5. **The shell comes last, and waits on the package.** The rail, skip link and
+   navigation components are being built in #19 and are not in the package
+   yet. `AppShell.tsx` keeps its current form until they ship
+   (tech-iki/iki-digital-library#106). No step here changes the routing or the
+   query layer.
+
+**Superseded: the palette-only path.** The library first adopted only the
+palette, by the steps below. The converge decision replaces that path. The
+steps, the alias table, the conflicts and the notes after them are kept as the
+record of it, as the register keeps history, and are not the path for new
+work. Where they say to leave `AppShell.tsx` alone, or that the change is not
+a restructure, the path above now says otherwise.
 
 Steps:
 
@@ -2064,7 +2098,7 @@ Steps:
 | Radius | `--radius: 8px`, panels 12px | `rounded-md` 6px | **Take 6px.** The library derives `--radius-sm/md/lg` from one value, so this is a one-line change. |
 | Typeface | Inter, declared in `:root` with no `@font-face` and no `<link>` — so it silently falls back to `ui-sans-serif` today | Geist via `next/font`, self-hosted | **Take Geist and actually load it.** The library's Inter is a declaration without a file; whichever face wins, it should be served, not hoped for. |
 | Focus | `3px solid var(--primary)`, offset 3px (and `-3px` inset on `main`) | 2px / 2px, `focus-visible` only | **Take 2px/2px** for consistency; keep the library's inset ring on `main`, which the app has no equivalent for. |
-| Icons | lucide-react | Hand-drawn, no package | **Keep lucide in the library.** The no-package rule exists because Work OS needs seventeen glyphs; a library that already depends on lucide gains nothing by hand-drawing. Match the weight: 20px nav, 16px inline, `currentColor`. |
+| Icons | lucide-react | Hand-drawn, no package | **Superseded: the package's icons.** This was the palette-only recommendation to keep lucide in the library; the converge decision takes the package's `Icon`, which is lucide underneath. Match the weight: 20px nav, 16px inline, `currentColor`. |
 
 Two things the library already does better, and should keep: 44px minimum
 targets on every nav item, and a `skip-link` that is `position: fixed` rather

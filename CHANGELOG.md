@@ -8,6 +8,18 @@ token or class is a major.
 
 ## [Unreleased]
 
+### Added
+
+- `class-strings.test.ts`: fails when a class string sets a measured property
+  twice under one variant, and holds the field weight and the row touch floor.
+
+### Changed
+
+- **Docs: §13b.** The Digital Library's adoption path now follows its decision
+  to converge on the package (theme, components, icons, and the rail for its
+  signed-in pages); the palette-only steps are marked superseded (#42). No code
+  or version change.
+
 ### Fixed
 
 - `fieldClass` and `smallFieldClass` set `font-normal`. `Field` nests the control
@@ -22,11 +34,6 @@ token or class is a major.
   same as the subtle button.
 - The touch floor cites WCAG 2.5.5 (44px, AAA), not 2.5.8 (24px, AA). Principle 7
   states the measured 28–38px for buttons and fields in place of "about 26px".
-
-### Added
-
-- `class-strings.test.ts`: fails when a class string sets a measured property
-  twice under one variant, and holds the field weight and the row touch floor.
 
 ## [0.5.0] — 2026-10-21
 
