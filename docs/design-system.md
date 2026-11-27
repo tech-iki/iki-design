@@ -2010,17 +2010,43 @@ body {
 
 ### 13b. Tailwind v4 projects — the IKI Digital Library
 
-The library is Vite + React 19 + Tailwind v4. It began with source-owned shadcn/ui primitives, lucide icons and oklch tokens in `apps/web/src/styles.css`. On 25 November 2026 it decided to converge on this package (tech-iki/iki-digital-library#96): it takes the package's theme, shell and icons. The steps below follow that decision.
+The library is Vite + React 19 + Tailwind v4. It began with source-owned
+shadcn/ui primitives, lucide icons and oklch tokens in
+`apps/web/src/styles.css`. On 25 November 2026 it decided to converge on this
+package (tech-iki/iki-digital-library#96): it takes the package's theme,
+components and icons, and the rail for its signed-in pages. Its public header,
+which serves signed-out visitors only, stays local. The steps below follow that
+decision.
 
 The adoption path:
 
-1. **Import the package theme after Tailwind**, as [§13-0](#13-0-install-the-package) shows, and remove the library's own `:root` palette. The import must come before any `@theme` of the library's, because its first declaration is `--color-*: initial`.
-2. **Add the `iki-app` root class** from [§13-0](#13-0-install-the-package), with the base-style reset that tech-iki/iki-design#33 covers. Until that issue is settled, the library carries those rules locally (tech-iki/iki-digital-library#111).
-3. **Use the package's components and icons**: `Button`, `Field`, `Notice`, `EmptyState` and the rest from the package root, and `Icon` for icons, which are generated from lucide at a pinned version. Six icon names with no counterpart await tech-iki/iki-design#34.
-4. **Use the package's contrast helper** (`contrast`, `TOKEN_PAIRS` and `THRESHOLD`) rather than a copy of `ui-contrast.ts`, and list the pairs the library actually renders. This is the one step that is real work.
-5. **The shell comes last, and waits on the package.** The rail, skip link and navigation components are being built in tech-iki/iki-design#19 for v0.7.0 and are not in the package yet. `AppShell.tsx` keeps its current form until they ship (tech-iki/iki-digital-library#106). No step here changes the routing or the query layer.
+1. **Import the package theme after Tailwind**, as
+   [§13-0](#13-0-install-the-package) shows, and remove the library's own
+   `:root` palette. The import must come before any `@theme` of the library's,
+   because its first declaration is `--color-*: initial`.
+2. **Add the `iki-app` root class** from [§13-0](#13-0-install-the-package),
+   with the base-style reset that #33 covers. Until that issue is settled, the
+   library carries those rules locally (tech-iki/iki-digital-library#111).
+3. **Use the package's components and icons**: `Button`, `Field`, `Notice`,
+   `EmptyState` and the rest from the package root, and `Icon` for icons, which
+   are lucide drawings at the version recorded in `LUCIDE_VERSION`. The library
+   may keep a thin local wrapper where a spike found one is needed, as it does
+   for forms. Six icon names with no counterpart await #34.
+4. **Use the package's contrast helper** (`contrast`, `TOKEN_PAIRS` and
+   `THRESHOLD`) rather than a copy of `ui-contrast.ts`, and list the pairs the
+   library actually renders.
+5. **The shell comes last, and waits on the package.** The rail, skip link and
+   navigation components are being built in #19 and are not in the package
+   yet. `AppShell.tsx` keeps its current form until they ship
+   (tech-iki/iki-digital-library#106). No step here changes the routing or the
+   query layer.
 
-**Superseded: the palette-only path.** The library first adopted only the palette, by the steps below. The converge decision replaces that path. The steps, the alias table, the conflicts and the notes after them are kept as the record of it, as the register keeps history, and are not the path for new work.
+**Superseded: the palette-only path.** The library first adopted only the
+palette, by the steps below. The converge decision replaces that path. The
+steps, the alias table, the conflicts and the notes after them are kept as the
+record of it, as the register keeps history, and are not the path for new
+work. Where they say to leave `AppShell.tsx` alone, or that the change is not
+a restructure, the path above now says otherwise.
 
 Steps:
 

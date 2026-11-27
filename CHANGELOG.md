@@ -10,7 +10,10 @@ token or class is a major.
 
 ### Changed
 
-- **Docs: §13b.** The Digital Library's adoption path now follows its decision to converge on the package (theme, shell, icons); the palette-only steps are marked superseded (#42). No code or version change.
+- **Docs: §13b.** The Digital Library's adoption path now follows its decision
+  to converge on the package (theme, components, icons, and the rail for its
+  signed-in pages); the palette-only steps are marked superseded (#42). No code
+  or version change.
 
 ## [0.5.0] — 2026-10-21
 
