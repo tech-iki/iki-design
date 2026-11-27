@@ -9,9 +9,11 @@ export const emptyStateTextClass = "text-sm text-ink-muted";
 
 /**
  * The optional title above the sentence: ink, not muted, and semibold so it
- * reads as the headline of the box.
+ * reads as the headline of the box. `-mb-2` takes 8px off the box's 12px gap,
+ * so the title sits 4px above its sentence and reads as one group with it,
+ * while the action keeps the full gap.
  */
-export const emptyStateTitleClass = "text-sm font-semibold text-ink";
+export const emptyStateTitleClass = "-mb-2 text-sm font-semibold text-ink";
 
 /**
  * Nothing here, said in a sentence (plan of 20 October 2026, phase 0; about
@@ -30,9 +32,8 @@ export const emptyStateTitleClass = "text-sm font-semibold text-ink";
  * the page is at, and a wrong `<h2>` breaks the outline for a screen reader.
  * A `<div>` rather than a `<p>` so a caller who does want a heading can pass
  * `<h3>` as the title and stay valid. Without it the markup is exactly what it
- * was before the prop existed. Note that it
- * takes the name of the HTML `title` attribute, so it no longer reaches the
- * root as a tooltip.
+ * was before the prop existed. It takes the name of the HTML `title`
+ * attribute, so a `title` no longer reaches the root as a tooltip.
  */
 export function EmptyState({
   action,

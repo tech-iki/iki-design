@@ -1296,7 +1296,7 @@ Notice           rounded-md px-3 py-2 text-sm {tone}
   tone=warm      bg-warm-bg text-warm-fg                        (role="alert")
   tone=overdue   bg-health-overdue-bg text-health-overdue-fg    (role="alert")
 EmptyState       flex flex-col items-start gap-3 rounded-md border border-grid bg-paper p-5
-  title          text-sm font-semibold text-ink
+  title          -mb-2 text-sm font-semibold text-ink
   sentence       text-sm text-ink-muted
   action         an optional slot beneath the sentence, usually a Button
 ```

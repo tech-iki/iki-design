@@ -11,11 +11,15 @@ token or class is a major.
 ### Added
 
 - `EmptyState` takes an optional `title`, rendered above the sentence in a
-  `<div>` (`emptyStateTitleClass`: `text-sm font-semibold text-ink`; the pair is
-  in `TOKEN_PAIRS`). Not a heading, because the component cannot know the
-  page's level; pass an `<h3>` as the title for one. Without it the markup is
-  unchanged. A `title` passed before now reached the root as the HTML
-  attribute; it is now the headline.
+  `<div>` 4px above it (`emptyStateTitleClass`; the pair is in `TOKEN_PAIRS`).
+  Not a heading, because the component cannot know the page's level; pass an
+  `<h3>` as the title for one. Without it the markup is unchanged (#41).
+
+### Changed
+
+- **`EmptyState` no longer passes `title` to the root as the HTML attribute.**
+  A caller that used `title="…"` for a tooltip now gets the visible headline
+  instead. No call site in Work OS or the Digital Library does this.
 
 ## [0.5.0] — 2026-10-21
 
