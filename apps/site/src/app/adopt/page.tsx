@@ -117,7 +117,18 @@ export default function AdoptPage() {
           <Mono>Notice</Mono>. Import Preflight, or opt in to{" "}
           <Mono>reset.css</Mono>: eight rules, each the value Preflight sets
           for those elements, scoped to <Mono>.iki-reset</Mono>. An app that
-          has Preflight imports nothing and sees no change.
+          has Preflight imports nothing and sees no change. The selectors are
+          one class of specificity, so an app’s own rule for these elements
+          must sit in a later layer or carry a class.
+        </P>
+        <P>
+          <strong>Declare the layer order on the first line, or the reset
+          breaks every button.</strong> Without{" "}
+          <Mono>@layer theme, base, components, utilities;</Mono> an app that
+          imports only Tailwind’s theme and utilities ranks <Mono>base</Mono>{" "}
+          above <Mono>utilities</Mono>, and the reset then beats every
+          button’s padding and border. <Mono>@import &quot;tailwindcss&quot;</Mono>{" "}
+          declares it for you.
         </P>
         <CodeBlock code={RESET_IMPORT} file="globals.css" />
         <P>

@@ -169,8 +169,22 @@ describe("the rendered pages show every row", () => {
     expect(adopt).toContain('id="without-preflight"');
     expect(adopt).toContain("@tech-iki/design/reset.css");
     expect(adopt).toContain(".iki-reset :where(button)");
-    expect(adopt).toContain("iki-reset");
     expect(adopt).toContain("not on the");
+    expect(adopt).toContain("Declare the layer order on the first line");
+  });
+
+  // The layer statement is what keeps the reset under utilities. The doc holds
+  // the one copy of the snippet; the page types its own, so they are compared,
+  // and each must open with the statement.
+  it("opens both reset import snippets with the layer statement, and keeps them equal", () => {
+    const match = MARKDOWN.match(/<!-- snippet:reset-import -->\n```css\n([\s\S]*?)\n```/);
+    expect(match, "§13e has the snippet").not.toBeNull();
+    const fromDoc = match![1];
+    const LAYERS = "@layer theme, base, components, utilities;";
+    expect(fromDoc.startsWith(LAYERS + "\n")).toBe(true);
+    // The page escapes quotes and angle brackets in markup; undo only those.
+    const unescape = (html: string) => html.replaceAll("&quot;", '"').replaceAll("&#x27;", "'");
+    expect(unescape(adopt)).toContain(fromDoc);
   });
 
   it("renders the whole decision register", () => {

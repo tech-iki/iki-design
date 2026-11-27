@@ -20,7 +20,7 @@ const require = createRequire(import.meta.url);
 type PreflightRule = { selectors: string[]; declarations: Map<string, string> };
 
 /** The flat rules of a stylesheet: comments stripped, at-rule wrappers skipped. */
-export function parseRules(css: string): PreflightRule[] {
+function parseRules(css: string): PreflightRule[] {
   const bare = css.replace(/\/\*[\s\S]*?\*\//g, "");
   return [...bare.matchAll(/([^{}]+)\{([^{}]*)\}/g)]
     .filter(([, selector]) => !selector.trim().startsWith("@"))
@@ -40,7 +40,7 @@ export function parseRules(css: string): PreflightRule[] {
 }
 
 /** Whether `rules` give `element` the value for `property`, directly or through `*`. */
-export function declares(rules: PreflightRule[], element: string, property: string, value: string): boolean {
+function declares(rules: PreflightRule[], element: string, property: string, value: string): boolean {
   return rules.some(
     (rule) =>
       (rule.selectors.includes(element) || rule.selectors.includes("*")) &&

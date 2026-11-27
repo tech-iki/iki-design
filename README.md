@@ -29,11 +29,22 @@ Tailwind v4 app — one line in your global stylesheet:
 ```
 
 The components assume Tailwind's Preflight, which `@import "tailwindcss"`
-includes. An app that omits it on purpose opts in to the package's reset, and puts
-`iki-reset` on `<body>` (not only the shell: the overlays are portalled there).
-An app with Preflight imports nothing:
+includes. Without it, every button shows the browser's border, padding and grey
+fill, headings and paragraphs inside `Notice`, `EmptyState` and `Drawer` keep
+their margins, and `w-full` and the 44px touch floor grow by their padding
+because `box-sizing` is not `border-box`. An app that omits Preflight on purpose
+opts in to the package's reset, and puts `iki-reset` on `<body>` (not only the
+shell: the overlays are portalled there). An app with Preflight imports nothing.
+
+**Declare the layer order first, or the reset breaks every button.** An app that
+imports only Tailwind's theme and utilities ranks `base` above `utilities`
+unless the first line says otherwise:
 
 ```css
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+@import "@tech-iki/design/theme.css";
 @import "@tech-iki/design/reset.css";
 ```
 
