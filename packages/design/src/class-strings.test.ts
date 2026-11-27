@@ -90,6 +90,48 @@ describe("a field's value is not its label", () => {
   });
 });
 
+describe("a field's text is 16px below md so iOS does not zoom on focus (#38)", () => {
+  it.each(["fieldClass", "smallFieldClass", "invalidFieldClass", "textareaClass", "smallTextareaClass", "fileFieldClass"] as const)(
+    "%s",
+    (name) => {
+      const tokens = classes[name].split(" ");
+      expect(tokens).toContain("text-base");
+      expect(tokens).toContain("md:text-sm");
+      expect(tokens).not.toContain("text-sm");
+    },
+  );
+});
+
+describe("a textarea has a minimum height of four rows (#39)", () => {
+  it.each(["textareaClass", "smallTextareaClass"] as const)("%s", (name) => {
+    const tokens = classes[name].split(" ");
+    expect(tokens).toContain("min-h-28");
+    // Not alongside the touch floor's own minimum, which the guard above would read as a conflict.
+    expect(tokens).not.toContain("min-h-11");
+    expect(tokens).not.toContain("md:min-h-0");
+  });
+
+  it("is otherwise the field", () => {
+    expect(classes.textareaClass.replace("min-h-28 ", `${classes.touchTarget} `)).toBe(classes.fieldClass);
+    expect(classes.smallTextareaClass.replace("min-h-28 ", `${classes.touchTarget} `)).toBe(classes.smallFieldClass);
+  });
+});
+
+describe("a file input is the field with the subtle button's button (#39)", () => {
+  it("starts with fieldClass, so it has the 44px floor below md", () => {
+    expect(classes.fileFieldClass.startsWith(`${classes.fieldClass} `)).toBe(true);
+    expect(classes.fileFieldClass.split(" ")).toContain("min-h-11");
+  });
+
+  it("draws the browser's button with the subtle button's border, padding, size and hover", () => {
+    const file = classes.fileFieldClass.split(" ");
+    for (const token of classes.subtleButtonClass.split(" ")) {
+      if (["min-h-11", "min-w-11", "md:min-h-0", "md:min-w-0"].includes(token) || token.startsWith("focus-visible:") || token.startsWith("disabled:")) continue;
+      expect(file, token).toContain(token.startsWith("hover:") ? `hover:file:${token.slice(6)}` : `file:${token}`);
+    }
+  });
+});
+
 describe("a row chosen with a thumb has the touch floor below md", () => {
   it.each(["popoverOptionClass", "comboboxOptionClass"] as const)("%s", (name) => {
     const tokens = classes[name].split(" ");

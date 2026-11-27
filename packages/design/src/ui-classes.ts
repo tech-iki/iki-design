@@ -101,12 +101,48 @@ const disabledField =
  *
  * `font-normal` because `Field` nests the control inside `labelClass`: without
  * it the typed value inherits the label's 500, and label and value read alike.
+ *
+ * `text-base md:text-sm` (#38): 16px below `md`, 14px from `md`. iOS Safari
+ * zooms the page when a control under 16px takes focus and does not always
+ * zoom back, so a phone gets 16px and desktop keeps its density. This is the
+ * documented iOS behaviour, not a measurement on a device. The two sizes sit
+ * under different variants, so `class-strings.test.ts` does not read them as a
+ * conflict.
  */
-export const fieldClass =
-  `${touchTarget} rounded-md border border-grid-strong px-3 py-2 text-sm font-normal text-ink focus:border-teal-deep ${disabledField} ${focusRing}`;
+const fieldBody =
+  `rounded-md border border-grid-strong px-3 py-2 text-base md:text-sm font-normal text-ink focus:border-teal-deep ${disabledField} ${focusRing}`;
 
-export const smallFieldClass =
-  `${touchTarget} rounded-md border border-grid-strong px-2 py-1.5 text-sm font-normal text-ink focus:border-teal-deep ${disabledField} ${focusRing}`;
+const smallFieldBody =
+  `rounded-md border border-grid-strong px-2 py-1.5 text-base md:text-sm font-normal text-ink focus:border-teal-deep ${disabledField} ${focusRing}`;
+
+export const fieldClass = `${touchTarget} ${fieldBody}`;
+
+export const smallFieldClass = `${touchTarget} ${smallFieldBody}`;
+
+/**
+ * A textarea's field class (#39): a minimum of 7rem, four rows of the 16px
+ * text a phone gets (4 × 24px of line, 16px of padding, 2px of border is
+ * 114px, and from `md` four 20px rows are less than that). On `fieldClass` a
+ * textarea measured 58px, and a message box that short invites a one-line
+ * answer. It takes `min-h-28` where the field has `touchTarget`, not both:
+ * two minimum heights under one variant are not an override (see
+ * `class-strings.test.ts`). `rows` and `resize` stay the caller's. `Field`
+ * gives a `<textarea>` child this string, and `smallTextareaClass` with
+ * `size="small"`.
+ */
+export const textareaClass = `min-h-28 ${fieldBody}`;
+
+export const smallTextareaClass = `min-h-28 ${smallFieldBody}`;
+
+/**
+ * A file input (#39): `fieldClass`, so the 44px floor and the 16px text below
+ * `md` come with it, and the browser's button (`::file-selector-button`,
+ * Tailwind's `file:` variant) drawn as `subtleButtonClass` is: the same border,
+ * padding, 12px text and teal-soft hover. Pairs are `ink` on `paper` and on
+ * `teal-soft`, both held in `TOKEN_PAIRS`.
+ */
+export const fileFieldClass =
+  `${fieldClass} file:mr-3 file:cursor-pointer file:rounded-md file:border file:border-grid-strong file:bg-paper file:px-2.5 file:py-1.5 file:text-xs file:text-ink hover:file:bg-teal-soft`;
 
 export const labelClass = "flex flex-col gap-1 text-xs font-medium text-ink";
 

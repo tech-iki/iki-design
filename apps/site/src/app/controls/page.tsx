@@ -9,6 +9,7 @@ import {
   cellCursor,
   cellHover,
   fieldClass,
+  fileFieldClass,
   focusRing,
   focusRingOnNavy,
   iconButtonClass,
@@ -17,7 +18,9 @@ import {
   linkClass,
   primaryButtonClass,
   smallFieldClass,
+  smallTextareaClass,
   subtleButtonClass,
+  textareaClass,
   touchTarget,
   warnButtonClass,
   warnIconButtonClass,
@@ -142,7 +145,7 @@ export default function ControlsPage() {
         </P>
         <Specimen
           name="labelClass, fieldClass"
-          note="Borders use `grid-strong`: a control boundary needs 3:1."
+          note="Borders use `grid-strong`: a control boundary needs 3:1. The text is 16px below `md` and 14px from `md`, so iOS does not zoom the page on focus."
           classString={`${labelClass}\n${fieldClass}`}
         >
           <label className={`${labelClass} w-full max-w-sm`}>
@@ -164,6 +167,26 @@ export default function ControlsPage() {
               defaultValue="Looks right to me"
               className={smallFieldClass}
             />
+          </label>
+        </Specimen>
+        <Specimen
+          name="textareaClass, smallTextareaClass"
+          note="The field class with a minimum of four rows (`min-h-28`). `Field` applies them to a textarea child."
+          classString={`${textareaClass}\n${smallTextareaClass}`}
+        >
+          <label className={`${labelClass} w-full max-w-sm`}>
+            Message
+            <textarea name="message" defaultValue="Short." className={textareaClass} />
+          </label>
+        </Specimen>
+        <Specimen
+          name="fileFieldClass"
+          note="The field class, so 44px below `md`, with the browser’s button drawn as the subtle button."
+          classString={fileFieldClass}
+        >
+          <label className={`${labelClass} w-full max-w-sm`}>
+            Attachment
+            <input type="file" name="attachment" className={fileFieldClass} />
           </label>
         </Specimen>
         <Specimen

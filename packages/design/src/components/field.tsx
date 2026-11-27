@@ -7,9 +7,17 @@ import {
   type AriaAttributes,
   type ComponentPropsWithoutRef,
   type ReactElement,
+  type ReactNode,
 } from "react";
 
-import { fieldClass, invalidFieldMark, labelClass, smallFieldClass } from "../ui-classes.js";
+import {
+  fieldClass,
+  invalidFieldMark,
+  labelClass,
+  smallFieldClass,
+  smallTextareaClass,
+  textareaClass,
+} from "../ui-classes.js";
 
 /** The props `Field` sets on the control it wraps. */
 type ControlProps = {
@@ -25,7 +33,10 @@ export const fieldFrameClass = "flex flex-col gap-1";
 /** The classes of a hint line under a field. */
 export const fieldHintClass = "text-xs text-ink-muted";
 
-/** The classes of the error line under a field: `role="alert"` text in the overdue red. */
+/**
+ * The classes of the error line under a field: text in the overdue red, a
+ * `role="alert"` unless `announceError={false}` turns the announcement off.
+ */
 export const fieldErrorClass = "text-xs text-health-overdue-fg";
 
 /**
@@ -42,7 +53,17 @@ export const fieldErrorClass = "text-xs text-health-overdue-fg";
  * `aria-describedby` pointing at the error and the hint so both are read with
  * the field; `aria-invalid` and the invalid border and fill when there is an
  * error, so the refused field is drawn to be found by scrolling (Work OS
- * #161). The error is `role="alert"`, so it is announced when it appears.
+ * #161). The error is `role="alert"`, so it is announced when it appears —
+ * unless `announceError={false}` (#40), for a form that shows its own error
+ * summary and moves focus to it: the summary is then the announcement, and a
+ * second alert per field would read every error twice. The error keeps its id,
+ * its place in `aria-describedby` and `aria-invalid`; only the role goes.
+ * The default is `true`, so nothing changes for a form that does not ask.
+ *
+ * `label` and `hint` are `ReactNode` (#39), so a call site can pass an
+ * expression. The label is still the control's accessible name, and the hint
+ * still sits outside it. A `<textarea>` child gets `textareaClass` (or
+ * `smallTextareaClass`), the field class with a four-row minimum height.
  *
  * `size` picks `fieldClass` or `smallFieldClass`; a `className` the child
  * brought is appended for layout (`w-24`), never swapped in for the base. A
@@ -57,14 +78,20 @@ export function Field({
   label,
   hint,
   error,
+  announceError = true,
   size = "default",
   className,
   children,
   ...rest
 }: {
-  label: string;
-  hint?: string;
+  label: ReactNode;
+  hint?: ReactNode;
   error?: string;
+  /**
+   * Whether the error is a `role="alert"`. `false` for a form with its own
+   * error summary that takes focus; the error stays linked to the control.
+   */
+  announceError?: boolean;
   size?: "default" | "small";
   children: ReactElement<ControlProps>;
 } & Omit<ComponentPropsWithoutRef<"div">, "children">) {
@@ -79,7 +106,11 @@ export function Field({
   const errorId = error ? `${id}-error` : undefined;
   const describedBy =
     [control.props["aria-describedby"], errorId, hintId].filter(Boolean).join(" ") || undefined;
-  const base = size === "small" ? smallFieldClass : fieldClass;
+  const isTextarea = control.type === "textarea";
+  const base =
+    size === "small"
+      ? isTextarea ? smallTextareaClass : smallFieldClass
+      : isTextarea ? textareaClass : fieldClass;
   const controlClass = [base, error ? invalidFieldMark : "", control.props.className ?? ""]
     .filter(Boolean)
     .join(" ");
@@ -96,7 +127,7 @@ export function Field({
         })}
       </label>
       {error ? (
-        <span id={errorId} role="alert" className={fieldErrorClass}>
+        <span id={errorId} role={announceError ? "alert" : undefined} className={fieldErrorClass}>
           {error}
         </span>
       ) : null}

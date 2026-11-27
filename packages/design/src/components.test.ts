@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
-import { Fragment, createElement } from "react";
+import { Fragment, createElement, type ComponentProps, type ReactElement, type ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, it } from "vitest";
+import { describe, expect, expectTypeOf, it } from "vitest";
 
 import { Button } from "./components/button.js";
 import { EmptyState, emptyStateClass, emptyStateTextClass } from "./components/empty-state.js";
@@ -174,7 +174,67 @@ describe("Field", () => {
     expect(small).toBe(`${classes.smallFieldClass} when size=small`);
     expect(`${classes.fieldClass} ${invalid.replace("+ ", "").replace(" when error", "")}`).toBe(classes.invalidFieldClass);
     expect(line(body, "hint")).toBe(fieldHintClass);
-    expect(line(body, "error")).toBe(`${fieldErrorClass}   (role="alert")`);
+    expect(line(body, "error")).toBe(`${fieldErrorClass}   (role="alert"; none when announceError={false})`);
+    const [textarea, smallTextarea] = line(body, "textarea").split("   (")[0].split(" | ");
+    expect(textarea).toBe("{textareaClass}");
+    expect(smallTextarea).toBe("{smallTextareaClass} when size=small");
+  });
+
+  // #40: a form with its own error summary turns the per-field alert off.
+  it("the error is a role=alert by default, and announceError={false} drops only the role", () => {
+    const on = html(createElement(Field, { label: "Due", error: "Bad date.", children: input() }));
+    expect(on).toContain('role="alert"');
+    const off = html(createElement(Field, { label: "Due", announceError: false, error: "Bad date.", children: input() }));
+    const id = off.match(/<input[^>]* id="([^"]+)"/)?.[1];
+    expect(off).not.toContain("role=");
+    expect(off).toContain(`<span id="${id}-error" class="${fieldErrorClass}">Bad date.</span>`);
+    expect(off).toContain(`aria-describedby="${id}-error"`);
+    expect(off).toContain('aria-invalid="true"');
+    expect(classOf(off, 2)).toBe(classes.invalidFieldClass);
+    // The prop is explicit-true the same as the default.
+    expect(html(createElement(Field, { label: "Due", announceError: true, error: "Bad date.", children: input() }))).toContain(
+      'role="alert"',
+    );
+  });
+
+  it("announceError without an error renders nothing extra", () => {
+    const markup = html(createElement(Field, { label: "Due", announceError: false, children: input() }));
+    expect(markup).not.toContain("role=");
+    expect(markup).not.toContain("aria-invalid");
+  });
+
+  // #39: label and hint take any node; the hint stays outside the label.
+  it("takes a node for the label and the hint", () => {
+    expectTypeOf<ComponentProps<typeof Field>["label"]>().toEqualTypeOf<ReactNode>();
+    expectTypeOf<ComponentProps<typeof Field>["hint"]>().toEqualTypeOf<ReactNode>();
+    const markup = html(
+      createElement(Field, {
+        label: createElement("span", null, "Title ", createElement("em", null, "(required)")),
+        hint: createElement("span", null, "Up to ", createElement("strong", null, "60"), " characters."),
+        children: input(),
+      }),
+    );
+    expect(markup).toMatch(/<label[^>]*><span>Title <em>\(required\)<\/em><\/span><input/);
+    expect(markup).toMatch(/<\/label><span id="[^"]+-hint"[^>]*><span>Up to <strong>60<\/strong> characters\.<\/span><\/span>/);
+    // An expression that is empty adds no hint line and no describedby.
+    const none = html(createElement(Field, { label: "T", hint: false, children: input() }));
+    expect(none).not.toContain("-hint");
+    expect(none).not.toContain("aria-describedby");
+  });
+
+  // #39: the textarea minimum; other controls keep the field class.
+  it("gives a textarea the class with a minimum height, and only a textarea", () => {
+    const area = (props: Record<string, unknown> = {}) => createElement("textarea", { name: "notes", ...props }) as ReactElement<{ className?: string }>;
+    expect(classOf(html(createElement(Field, { label: "Notes", children: area() })), 2)).toBe(classes.textareaClass);
+    expect(classOf(html(createElement(Field, { label: "Notes", size: "small", children: area() })), 2)).toBe(
+      classes.smallTextareaClass,
+    );
+    expect(classOf(html(createElement(Field, { label: "Notes", error: "e", children: area({ className: "w-full" }) })), 2)).toBe(
+      `${classes.textareaClass} ${classes.invalidFieldMark} w-full`,
+    );
+    expect(classOf(html(createElement(Field, { label: "Notes", children: createElement("select", null) })), 2)).toBe(
+      classes.fieldClass,
+    );
   });
 });
 

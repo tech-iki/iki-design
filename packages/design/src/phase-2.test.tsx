@@ -21,7 +21,7 @@ import { Combobox } from "./components/combobox.js";
 import { Drawer } from "./components/drawer.js";
 import { Tab, TabList, TabPanel, Tabs } from "./components/tabs.js";
 import { Tooltip } from "./components/tooltip.js";
-import { Field, fieldErrorClass, fieldHintClass } from "./components/field.js";
+import { Field, fieldErrorClass, fieldFrameClass, fieldHintClass } from "./components/field.js";
 import { ActionsHeader, TableFrame, rowClass } from "./components/table-frame.js";
 import * as classes from "./ui-classes.js";
 
@@ -180,6 +180,54 @@ describe("Checkbox and Radio", () => {
     expect(hasClasses(label, "has-disabled:text-ink-muted sm:col-span-2")).toBe(true);
   });
 
+  // #39: hint and error, as Field's.
+  it("with neither a hint nor an error, renders exactly as before", () => {
+    render(<Checkbox label="Plain" name="p" />);
+    const box = screen.getByRole("checkbox", { name: "Plain" });
+    expect(box.hasAttribute("id")).toBe(false);
+    expect(box.hasAttribute("aria-describedby")).toBe(false);
+    expect(box.hasAttribute("aria-invalid")).toBe(false);
+    expect(box.closest("label")!.parentElement).toBe(document.body.firstElementChild);
+  });
+
+  it("with an error, is aria-invalid, described by an alert outside its label", () => {
+    render(<Checkbox label="I agree" name="agree" error="You must agree to continue." hint="Required." className="sm:col-span-2" />);
+    const box = screen.getByRole("checkbox", { name: "I agree" });
+    expect(box.getAttribute("aria-invalid")).toBe("true");
+    const alert = screen.getByRole("alert");
+    expect(alert.className).toBe(fieldErrorClass);
+    expect(alert.id).toBeTruthy();
+    const hint = screen.getByText("Required.");
+    expect(hint.className).toBe(fieldHintClass);
+    expect(box.getAttribute("aria-describedby")).toBe(`${alert.id} ${hint.id}`);
+    expect(alert.id).toBe(`${box.id}-error`);
+    // The lines are the label's siblings: its name is the words alone, and the frame carries `className`.
+    expect(box.closest("label")!.contains(alert)).toBe(false);
+    expect(box.closest("label")!.className).toBe(classes.choiceLabelClass);
+    const frame = alert.parentElement!;
+    expect(frame.className).toBe(`${fieldFrameClass} sm:col-span-2`);
+    expect(frame.contains(box)).toBe(true);
+  });
+
+  it("keeps the input's own id and describedby, and a hint alone is not invalid", () => {
+    render(<Checkbox label="Notify" id="notify" aria-describedby="outer" hint="By email." />);
+    const box = screen.getByRole("checkbox", { name: "Notify" });
+    expect(box.id).toBe("notify");
+    expect(box.getAttribute("aria-describedby")).toBe("outer notify-hint");
+    expect(box.hasAttribute("aria-invalid")).toBe(false);
+    expect(screen.queryByRole("alert")).toBeNull();
+  });
+
+  it("announceError={false} leaves the error linked but not an alert (#40)", () => {
+    render(<Checkbox label="I agree" error="You must agree." announceError={false} />);
+    const box = screen.getByRole("checkbox", { name: "I agree" });
+    expect(screen.queryByRole("alert")).toBeNull();
+    const reason = screen.getByText("You must agree.");
+    expect(reason.hasAttribute("role")).toBe(false);
+    expect(box.getAttribute("aria-describedby")).toBe(reason.id);
+    expect(box.getAttribute("aria-invalid")).toBe("true");
+  });
+
   it("takes the accent from a token and keeps the touch floor below md", () => {
     expect(classes.choiceInputClass).toContain("accent-teal-deep");
     expect(classes.choiceInputClass).toContain(classes.focusRing);
@@ -241,6 +289,17 @@ describe("RadioGroup", () => {
     expect(alert.className).toBe(fieldErrorClass);
     expect(screen.getByRole("group", { name: "Sort" }).getAttribute("aria-describedby")).toBe(alert.id);
     for (const radio of screen.getAllByRole("radio")) expect(radio.matches(":disabled")).toBe(true);
+  });
+
+  it("announceError={false} leaves the group's error linked but not an alert (#40)", () => {
+    render(
+      <RadioGroup legend="Sort" name="sort" error="Choose a sort." announceError={false}>
+        <Radio label="Due" value="due" />
+      </RadioGroup>,
+    );
+    expect(screen.queryByRole("alert")).toBeNull();
+    const reason = screen.getByText("Choose a sort.");
+    expect(screen.getByRole("group", { name: "Sort" }).getAttribute("aria-describedby")).toBe(reason.id);
   });
 
   it("§8 shows the parts", () => {
