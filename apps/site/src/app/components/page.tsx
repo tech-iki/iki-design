@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import {
   ActionsHeader,
+  BackLink,
   Button,
   Checkbox,
   EmptyState,
@@ -14,11 +15,14 @@ import {
   Notice,
   PageMain,
   PageTitle,
+  Pagination,
+  PrevNextNav,
   Radio,
   RadioGroup,
   Rail,
   RailBrand,
   TableFrame,
+  ViewSwitch,
   fileFieldClass,
   primaryLinkButtonClass,
   subtleLinkButtonClass,
@@ -345,6 +349,20 @@ function SpecimenRail({ label, collapsed = false }: { label: string; collapsed?:
 const KPI_USE = `<KpiTile label="Open tasks" value={42} hint="across 6 workstreams" />
 <KpiTile label="Due soon" value={7} hint="in the next 7 days" tone="warm" />
 <KpiTile label="Overdue" value={3} hint="past their deadline" tone="overdue" />`;
+
+const LINK_NAV_USE = `// Every destination is a link: the caller supplies the href, the router's Link comes through render.
+import Link from "next/link";
+<Pagination page={page} totalPages={totalPages} hrefFor={(n) => \`/library?page=\${n}\`} render={<Link href="/" />} label="Pagination, library" />
+
+// React Router takes \`to\`, so a function hands the href over.
+<Pagination page={page} totalPages={totalPages} hrefFor={(n) => \`?page=\${n}\`}
+  render={({ href, ...props }) => <Link {...props} to={href ?? ""} />} />
+
+<PrevNextNav label="Fortnights" current="13–26 Nov 2026"
+  previous={{ href: "?f=prev", label: "Previous fortnight" }} next={{ href: "?f=next", label: "Next fortnight" }}
+  today={{ href: "?", label: "This fortnight" }} />
+<ViewSwitch label="View" current="board" views={[{ id: "board", href: "?view=board", label: "Board" }, { id: "list", href: "?view=list", label: "List" }]} />
+<BackLink render={<Link href="/library" />}>Back to library</BackLink>`;
 
 export default function ComponentsPage() {
   return (
@@ -748,11 +766,77 @@ export default function ComponentsPage() {
           <Mono>aria-current</Mono> from its own matching and overrides the
           package, so a page could have two current links or none. The
           package’s <Mono>current</Mono> is the single source.{" "}
-          <Mono>Pagination</Mono> and <Mono>BackLink</Mono> will take the same
-          prop.
+          So do <Mono>Pagination</Mono>, <Mono>PrevNextNav</Mono>,{" "}
+          <Mono>ViewSwitch</Mono> and <Mono>BackLink</Mono>, below.
         </P>
         <CodeBlock code={ROUTER_USE} />
         <CodeBlock code={ACTIVE_USE} />
+      </Section>
+
+      <Section title="Link navigation">
+        <P>
+          <Mono>Pagination</Mono>, <Mono>PrevNextNav</Mono>,{" "}
+          <Mono>ViewSwitch</Mono> and <Mono>BackLink</Mono> (§8): every
+          destination is a link, not a button, so a page is a URL that opens
+          in a new tab and works before any script loads. The caller supplies
+          the hrefs; these specimens use this site’s own <Mono>Link</Mono>{" "}
+          through <Mono>render</Mono>. The current page is not a link: it is
+          marked by weight and a bar as well as colour. At either end,
+          Previous or Next is a dimmed non-link that Tab skips and a screen
+          reader reads as unavailable. Long ranges truncate with an ellipsis
+          that is not a link; below <Mono>sm</Mono> the Previous and Next
+          words give way to their arrows and stay their names. Every target is
+          44px below <Mono>md</Mono>.
+        </P>
+        <Specimen name="Pagination: first, middle and last of 10 pages, and 1000">
+          <div className="flex w-full flex-col gap-3">
+            {[1, 5, 10].map((page) => (
+              <Pagination
+                key={page}
+                page={page}
+                totalPages={10}
+                label={`Pagination, page ${page} of 10`}
+                hrefFor={(n) => `/components?page=${n}#link-navigation`}
+                render={<Link href="/" />}
+              />
+            ))}
+            <Pagination
+              page={500}
+              totalPages={1000}
+              label="Pagination, page 500 of 1000"
+              hrefFor={(n) => `/components?page=${n}#link-navigation`}
+              render={<Link href="/" />}
+            />
+          </div>
+        </Specimen>
+        <Specimen name="PrevNextNav" note="Work OS’s fortnight stepper. The arrows are decorative; the label is the name.">
+          <PrevNextNav
+            label="Fortnights"
+            current="13–26 Nov 2026"
+            previous={{ href: "/components#link-navigation", label: "Previous fortnight" }}
+            next={{ href: "/components#link-navigation", label: "Next fortnight" }}
+            today={{ href: "/components#link-navigation", label: "This fortnight" }}
+            render={<Link href="/" />}
+          />
+        </Specimen>
+        <Specimen
+          name="ViewSwitch"
+          note="A view changes the URL, so it is a ViewSwitch; panels that change on one page are Tabs."
+        >
+          <ViewSwitch
+            label="View"
+            current="board"
+            views={[
+              { id: "board", href: "/components#link-navigation", label: "Board" },
+              { id: "list", href: "/components#link-navigation", label: "List" },
+            ]}
+            render={<Link href="/" />}
+          />
+        </Specimen>
+        <Specimen name="BackLink" note="The words name the destination; the arrow is decorative.">
+          <BackLink render={<Link href="/components" />}>Back to components</BackLink>
+        </Specimen>
+        <CodeBlock code={LINK_NAV_USE} />
       </Section>
 
       <Section title="KPI tile">

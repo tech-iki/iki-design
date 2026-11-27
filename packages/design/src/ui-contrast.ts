@@ -307,4 +307,15 @@ export const TOKEN_PAIRS: {
     bg: TOKENS.navy,
     kind: "nonText",
   },
+
+  /*
+   * Navigation by links (#20, #22): `Pagination`, `PrevNextNav`, `ViewSwitch`
+   * and `BackLink` add no pair, because every colour they draw is one held
+   * above: the links are "link: teal-deep on paper" and on paper-tint, hover is
+   * "workstream code: navy on teal-soft", the current item and the bar are
+   * "body: ink on paper" and the same teal-deep on paper (held at the text
+   * threshold, so stricter than a graphic needs), and an unavailable end or an
+   * ellipsis is "secondary: ink-muted on paper". Listed again they would only
+   * be duplicates.
+   */
 ];

@@ -102,6 +102,36 @@ token or class is a major.
   rendered unasserted; the `paper/70` of Work OS's child links joins with a
   child-link component when there is one.
 
+- Navigation by links (#20, #22), server-safe, `...rest` on each root, every
+  link taking `render` (the router-link convention above): `Pagination`,
+  `PrevNextNav`, `ViewSwitch` and `BackLink`. The caller supplies every href
+  (`Pagination` takes `hrefFor(page)`); nothing reads the router.
+  - `Pagination` (`page`, `totalPages`, `hrefFor`, `label`, `siblings`): a
+    `<nav>` named "Pagination" by default; returns nothing for one page; Previous
+    and Next carry `rel`, and at an end are `<span role="link"
+    aria-disabled="true">` with no `href` and no tab stop; the current page is a
+    `<span aria-current="page">`, marked by weight and a bar that survives
+    forced colours; long ranges truncate with an `aria-hidden` ellipsis; links
+    are named "Page 3", "Previous page", "Next page". The Digital Library's
+    button-callback pagination becomes links (its #107).
+  - `PrevNextNav` (`label`, `current`, `previous`, `next`, `today`): the
+    period stepper of Work OS's fortnight and holiday-year navs.
+  - `ViewSwitch` (`label`, `views`, `current`): a nav of links, the current
+    view `aria-current="page"` with weight and a bar. Closes the second half of
+    #22; §8 says when it is right and when `Tabs` is.
+  - `BackLink`: a leading arrow (`icon`, `previous` by default) and the
+    destination in the words ("Back to submissions"), 44px below `md`.
+  - `pageRange`, `clampPage` and `wholePages` (`page-range.ts`): the
+    truncation as a pure function, tested at 1, 2, 7, 10 and 1000 pages, at
+    each end and with an invalid current page.
+  - The strings `linkNavListClass`, `linkNavItemClass`, `linkNavLinkClass`,
+    `linkNavCurrentClass`, `linkNavUnavailableClass`, `linkNavGapClass`,
+    `linkNavLabelClass` and `backLinkClass`, in §8's new `classes:linknav`
+    block. No new token and no new `TOKEN_PAIRS` entry: every colour is a pair
+    already held, named in a comment in `ui-contrast.ts`. No new icon.
+  - The showcase's `/components` draws each, with Next's `Link` through
+    `render`.
+
 ### Changed
 
 - **Docs: §13b.** The Digital Library's adoption path now follows its decision

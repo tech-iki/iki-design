@@ -170,6 +170,7 @@ const PLACEHOLDER: Readonly<Record<string, string>> = {
   "{primaryButtonClass}": classes.primaryButtonClass,
   "{subtleButtonClass}": classes.subtleButtonClass,
   "{focusRingOnNavy}": classes.focusRingOnNavy,
+  "{linkNavItemClass}": classes.linkNavItemClass,
 };
 
 /** `name  classes` lines → name → classes, placeholders expanded. */
@@ -201,6 +202,8 @@ const CLASS_BLOCKS = [
   "classes:combobox",
   // The app shell (#19): §7's rail and skip link, held as §8's are.
   "classes:nav",
+  // Navigation by links (#20, #22): §8's Pagination, PrevNextNav, ViewSwitch and BackLink.
+  "classes:linknav",
 ] as const;
 
 /**
